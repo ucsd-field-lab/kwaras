@@ -1,0 +1,22 @@
+body {
+	font-family:"Doulos SIL", "Charis SIL", Gentium, "Arial Unicode MS","Lucida Sans Unicode", Arial, Serif;
+	font-size: 0.9em;
+	text-align: center
+}
+ 
+#header {
+    height: 83px;
+    min-height: 83px;
+}
+ 
+#footer {
+    height:211px;
+    min-height:211px;
+}
+ 
+#bg {
+    min-height: 500px;
+}
+
+#inhead {
+}

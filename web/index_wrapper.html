@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en"><head>
+  
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Kwaras Corpus</title>
+  <link rel="stylesheet" href="css/fm.css" type="text/css">
+  <link type="text/css" href="css/smoothness/jquery-ui-1.8.18.custom.css" rel="stylesheet">
+  <script type="text/javascript" src="js/jquery.js"></script>
+  <script type="text/javascript" src="js/jquery-ui-1.8.18.custom.min.js"></script>
+
+  
+  <style type="text/css" title="currentStyle">
+			@import "css/demo_page.css";
+			@import "css/demo_table_jui.css";
+			@import "css/smoothness/jquery-ui-1.8.18.custom.css";
+			@import "css/ColVis.css";
+			@import "css/TableTools_JUI.css";
+	</style>
+
+  <script type="text/javascript" src="js/jquery.js"></script>
+  <script type="text/javascript" language="javascript" src="js/jquery.dataTables.js"></script>
+  <script type="text/javascript" language="javascript" src="js/jquery.media.js"></script>
+  <script type="text/javascript" language="javascript" src="js/jquery.metadata.js"></script>
+  <script type="text/javascript" src="js/TableTools.min.js"></script>
+  <script type="text/javascript" src="js/ColVis.js"></script>
+
+  <script type="text/javascript" charset="utf-8">
+	function getParam(name) {
+		name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+		var regexS = "[\\?&]" + name + "=([^&#]*)";
+		var regex = new RegExp(regexS);
+		var results = regex.exec(window.location.search);
+		if (results == null)
+			return "";
+		else
+			return decodeURIComponent(results[1].replace(/\+/g, " "));
+	};
+
+	$(document).ready(function() {
+		var iColumns = $('#clip_metadata thead th').length;
+
+		var oTable = $('#clip_metadata').dataTable({
+			"sDom": '<"H"fp<TC>r>t<"F"ilp>',
+			"bJQueryUI" : true,
+			"sPaginationType" : "full_numbers",
+			"oSearch" : {
+				"sSearch" : getParam("q")
+			},
+		"oColVis": {
+			"buttonText": "Columns"
+		},
+			"aoColumnDefs": [
+				{ "bVisible": false, "aTargets": [ "Hide" ] },
+      			{ "sWidth": "20%", "aTargets": [ "Trans" ] }
+    		],
+
+		"oTableTools": {
+            "aButtons": [
+                {
+                    "sExtends":    "collection",
+					  "sButtonText": "Duplicates",
+						"aButtons": [
+							{
+								"sExtends": "text",
+								"sButtonText": "Show",
+								"fnClick": function ( nButton, oConfig, oFlash ) {
+                        				oTable.fnFilter("",iColumns-1);
+                    			}
+							},
+							{
+								"sExtends": "text",
+								"sButtonText": "Hide",
+								"fnClick": function ( nButton, oConfig, oFlash ) {
+                        				oTable.fnFilter("-1", iColumns-1);
+                    			}								
+							}]
+                }
+			]
+		}
+		});
+
+		if (getParam("q") === '') {
+			oTable.fnFilter("-1", iColumns-1)
+		}
+
+		$('tr').live('click', function() {
+			var clip = $(this).attr('clip');
+			$('#play').html('<a class="media" href="clips/' + clip + '">' + clip + '</a>');
+			$('a.media').media({
+				width : 300,
+				height : 20,
+				autoplay : true
+			});
+		});
+	});
+
+</script>
+</head><body>
+
+<div class="container">
+
+<!-- table of metadata goes here -->
+
+</div>
+
+	<div id="play">&nbsp;</div>
+
+</body></html>
