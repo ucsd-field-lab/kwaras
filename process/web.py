@@ -41,7 +41,7 @@ New copy of wav clip to be copied to fileshare is created under the name:
 """
 __author__ = 'rhorton is a student at ucsd dawt edu'
 
-import os, random
+import os, random, sys
 import wave
 from formats import utfcsv # local module
 from csv import excel_tab
@@ -57,23 +57,25 @@ from xml.etree import ElementTree as etree
 #meta_dir = working_dir+'comm' # csv data output
 
 ## EDIT HERE TO MATCH YOUR ENVIRONMENT
-#working_dir = "/Users/lucien/Data/Raramuri/"
-#export_file = working_dir+'ELAN Corpus/rar-com.txt' # ELAN export file
-#meta_file = working_dir+'ELAN Corpus/metadata_raramuri_2011.csv' # From Google doc
-#eaf_dir = working_dir+'ELAN Corpus' #  EAF input
-#wav_dir = working_dir+'WAV' # WAV input
-#clip_dir = '/Users/lucien/Data/Corpus-o-matic/Raramuri/comm/clips' # wav clip output
-#meta_dir = '/Users/lucien/Data/Corpus-o-matic/Raramuri/comm' # csv data output
+working_dir = "/Users/lucien/Data/Raramuri/"
+export_file = working_dir+'ELAN Corpus/rar-new.csv' # ELAN export file
+meta_file = working_dir+'ELAN Corpus/metadata_raramuri_2011.csv' # From Google doc
+eaf_dir = working_dir+'ELAN Corpus/new' #  EAF input
+wav_dir = working_dir+'WAV' # WAV input
+clip_dir = '/Users/lucien/Data/Corpus-o-matic/Raramuri/comm/clips' # wav clip output
+meta_dir = '/Users/lucien/Data/Corpus-o-matic/Raramuri/comm' # csv data output
 
 # EDIT HERE TO MATCH YOUR ENVIRONMENT
-working_dir = "/Users/lucien/Data/Mixtec/"
-export_file = working_dir+'Transcriptions/min_feb14.csv' # ELAN export file
-meta_file = working_dir+'MixtecoMetadata.csv' # From Google doc
-eaf_dir = working_dir+'Transcriptions/new/' #  EAF input
-wav_dir = working_dir+'WAV' # WAV input
-clip_dir = '/Users/lucien/Data/Corpus-o-matic/Mixtec/comm/clips' # wav clip output
-meta_dir = '/Users/lucien/Data/Corpus-o-matic/Mixtec/comm' # csv data output
+#working_dir = "/Users/lucien/Data/Mixtec/"
+#export_file = working_dir+'Transcriptions/min_feb14.csv' # ELAN export file
+#meta_file = working_dir+'MixtecoMetadata.csv' # From Google doc
+#eaf_dir = working_dir+'Transcriptions/new/' #  EAF input
+#wav_dir = working_dir+'WAV' # WAV input
+#clip_dir = '/Users/lucien/Data/Corpus-o-matic/Mixtec/comm/clips' # wav clip output
+#meta_dir = '/Users/lucien/Data/Corpus-o-matic/Mixtec/comm' # csv data output
+
 comment_field = "Annotation (other)" # necessary only if used for speaker annotation
+wrapper = "../web/index_wrapper.html"
 
 def main():
     """Perform the metadata extraction and file renaming."""
@@ -133,6 +135,8 @@ def main():
             tokens[gkey] = ''.join([str(random.randint(0,9)) for i in range(8)])
             tokens[ckey] = tokens[gkey]+"-1"
 
+    if not os.path.exists(clip_dir):
+        os.mkdir(clip_dir)
 
     print "Started clipping."
     
@@ -151,12 +155,13 @@ def main():
         
         # If the filename for output already exists, add a number to it
         file_index = ''
-        while os.path.exists(clip_dir + '/' + clip_base + str(file_index)
-                             + '.wav'):
-            if file_index == '':
-                file_index = 1
-            else:
-                file_index += 1
+        if False: # set to over-write
+            while os.path.exists(clip_dir + '/' + clip_base + str(file_index)
+                                 + '.wav'):
+                if file_index == '':
+                    file_index = 1
+                else:
+                    file_index += 1
 
         clip_file = clip_base + str(file_index) + '.wav'
         
@@ -209,6 +214,22 @@ def main():
 
     table_fh.write('</tbody>\n</table>\n')
     clip_fh.close()
+    table_fh.close()
+    
+    this_dir = os.path.dirname(sys.argv[-1])
+    wrap_fh = open(os.path.join(this_dir,wrapper),'rb')
+
+    table_fh = open(meta_dir + '/clip_metadata.html', 'rb')
+    
+    index_fh = open(meta_dir + '/index.html', 'wb')
+
+    for line in wrap_fh:
+        index_fh.write(line)
+        if line.startswith('<div class="container"'):
+            index_fh.writelines(list(table_fh))
+            
+    index_fh.close()
+    
 
 
 def find_wav_file(eaf_file):
@@ -281,14 +302,15 @@ def filter_clippables(clippables, eaf_wav_files, eaf_creators):
 
 def get_speakers(meta_file, spk_field= "Contributor"):
     """Parse the metadata file to return Speaker guesses for each WAV file"""
-    fh = utfcsv.UnicodeReader( open(meta_file, 'r'), fieldnames= True )
+    fh = utfcsv.UnicodeReader( open(meta_file, 'r'), dialect="excel-tab", fieldnames= True )
     
     print fh.fieldnames
+    name_field = [f for f in ["Name", "File"] if f in fh.fieldnames][0]
     
     spk = {}
     for line in fh:
         if line["Format"].lower() == ("wav"):
-            spk[line["Name"]] = line[spk_field]
+            spk[line[name_field]] = line[spk_field]
             
     return spk
     
@@ -314,7 +336,7 @@ def parse_export_file(filename,fields=[]):
 
     tiers = {}
 
-    fh = utfcsv.UnicodeReader(open(filename, 'r'),dialect=excel_tab)
+    fh = utfcsv.UnicodeReader(open(filename, 'r'))
 
     if fields: # only pay attention to specified fields
         for f in fields:

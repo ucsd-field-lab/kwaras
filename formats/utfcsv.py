@@ -99,12 +99,12 @@ class UnicodeWriter:
     which is either a filename or an open filestream encoded in the given encoding.
     """
 
-    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
+    def __init__(self, f, dialect=csv.excel, encoding="utf-8", mode="wb", **kwds):
         # Redirect output to a queue
         self.queue = cStringIO.StringIO()
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
         if isinstance(f,(str,unicode)):
-            self.stream = open(f,"wb") # if passed a string, assume it's a filename
+            self.stream = open(f,mode) # if passed a string, assume it's a filename
             # self.filename = f
         else:
             self.stream = f # otherwise assume it is file-like stream

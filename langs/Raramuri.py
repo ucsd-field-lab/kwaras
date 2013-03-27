@@ -18,20 +18,42 @@ def Orth2IPA(u):
         u"sh":u"ʃ",
         u"š":u"ʃ",
         u"¢":u"ts",
-   #     u"r":u"ɾ",
+   #     u"r":u"ɾ",    # leaving r ambiguous
         u"y":u"j",
-        u"'":u"ʔ"},
+        u"'":u"ʔ",
+        u"’":u"ʔ"},
         {u"ɾɾ":u"r"},
         {u"á":u"ˈXa", # compound
+         u"â":u"ˈXa",
+         u"à":u"ˈXa",         
          u"á":u"ˈXa",# combining
+         u"â":u"ˈXa",
+         u"à":u"ˈXa",
         u"é":u"ˈXe", # compound
+        u"ê":u"ˈXe", 
+        u"è":u"ˈXe",         
         u"é":u"ˈXe",# combining
+        u"ê":u"ˈXe",
+        u"è":u"ˈXe",
         u"í":u"ˈXi", # compound
+        u"î":u"ˈXi", 
+        u"ì":u"ˈXi", 
         u"í":u"ˈXi",# combining
+        u"î":u"ˈXi",
+        u"ì":u"ˈXi",
          u"ó":u"ˈXo", # compound
+         u"ô":u"ˈXo", 
+         u"ò":u"ˈXo",          
         u"ó":u"ˈXo", # combining
+        u"ô":u"ˈXo",
+        u"ò":u"ˈXo",
         u"ú":u"ˈXu", # compound
-         u"ú":u"ˈXu"} # combining
+        u"û":u"ˈXu", 
+        u"ù":u"ˈXu",                 
+         u"ú":u"ˈXu", # combining
+         u"û":u"ˈXu",
+         u"ù":u"ˈXu"}
+              
         ]
     for oset in _orth_:
         for okey in oset:
@@ -40,20 +62,25 @@ def Orth2IPA(u):
     u = re.sub(u"([^aeiouɪɛəɔʊ ])ˈX",u"ˈX\g<1>",u) # move the stress mark before C
     u = re.sub(u"tˈX",u"ˈXt",u) # move it again in the case of tʃ
     u = re.sub(u"X",u"",u) # take out the marker of a new stress mark
+    u = re.sub(u"[=\-\[\]]","",u)
+    u = re.sub(u"\/"," ",u)
     return u
 
-def cleanEaf(eafile):
+def cleanEaf(filename, template):
     
     _orthtier = "Broad"
     _wordtier = "Word"
     
+    eafile = eaf.Eaf(filename)
+    
     # back up the orthographic tier
-    bktier = eaf.copyTier(eafile, _orthtier, targ_id=_orthtier+"-bk",
-                          parent=_orthtier, ltype="Free translation")
-    eaf.insertTier(eafile,bktier,after=_orthtier)
+    eafile.importTypes(template)
+    bktier = eafile.copyTier(_orthtier, targ_id="Ortho",
+                          parent=_orthtier, ltype="Alternate transcription")
+    eafile.insertTier(bktier,after=_orthtier)
     
     # use new orthography
-    orthnotes = eaf.getTierById(eafile,_orthtier).iter("ANNOTATION_VALUE")
+    orthnotes = eafile.getTierById(_orthtier).iter("ANNOTATION_VALUE")
     for note in orthnotes:
         if note.text:
             print note.text, ":", repr(note.text)
@@ -61,8 +88,8 @@ def cleanEaf(eafile):
             note.text = note.text.strip()
             print ">",note.text
             
-    if _wordtier in eaf.getTierIds(eafile):
-        wordnotes = eaf.getTierById(eafile,_wordtier).iter("ANNOTATION_VALUE")
+    if _wordtier in eafile.getTierIds():
+        wordnotes = eafile.getTierById(_wordtier).iter("ANNOTATION_VALUE")
     else:
         wordnotes = []
      
@@ -73,28 +100,38 @@ def cleanEaf(eafile):
             note.text = note.text.strip()
             print ">",note.text
             
-
+    # make sure Note tiers are independent
+    if "Note" in eafile.getTierIds():
+        notetier = eafile.getTierById("Note")
+        eafile.changeParent(notetier, None, "Note")
+    
+    # make sure Spanish tiers are dependent
+    if "Spanish" in eafile.getTierIds():
+        spanishtier = eafile.getTierById("Spanish")
+        eafile.changeParent(spanishtier, _orthtier, "Free translation")
+            
     return eafile
                 
 if __name__ == "__main__":
     
-    _FILE_DIR = "R://ELAN corpus/"
-    _OLD_EAFS = ""
+    # _FILE_DIR = "R://ELAN corpus/"
+    _FILE_DIR = "/Users/lucien/Data/Raramuri/ELAN corpus/"
+    _OLD_EAFS = "tx"
     _NEW_EAFS = "new/"
+    _TEMPLATE = "tx/tx1.eaf"
+    _CSV = "rar-new.csv"
+    _EXPORT_FIELDS = ["Broad","Ortho","Spanish","English","Note","Comment"]
 
     for filename in os.listdir(os.path.join(_FILE_DIR,_OLD_EAFS)):
         print filename
         if os.path.splitext(filename)[1].lower() != ".eaf":
             print "Not an eaf:",filename,os.path.splitext(filename)
         else:
-            fstr = open(os.path.join(_FILE_DIR,_OLD_EAFS,filename))
-            eafile = etree.fromstring('\n'.join(fstr))
-            eafile = cleanEaf(eafile)
-            
-            outstr = open(os.path.join(_FILE_DIR,_NEW_EAFS,filename),"w")
-            outstr.write( etree.tostring(eafile) )
-            outstr.close()
-            
-            
+            fpath = os.path.join(_FILE_DIR, _OLD_EAFS, filename)
+            template = os.path.join(_FILE_DIR, _TEMPLATE)
+            eafile = cleanEaf(fpath, template)
+            eafile.write(os.path.join(_FILE_DIR, _NEW_EAFS, filename))
+            eafile.exportToCSV(os.path.join(_FILE_DIR,_CSV), "excel", _EXPORT_FIELDS, "ab")
+
             
             
