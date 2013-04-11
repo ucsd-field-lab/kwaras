@@ -17,8 +17,9 @@ class Eaf:
             raise Exception("Not an EAF:"+filename)
         else:
             self.filename = filename
-            fstr = open(filename)
-            self.eafile = etree.fromstring('\n'.join(fstr))
+            #fstr = open(filename)
+            #self.eafile = etree.fromstring('\n'.join(fstr))
+            self.eafile = etree.parse(filename).getroot()
 
     def getTierIds(self):
         tiers = self.eafile.findall("TIER")
@@ -30,10 +31,22 @@ class Eaf:
         matchlist = [t for t in tiers if t.get("TIER_ID") == tid]
         if len(matchlist) == 1:
             targ = matchlist[0]
+        elif len(matchlist) > 1:
+            tierids = [t.get("TIER_ID") for t in tiers]
+            sizes = [len(list(t)) for t in matchlist]
+            targ = matchlist[sizes.index(max(sizes))] # the largest tier
+            print("WARNING: TIER_ID {} matched {} nodes with lengths {}.\n{}".format(tid,len(matchlist),sizes,tierids))
         else:
-            tierids = list(set( [t.get("TIER_ID") for t in tiers] ))
+            tierids = [t.get("TIER_ID") for t in tiers]
             raise NameError("TIER_ID {} matched {} nodes.\n{}".format(tid,len(matchlist),tierids))
         return targ
+    
+    def getAnnotation(self,time):
+        pass
+    
+    def getTime(self,note):
+        pass
+        # need to create annotations for blank tiers
     
     def insertTier(self,tier,after=None):
         

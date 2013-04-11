@@ -44,7 +44,6 @@ __author__ = 'rhorton is a student at ucsd dawt edu'
 import os, random, sys
 import wave
 from formats import utfcsv # local module
-from csv import excel_tab
 from xml.etree import ElementTree as etree
 
 ## EDIT HERE TO MATCH YOUR ENVIRONMENT
@@ -57,24 +56,30 @@ from xml.etree import ElementTree as etree
 #meta_dir = working_dir+'comm' # csv data output
 
 ## EDIT HERE TO MATCH YOUR ENVIRONMENT
-working_dir = "/Users/lucien/Data/Raramuri/"
-export_file = working_dir+'ELAN Corpus/rar-new.csv' # ELAN export file
-meta_file = working_dir+'ELAN Corpus/metadata_raramuri_2011.csv' # From Google doc
-eaf_dir = working_dir+'ELAN Corpus/new' #  EAF input
-wav_dir = working_dir+'WAV' # WAV input
-clip_dir = '/Users/lucien/Data/Corpus-o-matic/Raramuri/comm/clips' # wav clip output
-meta_dir = '/Users/lucien/Data/Corpus-o-matic/Raramuri/comm' # csv data output
+#working_dir = "/Users/lucien/Data/Raramuri/"
+#export_file = working_dir+'ELAN Corpus/rar-new.csv' # ELAN export file
+#meta_file = working_dir+'ELAN Corpus/metadata_raramuri_2011.csv' # From Google doc
+#eaf_dir = working_dir+'ELAN Corpus/new' #  EAF input
+#wav_dir = working_dir+'WAV' # WAV input
+#clip_dir = '/Users/lucien/Data/Corpus-o-matic/Raramuri/comm/clips' # wav clip output
+#meta_dir = '/Users/lucien/Data/Corpus-o-matic/Raramuri/comm' # csv data output
+#page_title = "Raramuri Corpus"
 
 # EDIT HERE TO MATCH YOUR ENVIRONMENT
-#working_dir = "/Users/lucien/Data/Mixtec/"
-#export_file = working_dir+'Transcriptions/min_feb14.csv' # ELAN export file
-#meta_file = working_dir+'MixtecoMetadata.csv' # From Google doc
-#eaf_dir = working_dir+'Transcriptions/new/' #  EAF input
-#wav_dir = working_dir+'WAV' # WAV input
-#clip_dir = '/Users/lucien/Data/Corpus-o-matic/Mixtec/comm/clips' # wav clip output
-#meta_dir = '/Users/lucien/Data/Corpus-o-matic/Mixtec/comm' # csv data output
+working_dir = "/Users/lucien/Data/Mixtec/"
+export_file = working_dir+'Transcriptions/min-new.csv' # ELAN export file
+meta_file = working_dir+'MixtecoMetadata.csv' # From Google doc
+eaf_dir = working_dir+'Transcriptions/test/' #  EAF input
+wav_dir = working_dir+'WAV' # WAV input
+clip_dir = '/Users/lucien/Data/Corpus-o-matic/Mixtec/comm/clips' # wav clip output
+meta_dir = '/Users/lucien/Data/Corpus-o-matic/Mixtec/comm' # csv data output
+page_title = "Nieves Mixtec / Tu'un Nda'vi Corpus"
+nav_bar = """<div align="right">
+<a href="corpus.html">Corpus</a> - <a href="dict.html">Diccionario</a> - 
+<a href="cuentos/index.html">Cuentos</a> - <a href="rel.html">Enlaces</a>
+</div>"""
 
-comment_field = "Annotation (other)" # necessary only if used for speaker annotation
+comment_field = "Note" # necessary only if used for speaker annotation
 wrapper = "../web/index_wrapper.html"
 
 def main():
@@ -208,7 +213,7 @@ def main():
                        '<td>' + stop_human + '</td>\n' +
                        '<td>' + wav_file + '</td>\n' +
                        '<td>' + eaf_file + '</td>\n' +
-                       '<td>' + clip_file + '</td>\n' +
+                       '<td> <a href="clips/' + clip_file + '" target="_blank">' + clip_file + '</a></td>\n' +
                        '<td>' + tokens[(eaf_file,start,stop)] + '</td>\n' +
                        '</tr>\n')
 
@@ -224,7 +229,14 @@ def main():
     index_fh = open(meta_dir + '/index.html', 'wb')
 
     for line in wrap_fh:
-        index_fh.write(line)
+        if line.startswith('<title>'):
+            index_fh.write('<title>' + page_title + '</title>')
+        else:
+            index_fh.write(line)
+            
+        if line.startswith('<body>'):
+            index_fh.write(nav_bar)
+
         if line.startswith('<div class="container"'):
             index_fh.writelines(list(table_fh))
             
@@ -263,17 +275,16 @@ def find_wav_file(eaf_file):
     
 
 def find_clippable_segments(tiers, fields):
-    """Find segments that have at least an IPA transcription and either a
-    Spanish or Enlgish translation."""
+    """Find segments that have non-empty annotations"""
 
-    phon = tiers[fields[0]]
+    allkeys = tiers[fields[0]].keys() + tiers[fields[1]].keys() # assuming first two fields as baseline
+    allkeys = list(set(allkeys)) # uniq
     good_keys = []
 
-    for key, value in phon.iteritems():
-        if value != '':
-            notes = [tiers[f].get(key,'') for f in fields[1:]]
-            if any(notes):
-                good_keys.append(key)
+    for key in allkeys:
+        notes = [tiers[f].get(key,'').strip() for f in fields]
+        if any(notes):
+            good_keys.append(key)
                 
     return good_keys
 
@@ -302,7 +313,7 @@ def filter_clippables(clippables, eaf_wav_files, eaf_creators):
 
 def get_speakers(meta_file, spk_field= "Contributor"):
     """Parse the metadata file to return Speaker guesses for each WAV file"""
-    fh = utfcsv.UnicodeReader( open(meta_file, 'r'), dialect="excel-tab", fieldnames= True )
+    fh = utfcsv.UnicodeReader( open(meta_file, 'r'), dialect="excel", fieldnames= True )
     
     print fh.fieldnames
     name_field = [f for f in ["Name", "File"] if f in fh.fieldnames][0]

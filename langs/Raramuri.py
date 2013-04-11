@@ -116,11 +116,11 @@ if __name__ == "__main__":
     
     # _FILE_DIR = "R://ELAN corpus/"
     _FILE_DIR = "/Users/lucien/Data/Raramuri/ELAN corpus/"
-    _OLD_EAFS = "tx"
+    _OLD_EAFS = ("co","el","tx")[0]
     _NEW_EAFS = "new/"
     _TEMPLATE = "tx/tx1.eaf"
     _CSV = "rar-new.csv"
-    _EXPORT_FIELDS = ["Broad","Ortho","Spanish","English","Note","Comment"]
+    _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","Spanish","English","Note","Comment"]
 
     for filename in os.listdir(os.path.join(_FILE_DIR,_OLD_EAFS)):
         print filename
