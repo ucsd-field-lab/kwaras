@@ -20,6 +20,70 @@ class Eaf:
             #fstr = open(filename)
             #self.eafile = etree.fromstring('\n'.join(fstr))
             self.eafile = etree.parse(filename).getroot()
+            self._init_times()
+            
+    def _init_times(self):
+        timenodes = self.eafile.findall("TIME_ORDER/TIME_SLOT")
+        stimes = {}
+        prev = 0
+        for tn in timenodes:
+            now = int(tn.get("TIME_VALUE",default=prev+1)) # default to one millisecond more
+            stimes[tn.get("TIME_SLOT_ID")] = now
+            prev = now
+            
+        aanodes = self.eafile.findall(".//ALIGNABLE_ANNOTATION")
+        self.times = {}
+        for aa in aanodes:
+            self.times[aa.get("ANNOTATION_ID")] = [stimes[aa.get("TIME_SLOT_REF1")], stimes[aa.get("TIME_SLOT_REF2")]]
+        self.times["ALL"] = (0, prev)
+    
+    def getAnnotationAt(self,tid,time):
+        """Get the annotation on tier @tid containing or starting at @time"""
+        tier = self.getTierById(tid)
+        aanodes = tier.findall(".//ALIGNABLE_ANNOTATION")
+        if aanodes:
+            for aa in aanodes:
+                (start, stop) = self.times[aa.get("ANNOTATION_ID")]
+                if start <= time < stop:
+                    return aa
+        else:
+            ranodes = tier.findall(".//REF_ANNOTATION")
+            for ra in ranodes:
+                (start, stop) = self.times[ra.get("ANNOTATION_REF")]
+                if start <= time < stop:
+                    return ra
+    
+    def getAnnotationsIn(self,tid,start=0,stop=None):
+        """Get a list of the annotations on tier @tid between @start and @stop, defaulting to all"""
+        if stop is None:
+            stop = self.times["ALL"][1]
+        annots = []
+        if tid in self.getTierIds():
+            tier = self.getTierById(tid)
+            aanodes = tier.findall(".//ALIGNABLE_ANNOTATION")
+            if aanodes:
+                #print "aanodes", len(aanodes)
+                for aa in aanodes:
+                    (ti, tf) = self.times[aa.get("ANNOTATION_ID")]
+                    if start <= ti and tf <= stop:
+                        annots.append(aa)
+            else:
+                ranodes = tier.findall(".//REF_ANNOTATION")
+                #print "ranodes", len(ranodes)
+                for ra in ranodes:
+                    (ti, tf) = self.times[ra.get("ANNOTATION_REF")]
+                    #print len(annots), [start, ti, tf, stop]
+                    if (start <= ti) and (tf <= stop):
+                        annots.append(ra)
+        return annots
+    
+    def getTime(self,annot):
+        """Get the (start, stop) times of the annotation @annot"""
+        if annot.tag == "ALIGNABLE_ANNOTATION":
+            return self.times[annot.get("ANNOTATION_ID")]
+        else: # REF_ANNOTATION
+            return self.times[annot.get("ANNOTATION_REF")]
+        # need to create annotations for blank tiers
 
     def getTierIds(self):
         tiers = self.eafile.findall("TIER")
@@ -40,14 +104,7 @@ class Eaf:
             tierids = [t.get("TIER_ID") for t in tiers]
             raise NameError("TIER_ID {} matched {} nodes.\n{}".format(tid,len(matchlist),tierids))
         return targ
-    
-    def getAnnotation(self,time):
-        pass
-    
-    def getTime(self,note):
-        pass
-        # need to create annotations for blank tiers
-    
+
     def insertTier(self,tier,after=None):
         
         # make sure tid is not a duplicate
@@ -77,6 +134,8 @@ class Eaf:
             at_idx = len(list(self.eafile.iter())) - list(reversed([k.tag for k in self.eafile.iter()])).index("TIER")
             
         self.eafile.insert(at_idx,tier)
+        
+        self._init_times()
 
     def copyTier(self, src_id, targ_id, parent=None, ltype=None):
         
@@ -157,40 +216,34 @@ class Eaf:
         @fields: list of fields to export (default exports all)
         @mode: fopen mode code ('wb' to overwrite, 'ab' to append)"""
         
-        tiers = self.eafile.findall("TIER")
-        if fields:
-            tiers = [t for t in tiers if t.get("TIER_ID") in fields]
-        else:
+        if not fields:
             fields = self.getTierIds()
-                
-        timenodes = self.eafile.findall("TIME_ORDER/TIME_SLOT")
-        times = {}
-        prev = 0
-        for tn in timenodes:
-            now = tn.get("TIME_VALUE",default=str(prev+1)) # default to one millisecond more
-            times[tn.get("TIME_SLOT_ID")] = now
-            prev = int(now)
-            
-        aanodes = self.eafile.findall(".//ALIGNABLE_ANNOTATION")
-        aatimes = {}
-        for aa in aanodes:
-            aatimes[aa.get("ANNOTATION_ID")] = [times[aa.get("TIME_SLOT_REF1")], times[aa.get("TIME_SLOT_REF2")]]
-                    
+
+        print "printing", fields
         csvfile = utfcsv.UnicodeWriter(filename, dialect, mode=mode)
 
-        for t in tiers:
-            tid = t.get("TIER_ID")
-            aanodes = t.findall(".//ALIGNABLE_ANNOTATION")
-            for aa in aanodes:
-                value = aa.findtext("ANNOTATION_VALUE")
-                aid = aa.get("ANNOTATION_ID")
-                csvfile.write([tid] + aatimes[aid] + [value, self.filename])
-            ranodes = t.findall(".//REF_ANNOTATION")
-            for ra in ranodes:
-                value = ra.findtext("ANNOTATION_VALUE")
-                aid = ra.get("ANNOTATION_REF")
-                csvfile.write([tid] + aatimes[aid] + [value, self.filename])
-            
+        for f in fields:
+            annots = self.getAnnotationsIn(f)
+            print "annots",len(annots)
+            for a in annots:
+                value = a.findtext("ANNOTATION_VALUE")
+                at = [str(t) for t in self.getTime(a)]
+                #print [f] + at + [value, self.filename]
+                csvfile.write([f] + at + [value, self.filename])
+#                
+#        for t in tiers:
+#            tid = t.get("TIER_ID")
+#            aanodes = t.findall(".//ALIGNABLE_ANNOTATION")
+#            for aa in aanodes:
+#                value = aa.findtext("ANNOTATION_VALUE")
+#                aid = aa.get("ANNOTATION_ID")
+#                csvfile.write([tid] + aatimes[aid] + [value, self.filename])
+#            ranodes = t.findall(".//REF_ANNOTATION")
+#            for ra in ranodes:
+#                value = ra.findtext("ANNOTATION_VALUE")
+#                aid = ra.get("ANNOTATION_REF")
+#                csvfile.write([tid] + aatimes[aid] + [value, self.filename])
+#            
         csvfile.close()
                 
 if __name__ == '__main__':

@@ -70,6 +70,7 @@ def cleanEaf(filename, template):
     
     _orthtier = "Broad"
     _wordtier = "Word"
+    _glosstier = "Gloss"
     
     eafile = eaf.Eaf(filename)
     
@@ -100,6 +101,15 @@ def cleanEaf(filename, template):
             note.text = note.text.strip()
             print ">",note.text
             
+    # make utterance-level gloss tier
+    ugtier = eafile.copyTier(_orthtier, targ_id="UttGloss",
+                             parent=_orthtier, ltype="Glosses")
+    eafile.insertTier(ugtier,after="Ortho")
+    for annot in eafile.getAnnotationsIn("UttGloss"):
+        times = eafile.getTime(annot)
+        glosses = eafile.getAnnotationsIn(_glosstier,times[0],times[1])
+        annot.find("ANNOTATION_VALUE").text = ' '.join([g.find("ANNOTATION_VALUE").text for g in glosses])
+    
     # make sure Note tiers are independent
     if "Note" in eafile.getTierIds():
         notetier = eafile.getTierById("Note")
@@ -116,11 +126,11 @@ if __name__ == "__main__":
     
     # _FILE_DIR = "R://ELAN corpus/"
     _FILE_DIR = "/Users/lucien/Data/Raramuri/ELAN corpus/"
-    _OLD_EAFS = ("co","el","tx")[0]
+    _OLD_EAFS = ("co","el","tx")[2]
     _NEW_EAFS = "new/"
     _TEMPLATE = "tx/tx1.eaf"
     _CSV = "rar-new.csv"
-    _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","Spanish","English","Note","Comment"]
+    _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","Spanish","English","Note","UttGloss"]
 
     for filename in os.listdir(os.path.join(_FILE_DIR,_OLD_EAFS)):
         print filename

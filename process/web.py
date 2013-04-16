@@ -56,28 +56,31 @@ from xml.etree import ElementTree as etree
 #meta_dir = working_dir+'comm' # csv data output
 
 ## EDIT HERE TO MATCH YOUR ENVIRONMENT
-#working_dir = "/Users/lucien/Data/Raramuri/"
-#export_file = working_dir+'ELAN Corpus/rar-new.csv' # ELAN export file
-#meta_file = working_dir+'ELAN Corpus/metadata_raramuri_2011.csv' # From Google doc
-#eaf_dir = working_dir+'ELAN Corpus/new' #  EAF input
-#wav_dir = working_dir+'WAV' # WAV input
-#clip_dir = '/Users/lucien/Data/Corpus-o-matic/Raramuri/comm/clips' # wav clip output
-#meta_dir = '/Users/lucien/Data/Corpus-o-matic/Raramuri/comm' # csv data output
-#page_title = "Raramuri Corpus"
+working_dir = "/Users/lucien/Data/Raramuri/"
+export_file = working_dir+'ELAN Corpus/rar-new.csv' # ELAN export file
+meta_file = working_dir+'ELAN Corpus/metadata_raramuri_2011.csv' # From Google doc
+eaf_dir = working_dir+'ELAN Corpus/new' #  EAF input
+wav_dir = working_dir+'WAV' # WAV input
+clip_dir = '/Users/lucien/Data/Kwaras/Raramuri/new/clips' # wav clip output
+meta_dir = '/Users/lucien/Data/Kwaras/Raramuri/new' # csv data output
+page_title = "Raramuri Corpus"
+nav_bar = """<div align="right">
+<a href="index.html">Corpus</a> - <a href="dict.xhtml">Dictionary</a>
+</div>"""
 
 # EDIT HERE TO MATCH YOUR ENVIRONMENT
-working_dir = "/Users/lucien/Data/Mixtec/"
-export_file = working_dir+'Transcriptions/min-new.csv' # ELAN export file
-meta_file = working_dir+'MixtecoMetadata.csv' # From Google doc
-eaf_dir = working_dir+'Transcriptions/test/' #  EAF input
-wav_dir = working_dir+'WAV' # WAV input
-clip_dir = '/Users/lucien/Data/Corpus-o-matic/Mixtec/comm/clips' # wav clip output
-meta_dir = '/Users/lucien/Data/Corpus-o-matic/Mixtec/comm' # csv data output
-page_title = "Nieves Mixtec / Tu'un Nda'vi Corpus"
-nav_bar = """<div align="right">
-<a href="corpus.html">Corpus</a> - <a href="dict.html">Diccionario</a> - 
-<a href="cuentos/index.html">Cuentos</a> - <a href="rel.html">Enlaces</a>
-</div>"""
+#working_dir = "/Users/lucien/Data/Mixtec/"
+#export_file = working_dir+'Transcriptions/min-new.csv' # ELAN export file
+#meta_file = working_dir+'MixtecoMetadata.csv' # From Google doc
+#eaf_dir = working_dir+'Transcriptions/test/' #  EAF input
+#wav_dir = working_dir+'WAV' # WAV input
+#clip_dir = '/Users/lucien/Data/Kwaras/Mixtec/new/clips' # wav clip output
+#meta_dir = '/Users/lucien/Data/Kwaras/Mixtec/new' # csv data output
+#page_title = "Nieves Mixtec / Tu'un Nda'vi Corpus"
+#nav_bar = """<div align="right">
+#<a href="corpus.html">Corpus</a> - <a href="dict.html">Diccionario</a> - 
+#<a href="cuentos/index.html">Cuentos</a> - <a href="rel.html">Enlaces</a>
+#</div>"""
 
 comment_field = "Note" # necessary only if used for speaker annotation
 wrapper = "../web/index_wrapper.html"
@@ -193,7 +196,7 @@ def main():
         speaker = spkr_dict[os.path.splitext(wav_file)[0]]
         if comment_field in fields: # speaker annotation in comment field
             comment = values[fields.index(comment_field)]
-            if comment and comment.split()[0] == comment.split()[0].upper():
+            if comment.strip() and comment.split()[0] == comment.split()[0].upper():
                 speaker = comment.split()[0]
         
         clip_fh.write(values + [clip_file,
@@ -229,15 +232,15 @@ def main():
     index_fh = open(meta_dir + '/index.html', 'wb')
 
     for line in wrap_fh:
-        if line.startswith('<title>'):
+        if line.strip().startswith('<title>'):
             index_fh.write('<title>' + page_title + '</title>')
         else:
             index_fh.write(line)
             
-        if line.startswith('<body>'):
+        if line.strip().startswith('<body>'):
             index_fh.write(nav_bar)
 
-        if line.startswith('<div class="container"'):
+        if line.strip().startswith('<div class="container"'):
             index_fh.writelines(list(table_fh))
             
     index_fh.close()
@@ -313,7 +316,7 @@ def filter_clippables(clippables, eaf_wav_files, eaf_creators):
 
 def get_speakers(meta_file, spk_field= "Contributor"):
     """Parse the metadata file to return Speaker guesses for each WAV file"""
-    fh = utfcsv.UnicodeReader( open(meta_file, 'r'), dialect="excel", fieldnames= True )
+    fh = utfcsv.UnicodeReader( open(meta_file, 'r'), fieldnames= True )
     
     print fh.fieldnames
     name_field = [f for f in ["Name", "File"] if f in fh.fieldnames][0]
