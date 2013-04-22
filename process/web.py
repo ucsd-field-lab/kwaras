@@ -46,41 +46,48 @@ import wave
 from formats import utfcsv # local module
 from xml.etree import ElementTree as etree
 
-## EDIT HERE TO MATCH YOUR ENVIRONMENT
-#working_dir = "/Users/lucien/Data/Gitonga/my clips/"
-#export_file = working_dir+'new.csv' # ELAN export file
-#meta_file = working_dir+'new/GTExport.txt' # From Google doc
-#eaf_dir = working_dir+'new' #  EAF input
-#wav_dir = working_dir+'WAV' # WAV input
-#clip_dir = working_dir+'comm/clips' # wav clip output
-#meta_dir = working_dir+'comm' # csv data output
+lang = ["Gitonga","Raramuri","Mixtec"][2]
 
-## EDIT HERE TO MATCH YOUR ENVIRONMENT
-working_dir = "/Users/lucien/Data/Raramuri/"
-export_file = working_dir+'ELAN Corpus/rar-new.csv' # ELAN export file
-meta_file = working_dir+'ELAN Corpus/metadata_raramuri_2011.csv' # From Google doc
-eaf_dir = working_dir+'ELAN Corpus/new' #  EAF input
-wav_dir = working_dir+'WAV' # WAV input
-clip_dir = '/Users/lucien/Data/Kwaras/Raramuri/new/clips' # wav clip output
-meta_dir = '/Users/lucien/Data/Kwaras/Raramuri/new' # csv data output
-page_title = "Raramuri Corpus"
-nav_bar = """<div align="right">
-<a href="index.html">Corpus</a> - <a href="dict.xhtml">Dictionary</a>
-</div>"""
+if lang == "Gitonga":
+    # EDIT HERE TO MATCH YOUR ENVIRONMENT
+    working_dir = "/Users/lucien/Data/Gitonga/my clips/"
+    export_file = working_dir+'new.csv' # ELAN export file
+    meta_file = working_dir+'new/GTExport.txt' # From Google doc
+    eaf_dir = working_dir+'new' #  EAF input
+    wav_dir = working_dir+'WAV' # WAV input
+    clip_dir = working_dir+'comm/clips' # wav clip output
+    meta_dir = working_dir+'comm' # csv data output
+    page_title = "Gitonga Corpus"
+    nav_bar = """"""
 
-# EDIT HERE TO MATCH YOUR ENVIRONMENT
-#working_dir = "/Users/lucien/Data/Mixtec/"
-#export_file = working_dir+'Transcriptions/min-new.csv' # ELAN export file
-#meta_file = working_dir+'MixtecoMetadata.csv' # From Google doc
-#eaf_dir = working_dir+'Transcriptions/test/' #  EAF input
-#wav_dir = working_dir+'WAV' # WAV input
-#clip_dir = '/Users/lucien/Data/Kwaras/Mixtec/new/clips' # wav clip output
-#meta_dir = '/Users/lucien/Data/Kwaras/Mixtec/new' # csv data output
-#page_title = "Nieves Mixtec / Tu'un Nda'vi Corpus"
-#nav_bar = """<div align="right">
-#<a href="corpus.html">Corpus</a> - <a href="dict.html">Diccionario</a> - 
-#<a href="cuentos/index.html">Cuentos</a> - <a href="rel.html">Enlaces</a>
-#</div>"""
+if lang == "Raramuri":
+    ## EDIT HERE TO MATCH YOUR ENVIRONMENT
+    working_dir = "/Users/lucien/Data/Raramuri/"
+    export_file = working_dir+'ELAN Corpus/rar-new.csv' # ELAN export file
+    meta_file = working_dir+'ELAN Corpus/metadata_raramuri_2011.csv' # From Google doc
+    eaf_dir = working_dir+'ELAN Corpus/new' #  EAF input
+    wav_dir = working_dir+'WAV' # WAV input
+    clip_dir = '/Users/lucien/Data/Kwaras/Raramuri/new/clips' # wav clip output
+    meta_dir = '/Users/lucien/Data/Kwaras/Raramuri/new' # csv data output
+    page_title = "Raramuri Corpus"
+    nav_bar = """<div align="right">
+    <a href="index.html">Corpus</a> - <a href="dict.xhtml">Dictionary</a>
+    </div>"""
+
+if lang == "Mixtec":
+    # EDIT HERE TO MATCH YOUR ENVIRONMENT
+    working_dir = "/Users/lucien/Data/Mixtec/"
+    export_file = working_dir+'Transcriptions/min-new.csv' # ELAN export file
+    meta_file = working_dir+'MixtecoMetadata.csv' # From Google doc
+    eaf_dir = working_dir+'Transcriptions/test/' #  EAF input
+    wav_dir = working_dir+'WAV' # WAV input
+    clip_dir = '/Users/lucien/Data/Kwaras/Mixtec/new/clips' # wav clip output
+    meta_dir = '/Users/lucien/Data/Kwaras/Mixtec/new' # csv data output
+    page_title = "Nieves Mixtec / Tu'un Nda'vi Corpus"
+    nav_bar = """<div align="right">
+    <a href="corpus.html">Corpus</a> - <a href="dict.html">Diccionario</a> - 
+    <a href="cuentos/index.html">Cuentos</a> - <a href="rel.html">Enlaces</a>
+    </div>"""
 
 comment_field = "Note" # necessary only if used for speaker annotation
 wrapper = "../web/index_wrapper.html"

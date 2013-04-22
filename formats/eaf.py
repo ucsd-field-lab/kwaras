@@ -224,7 +224,7 @@ class Eaf:
 
         for f in fields:
             annots = self.getAnnotationsIn(f)
-            print "annots",len(annots)
+            #print "annots",len(annots)
             for a in annots:
                 value = a.findtext("ANNOTATION_VALUE")
                 at = [str(t) for t in self.getTime(a)]
