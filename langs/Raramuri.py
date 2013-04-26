@@ -125,10 +125,12 @@ def cleanEaf(filename, template):
 if __name__ == "__main__":
     
     # _FILE_DIR = "R://ELAN corpus/"
-    _FILE_DIR = "/Users/lucien/Data/Raramuri/ELAN corpus/"
-    _OLD_EAFS = ("co","el","tx")[2]
-    _NEW_EAFS = "new/"
-    _TEMPLATE = "tx/tx1.eaf"
+    # _FILE_DIR = "/Users/lucien/Data/Raramuri/ELAN corpus/"
+    _FILE_DIR = r"C:\Users\Public\Documents\Alignment"
+    _OLD_EAFS = ("co","el","tx","new")[3]
+    
+    _NEW_EAFS = "temp_eaf/"
+    _TEMPLATE = "temp_eaf/tx1.eaf"
     _CSV = "rar-new.csv"
     _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","Spanish","English","Note","UttGloss"]
 
