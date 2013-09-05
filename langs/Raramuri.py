@@ -6,9 +6,11 @@ Created on March 22, 2013
 '''
 
 import os, re
-import xml.etree.ElementTree as etree
-from formats import eaf
+from formats import eaf, utfcsv
 
+_V_ = "aeiouɪɛəɔʊ" # Vowels
+_P_ = ",;?\.\)\(”“…" # Punctuation NOTE: alternatively tokenize with:  .()”“…,?;
+_C_ = "[^ "+_V_+_P_+"]"
 
 def Orth2IPA(u):
     u = u"" + u
@@ -18,9 +20,10 @@ def Orth2IPA(u):
         u"sh":u"ʃ",
         u"š":u"ʃ",
         u"¢":u"ts",
-   #     u"r":u"ɾ",    # leaving r ambiguous
+        u"r":u"ɾ",    # leaving r ambiguous
         u"y":u"j",
         u"'":u"ʔ",
+        u"‘":u"ʔ",
         u"’":u"ʔ"},
         {u"ɾɾ":u"r"},
         {u"á":u"ˈXa", # compound
@@ -58,12 +61,13 @@ def Orth2IPA(u):
     for oset in _orth_:
         for okey in oset:
             u = re.sub(okey,oset[okey],u)
-    u = re.sub(u"([aeiouɪɛəɔʊ])[:ː]",u"\g<1>\g<1>",u) # recode length with double vowel
-    u = re.sub(u"([^aeiouɪɛəɔʊ ])ˈX",u"ˈX\g<1>",u) # move the stress mark before C
+    u = re.sub(u"[=\-\[\]]","",u)
+    u = re.sub(u"(["+_V_+"])[:ː]",u"\g<1>\g<1>",u) # recode length with double vowel
+    u = re.sub(u"("+_C_+")ˈX",u"ˈX\g<1>",u) # move the stress mark before C
     u = re.sub(u"tˈX",u"ˈXt",u) # move it again in the case of tʃ
     u = re.sub(u"X",u"",u) # take out the marker of a new stress mark
-    u = re.sub(u"[=\-\[\]]","",u)
     u = re.sub(u"\/"," ",u)
+    u = re.sub(u"((^| )ˈ?)ɾ",u"\g<1>r",u)
     return u
 
 def cleanEaf(filename, template):
@@ -84,10 +88,10 @@ def cleanEaf(filename, template):
     orthnotes = eafile.getTierById(_orthtier).iter("ANNOTATION_VALUE")
     for note in orthnotes:
         if note.text:
-            print note.text, ":", repr(note.text)
+            #print note.text, ":", repr(note.text)
             note.text = Orth2IPA(note.text)
             note.text = note.text.strip()
-            print ">",note.text
+            #print ">",note.text
             
     if _wordtier in eafile.getTierIds():
         wordnotes = eafile.getTierById(_wordtier).iter("ANNOTATION_VALUE")
@@ -96,10 +100,11 @@ def cleanEaf(filename, template):
      
     for note in wordnotes:
         if note.text:
-            print note.text, ":", repr(note.text)
+            #print note.text, ":", repr(note.text)
             note.text = Orth2IPA(note.text)
+            note.text = re.sub(u"["+_P_+"]"," ",note.text).strip()
             note.text = note.text.strip()
-            print ">",note.text
+            #print ">",note.text
             
     # make utterance-level gloss tier
     ugtier = eafile.copyTier(_orthtier, targ_id="UttGloss",
@@ -110,30 +115,40 @@ def cleanEaf(filename, template):
         glosses = eafile.getAnnotationsIn(_glosstier,times[0],times[1])
         annot.find("ANNOTATION_VALUE").text = ' '.join([g.find("ANNOTATION_VALUE").text for g in glosses])
     
-    # make sure Note tiers are independent
+    # make sure Note and Broad tiers are independent
     if "Note" in eafile.getTierIds():
         notetier = eafile.getTierById("Note")
         eafile.changeParent(notetier, None, "Note")
+    if "Broad" in eafile.getTierIds():
+        broadtier = eafile.getTierById("Broad")
+        eafile.changeParent(broadtier, None, "Transcription")
     
-    # make sure Spanish tiers are dependent
+    # make sure Spanish and English tiers are dependent
     if "Spanish" in eafile.getTierIds():
         spanishtier = eafile.getTierById("Spanish")
         eafile.changeParent(spanishtier, _orthtier, "Free translation")
+    if "English" in eafile.getTierIds():
+        englishtier = eafile.getTierById("English")
+        eafile.changeParent(englishtier, _orthtier, "Free translation")
+                
             
     return eafile
                 
 if __name__ == "__main__":
     
-    # _FILE_DIR = "R://ELAN corpus/"
+    _FILE_DIR = "R://ELAN corpus/"
     # _FILE_DIR = "/Users/lucien/Data/Raramuri/ELAN corpus/"
-    _FILE_DIR = r"C:\Users\Public\Documents\Alignment"
-    _OLD_EAFS = ("co","el","tx","new")[3]
+    #_FILE_DIR = r"C:\Users\Public\Documents\Alignment"
+    _OLD_EAFS = ("","co","el","tx","new")[0]
     
-    _NEW_EAFS = "temp_eaf/"
-    _TEMPLATE = "temp_eaf/tx1.eaf"
+    _NEW_EAFS = "new/"
+    _TEMPLATE = "bk2/tx1.eaf"
     _CSV = "rar-new.csv"
     _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","Spanish","English","Note","UttGloss"]
 
+    csvfile = utfcsv.UnicodeWriter(os.path.join(_FILE_DIR,"status.csv"), "excel", mode="ab")
+    csvfile.write(["Filename"]+_EXPORT_FIELDS)
+    
     for filename in os.listdir(os.path.join(_FILE_DIR,_OLD_EAFS)):
         print filename
         if os.path.splitext(filename)[1].lower() != ".eaf":
@@ -144,6 +159,10 @@ if __name__ == "__main__":
             eafile = cleanEaf(fpath, template)
             eafile.write(os.path.join(_FILE_DIR, _NEW_EAFS, filename))
             eafile.exportToCSV(os.path.join(_FILE_DIR,_CSV), "excel", _EXPORT_FIELDS, "ab")
+            status = [eafile.status(_EXPORT_FIELDS)[f] for f in _EXPORT_FIELDS]
+            print eafile.status(_EXPORT_FIELDS)
+            print status
+            csvfile.write([filename]+[str(v*100)+"%" for v in status])
 
             
             

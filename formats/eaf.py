@@ -146,13 +146,14 @@ class Eaf:
         if parent is not None:
             targ.set("PARENT_REF",parent)
         if targ.get("PARENT_REF"):
-            validtypes = self.getValidTypes(time_alignable=False)
+            validtypes = self.getValidTypes(independent=False)
         else:
-            validtypes = self.getValidTypes(time_alignable=True)
+            validtypes = self.getValidTypes(independent=True)
         if ltype is not None:
             if ltype not in validtypes:
                 raise RuntimeWarning("Type "+ltype+" is not recognized as a valid tier type.")
             targ.set("LINGUISTIC_TYPE_REF",ltype)
+        self.rectifyType(targ)
                     
         return targ
         
@@ -174,18 +175,58 @@ class Eaf:
             if "PARENT_REF" in tier.attrib:
                 del tier.attrib["PARENT_REF"]
         if ltype is not None:
-            tier.set("LINGUISTIC_TYPE_REF", ltype)
-        
+            if ltype not in self.getValidTypes():
+                raise RuntimeWarning("Type "+ltype+" is not recognized as a valid tier type.")
+            else:
+                tier.set("LINGUISTIC_TYPE_REF", ltype)
+        self.rectifyType(tier)
 
-    def getValidTypes(self, time_alignable=None):
+    def rectifyType(self, tier):
+        """Ensure that the parentage, atype and time refs are appropriate to the tier's ltype"""
+        parent = tier.get("PARENT_REF")
+        ltype = tier.get("LINGUISTIC_TYPE_REF")
+        ltype_node = self.eafile.find("LINGUISTIC_TYPE[@LINGUISTIC_TYPE_ID='{}']".format(ltype))
+        if ltype_node.get("TIME_ALIGNABLE") == "true":
+            refnotes = tier.findall("ANNOTATION/REF_ANNOTATION")
+            if len(refnotes) > 0:
+                print "REF_ANNOTATION in time-alignable tier",tier.get("TIER_ID")
+                for note in refnotes:
+                    tref = self.getTime(note)
+                    note.set("TIME_SLOT_REF1",tref[0])
+                    note.set("TIME_SLOT_REF2",tref[1])
+                    del note.attrib["ANNOTATION_REF"]
+                    note.tag = "ALIGNABLE_ANNOTATION"
+        else:
+            alignnotes = tier.findall("ANNOTATION/ALIGNABLE_ANNOTATION")
+            if len(alignnotes) > 0:
+                print "ALIGNABLE_ANNOTATION in symbolic tier",tier.get("TIER_ID")
+                for note in alignnotes:
+                    tref = self.getTime(note)
+                    aref = self.getAnnotationAt(parent, tref[0]).get("ANNOTATION_ID")
+                    note.set("ANNOTATION_REF",aref)
+                    del note.attrib["TIME_SLOT_REF1"]
+                    del note.attrib["TIME_SLOT_REF2"]
+                    note.tag = "REF_ANNOTATION"
+                    
+
+
+    def getValidTypes(self, independent=None, time_alignable=None):
         
         types = self.eafile.findall("LINGUISTIC_TYPE")
+        
+        if independent == True:
+            types = [lt for lt in types if lt.get("CONSTRAINTS") is None]
+        elif independent == False:
+            types = [lt for lt in types if lt.get("CONSTRAINTS") is not None]
+            
         if time_alignable is None:
-            types = [lt.get("LINGUISTIC_TYPE_ID") for lt in types]
+            types = [lt for lt in types]
         else:
             tas = str(time_alignable).lower()
-            types = [lt.get("LINGUISTIC_TYPE_ID") for lt in types if lt.get("TIME_ALIGNABLE") == tas]
-        return types
+            types = [lt for lt in types if lt.get("TIME_ALIGNABLE") == tas]
+            
+        typeids = [lt.get("LINGUISTIC_TYPE_ID") for lt in types]
+        return typeids
             
     def importTypes(self, template):
         """@template: filename of a .etf or .eaf with the types to be imported"""
@@ -208,6 +249,24 @@ class Eaf:
         outstr = open(filename, 'wb')
         outstr.write(etree.tostring(self.eafile, encoding="UTF-8"))
         outstr.close()
+        
+    def status(self, fields=None):
+        """Report percent coverage of dependent tiers"""
+        if fields is None:
+            fields = self.getTierIds()
+        baseline = fields[0]
+        basenotes = self.getAnnotationsIn(baseline)
+        coverage = {}
+        for f in fields:
+            count = 0
+            for bn in basenotes:
+                start, stop = self.getTime(bn)
+                fn = [n for n in self.getAnnotationsIn(f, start, stop) 
+                      if n.findtext("ANNOTATION_VALUE").strip() != '']
+                if len(fn) > 0:
+                    count += 1
+            coverage[f] = round(float(count) / len(basenotes),2)
+        return coverage
         
     def exportToCSV(self, filename, dialect='excel', fields=None, mode="wb"):
         """Duplicate the ELAN export function, with our settings and safe csv format
