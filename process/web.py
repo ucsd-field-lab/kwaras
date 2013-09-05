@@ -115,18 +115,26 @@ def main():
     clip_fh = utfcsv.UnicodeWriter(open(meta_dir + '/clip_metadata.csv', 'w'))
     table_fh = open(meta_dir + '/clip_metadata.html', 'w')
     table_fh.write('<table id="clip_metadata">\n<thead>\n<tr>\n' +
-                   '\n'.join(['<th>'+f+'&nbsp;</th>' for f in fields]) +
+                   '\n'.join(['<th class="Annotation">'+f+'&nbsp;</th>' for f in fields]) +
                    '\n' +
-                   '<th>Speaker&nbsp;</th>\n' +
-                   '<th>Citation&nbsp;</th>\n'
+                   '<th class="Citation">Speaker&nbsp;</th>\n' +
+                   '<th class="Citation">Citation&nbsp;</th>\n'
                    '<th>Length&nbsp;</th>\n' +
-                   '<th class="Hide">Start&nbsp;</th>\n' +
-                   '<th class="Hide">Stop&nbsp;</th>\n' +
-                   '<th class="Hide">WAV&nbsp;</th>\n' +
-                   '<th class="Hide">EAF&nbsp;</th>\n' +   
-                   '<th class="Hide">File&nbsp;</th>\n' +
-                   '<th class="Hide">Token&nbsp;</th>\n' +
-                   '</tr>\n</thead>\n<tbody>\n')
+                   '\n'.join(['<th class="Hide">'+f+'&nbsp;</th>' 
+                              for f in ['Start','Stop','WAV','EAF','File','Token']]) +
+                   '</tr>\n</thead>\n')
+    table_fh.write('<tfoot>\n<tr>\n' +
+                   '\n'.join(['<th><div><input type="text" value="Search '+
+                              f+'" class="search_init"></div></th>' for f in fields]) +
+                   '\n' +
+                   '\n'.join(['<th><div><input type="text" value="Search '+
+                              f+'" class="search_init"></div></th>' 
+                              for f in ['Speaker','Citation','Length']]) +
+                   '\n' +
+                   '\n'.join(['<th><div><input type="text" value="Search '+
+                              f+'" class="search_init"></div></th>' 
+                              for f in ['Start','Stop','WAV','EAF','File','Token']]) +
+                   '\n</tr>\n</tfoot>\n<tbody>\n')
     
     # Look in each EAF to see which wav file it references
     eaf_wav_files = {}
@@ -141,13 +149,14 @@ def main():
     # the same wav file, we want to use the EAF that is in the EAF metadata.
     #clippables = filter_clippables(clippables, eaf_wav_files, eaf_creators)
 
+    # define duplicates as rows with identical annotations in @fields
     tokens = {}
     for ckey in clippables:
         gkey = ":".join([tiers[f].get(ckey,'') for f in fields])
         if gkey in tokens:
             tokens[ckey] = tokens[gkey]+"-2"
         else:
-            tokens[gkey] = ''.join([str(random.randint(0,9)) for i in range(8)])
+            tokens[gkey] = ''.join([str(random.randint(0,9)) for _i in range(8)])
             tokens[ckey] = tokens[gkey]+"-1"
 
     if not os.path.exists(clip_dir):
@@ -180,7 +189,7 @@ def main():
 
         clip_file = clip_base + str(file_index) + '.wav'
         
-        # Convert the times frload_purepecha_metadataom milliseconds into the
+        # Convert the times into the
         # human-friendly minute:second format.
         start_human = human_time(start)
         stop_human = human_time(stop)
