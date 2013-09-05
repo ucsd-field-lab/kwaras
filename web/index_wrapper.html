@@ -18,13 +18,15 @@
 	</style>
 
   <script type="text/javascript" src="js/jquery.js"></script>
-  <script type="text/javascript" language="javascript" src="js/jquery.dataTables.js"></script>
-  <script type="text/javascript" language="javascript" src="js/jquery.media.js"></script>
-  <script type="text/javascript" language="javascript" src="js/jquery.metadata.js"></script>
+  <script type="text/javascript" src="js/jquery.dataTables.js"></script>
+  <script type="text/javascript" src="js/jquery.media.js"></script>
+  <script type="text/javascript" src="js/jquery.metadata.js"></script>
   <script type="text/javascript" src="js/TableTools.min.js"></script>
   <script type="text/javascript" src="js/ColVis.js"></script>
 
-  <script type="text/javascript" charset="utf-8">
+   <script type="text/javascript" charset="utf-8">
+
+	/* helper for processing url parameters */
 	function getParam(name) {
 		name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
 		var regexS = "[\\?&]" + name + "=([^&#]*)";
@@ -36,27 +38,59 @@
 			return decodeURIComponent(results[1].replace(/\+/g, " "));
 	};
 
+	/* status variables for column search */
+	var asInitVals = new Array();
+	var colHeads = new Array();
+
+
+	/* Formatting function for row details nested table */
+	function fnFormatDetails ( oTable, nTr ) {
+	    var aData = oTable.fnGetData( nTr );
+	    var sOut = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">';
+		for (idx = 0; idx < aData.length; ++idx) {
+			if ( colHeads[idx].className.indexOf("Annotation") >= 0 ) {
+	    		sOut += '<tr><td> </td><td>'+aData[idx]+'</td></tr>';
+			}
+		}
+		var clip = nTr.getAttribute('clip');
+		sOut += '<tr><td><a class="media" href="clips/' + clip + '"> </a> </td>';
+		sOut += '<td><a href="clips/' + clip + '">&lt; ';
+		for (idx = 0; idx < aData.length; ++idx) {
+			if ( colHeads[idx].className.indexOf("Citation") >= 0 ) {
+				sOut += aData[idx]+' ';
+			}
+		}
+		sOut += '&gt;</a> </td></tr>';
+	    sOut += '</table>';
+	     
+	    return sOut;
+	};
+
 	$(document).ready(function() {
-		var iColumns = $('#clip_metadata thead th').length;
+
+		/* permanent list of hidden and showing column heads */
+		colHeads = $('#clip_metadata thead th');
+		var iColumns = colHeads.length;
 
 		var oTable = $('#clip_metadata').dataTable({
-			"sDom": '<"H"fp<TC>r>t<"F"ilp>',
-			"bJQueryUI" : true,
+			"sDom": '<"H"fp<TC>r>t<"F"ilp>',	 			"bJQueryUI" : true,
 			"sPaginationType" : "full_numbers",
+			"oLanguage" : {
+				"sSearch" : "Search all columns:"
+			},
 			"oSearch" : {
 				"sSearch" : getParam("q")
 			},
-		"oColVis": {
-			"buttonText": "Columns"
-		},
+			"oColVis": {
+				"buttonText": "Columns"
+			},
 			"aoColumnDefs": [
-				{ "bVisible": false, "aTargets": [ "Hide" ] },
-      			{ "sWidth": "20%", "aTargets": [ "Trans" ] }
+				{ "bVisible": false, "aTargets": [ "Hide" ] }
     		],
 
-		"oTableTools": {
-            "aButtons": [
-                {
+			"oTableTools": {
+          		"aButtons": [
+               	{
                     "sExtends":    "collection",
 					  "sButtonText": "Duplicates",
 						"aButtons": [
@@ -79,15 +113,63 @@
 		}
 		});
 
-		if (getParam("q") === '') {
-			oTable.fnFilter("-1", iColumns-1)
+		/* Default to hiding duplicates */
+		if (getParam("q") == '') {
+			oTable.fnFilter("-1", iColumns-1);
 		}
 
-		$('tr').live('click', function() {
-			var clip = $(this).attr('clip');
-			$('#play').html('<a class="media" href="clips/' + clip + '">' + clip + '</a>');
+    	$("tfoot input").keyup( function () {
+    	    /* Filter on the column (the index) of this element */
+    	    oTable.fnFilter( this.value, $("tfoot input").index(this), 1, 0 );
+    	} );
+     
+     
+     
+    /*
+     * Support functions to provide a little bit of 'user friendlyness' 
+     * to the textboxes in the footer
+     */
+    $("tfoot input").each( function (i) {
+        asInitVals[i] = this.value;
+    } );
+     
+    $("tfoot input").focus( function () {
+        if ( this.className == "search_init" )
+        {
+            this.className = "";
+            this.value = "";
+        }
+    } );
+     
+    $("tfoot input").blur( function (i) {
+        if ( this.value == "" )
+        {
+            this.className = "search_init";
+            this.value = asInitVals[$("tfoot input").index(this)];
+        }
+    } );
+
+		/* listen for clicks to open and close details, and play sound */
+		$('#clip_metadata > tbody > tr').live('click', function() {
+ 			var nTr = $(this)[0];
+			var aData = oTable.fnGetData( nTr );
+			if (aData == null) {
+				/* click is on nested table row */
+				nTr = nTr.previousSibling;
+			}
+	 		if ( oTable.fnIsOpen(nTr) ) {
+				/* This row is already open - close it */
+            	oTable.fnClose( nTr );
+        	}
+        	else {
+				/* Open this row */
+				oTable.fnOpen( nTr, fnFormatDetails(oTable, nTr), 'details' );
+			}
+
+			/* var clip = $(this).attr('clip'); */
+			/* $('#play').html('<a class="media" href="clips/' + clip + '">' + clip + '</a>'); */
 			$('a.media').media({
-				width : 300,
+				width : 100,
 				height : 20,
 				autoplay : true
 			});
@@ -104,7 +186,5 @@
 <!-- table of metadata goes here -->
 
 </div>
-
-	<div id="play">&nbsp;</div>
 
 </body></html>
