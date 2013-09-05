@@ -176,7 +176,7 @@ class Eaf:
                 del tier.attrib["PARENT_REF"]
         if ltype is not None:
             if ltype not in self.getValidTypes():
-                raise RuntimeWarning("Type "+ltype+" is not recognized as a valid tier type.")
+                raise RuntimeWarning("Type "+ltype+" is not recognized as a valid tier type:"+str(self.getValidTypes()))
             else:
                 tier.set("LINGUISTIC_TYPE_REF", ltype)
         self.rectifyType(tier)

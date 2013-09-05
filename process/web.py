@@ -46,7 +46,7 @@ import wave
 from formats import utfcsv # local module
 from xml.etree import ElementTree as etree
 
-lang = ["Gitonga","Raramuri","Mixtec"][2]
+lang = ["Gitonga","Raramuri","Mixtec"][1]
 
 if lang == "Gitonga":
     # EDIT HERE TO MATCH YOUR ENVIRONMENT
@@ -59,20 +59,26 @@ if lang == "Gitonga":
     meta_dir = working_dir+'comm' # csv data output
     page_title = "Gitonga Corpus"
     nav_bar = """"""
-
+    # limit and give order for exported fields
+    _EXPORT_FIELDS = []
+    
 if lang == "Raramuri":
     ## EDIT HERE TO MATCH YOUR ENVIRONMENT
-    working_dir = "/Users/lucien/Data/Raramuri/"
+    #working_dir = "/Users/lucien/Data/Raramuri/"
+    working_dir = "R://"
     export_file = working_dir+'ELAN Corpus/rar-new.csv' # ELAN export file
-    meta_file = working_dir+'ELAN Corpus/metadata_raramuri_2011.csv' # From Google doc
+    meta_file = working_dir+'ELAN Corpus/metadata_raramuri_2011.txt' # From Google doc
     eaf_dir = working_dir+'ELAN Corpus/new' #  EAF input
-    wav_dir = working_dir+'WAV' # WAV input
-    clip_dir = '/Users/lucien/Data/Kwaras/Raramuri/new/clips' # wav clip output
-    meta_dir = '/Users/lucien/Data/Kwaras/Raramuri/new' # csv data output
+    wav_dir = 'C:/Users/Public/Documents/WAV' # WAV input
+    #meta_dir = '/Users/lucien/Data/Kwaras/Raramuri/new' # csv data output
+    meta_dir = 'R:/ELAN Corpus/new' # csv data output
+    clip_dir = meta_dir+'/clips' # wav clip output
     page_title = "Raramuri Corpus"
     nav_bar = """<div align="right">
     <a href="index.html">Corpus</a> - <a href="dict.xhtml">Dictionary</a>
     </div>"""
+    # limit and give order for exported fields
+    _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","UttGloss","Spanish","English","Note"]
 
 if lang == "Mixtec":
     # EDIT HERE TO MATCH YOUR ENVIRONMENT
@@ -88,7 +94,9 @@ if lang == "Mixtec":
     <a href="corpus.html">Corpus</a> - <a href="dict.html">Diccionario</a> - 
     <a href="cuentos/index.html">Cuentos</a> - <a href="rel.html">Enlaces</a>
     </div>"""
-
+    # limit and give order for exported fields
+    _EXPORT_FIELDS = []
+    
 comment_field = "Note" # necessary only if used for speaker annotation
 wrapper = "../web/index_wrapper.html"
 
@@ -101,6 +109,8 @@ def main():
     # tiers, fields = parse_export_file(export_file, fields) 
     tiers, fields = parse_export_file(export_file)
     print "Export file parsed."
+    if _EXPORT_FIELDS is not []:
+        fields = [f for f in _EXPORT_FIELDS if f in fields]
 
     # Find time ranges for which there is an IPA annotation and either an
     # English or Spanish annotation

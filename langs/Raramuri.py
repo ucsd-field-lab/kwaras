@@ -20,7 +20,7 @@ def Orth2IPA(u):
         u"sh":u"ʃ",
         u"š":u"ʃ",
         u"¢":u"ts",
-        u"r":u"ɾ",    # leaving r ambiguous
+        u"r":u"ɾ",    # comment out to leave r ambiguous
         u"y":u"j",
         u"'":u"ʔ",
         u"‘":u"ʔ",
@@ -67,32 +67,40 @@ def Orth2IPA(u):
     u = re.sub(u"tˈX",u"ˈXt",u) # move it again in the case of tʃ
     u = re.sub(u"X",u"",u) # take out the marker of a new stress mark
     u = re.sub(u"\/"," ",u)
-    u = re.sub(u"((^| )ˈ?)ɾ",u"\g<1>r",u)
+    u = re.sub(u"((^| )ˈ?)ɾ",u"\g<1>r",u) # initial r are all /r/
     return u
 
 def cleanEaf(filename, template):
     
-    _orthtier = "Broad"
+    _basetier = "Broad"
+    _orthtier = "Ortho"
     _wordtier = "Word"
     _glosstier = "Gloss"
+    _uttglosstier = "UttGloss"
     
     eafile = eaf.Eaf(filename)
     
-    # back up the orthographic tier
     eafile.importTypes(template)
-    bktier = eafile.copyTier(_orthtier, targ_id="Ortho",
-                          parent=_orthtier, ltype="Alternate transcription")
-    eafile.insertTier(bktier,after=_orthtier)
-    
+
+    # back up the baseline tier into @_orthtier, unless it already exists
+    if (_orthtier in eafile.getTierIds() 
+        and eafile.getAnnotationsIn(_orthtier) is not []):
+                    
+        
+        bktier = eafile.copyTier(_basetier, targ_id="Ortho",
+                              parent=_basetier, ltype="Alternate transcription")
+        eafile.insertTier(bktier,after=_basetier)
+        
     # use new orthography
-    orthnotes = eafile.getTierById(_orthtier).iter("ANNOTATION_VALUE")
-    for note in orthnotes:
+    basenotes = eafile.getTierById(_basetier).iter("ANNOTATION_VALUE")
+    for note in basenotes:
         if note.text:
             #print note.text, ":", repr(note.text)
             note.text = Orth2IPA(note.text)
             note.text = note.text.strip()
             #print ">",note.text
             
+    # use new orthography in words
     if _wordtier in eafile.getTierIds():
         wordnotes = eafile.getTierById(_wordtier).iter("ANNOTATION_VALUE")
     else:
@@ -105,16 +113,19 @@ def cleanEaf(filename, template):
             note.text = re.sub(u"["+_P_+"]"," ",note.text).strip()
             note.text = note.text.strip()
             #print ">",note.text
-            
+                
     # make utterance-level gloss tier
-    ugtier = eafile.copyTier(_orthtier, targ_id="UttGloss",
-                             parent=_orthtier, ltype="Glosses")
-    eafile.insertTier(ugtier,after="Ortho")
-    for annot in eafile.getAnnotationsIn("UttGloss"):
-        times = eafile.getTime(annot)
-        glosses = eafile.getAnnotationsIn(_glosstier,times[0],times[1])
-        annot.find("ANNOTATION_VALUE").text = ' '.join([g.find("ANNOTATION_VALUE").text for g in glosses])
-    
+    if (_uttglosstier in eafile.getTierIds() 
+        and eafile.getAnnotationsIn(_uttglosstier) is not []):
+        ugtier = eafile.copyTier(_basetier, targ_id=_uttglosstier,
+                                 parent=_basetier, ltype="Glosses")
+        eafile.insertTier(ugtier,after=_orthtier)
+        for annot in eafile.getAnnotationsIn(_uttglosstier):
+            times = eafile.getTime(annot)
+            glosses = eafile.getAnnotationsIn(_glosstier,times[0],times[1])
+            ug = ' '.join([g.find("ANNOTATION_VALUE").text for g in glosses])
+            annot.find("ANNOTATION_VALUE").text = ug
+        
     # make sure Note and Broad tiers are independent
     if "Note" in eafile.getTierIds():
         notetier = eafile.getTierById("Note")
@@ -126,10 +137,10 @@ def cleanEaf(filename, template):
     # make sure Spanish and English tiers are dependent
     if "Spanish" in eafile.getTierIds():
         spanishtier = eafile.getTierById("Spanish")
-        eafile.changeParent(spanishtier, _orthtier, "Free translation")
+        eafile.changeParent(spanishtier, _basetier, "Free translation")
     if "English" in eafile.getTierIds():
         englishtier = eafile.getTierById("English")
-        eafile.changeParent(englishtier, _orthtier, "Free translation")
+        eafile.changeParent(englishtier, _basetier, "Free translation")
                 
             
     return eafile
@@ -144,7 +155,7 @@ if __name__ == "__main__":
     _NEW_EAFS = "new/"
     _TEMPLATE = "bk2/tx1.eaf"
     _CSV = "rar-new.csv"
-    _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","Spanish","English","Note","UttGloss"]
+    _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","UttGloss","Spanish","English","Note"]
 
     csvfile = utfcsv.UnicodeWriter(os.path.join(_FILE_DIR,"status.csv"), "excel", mode="ab")
     csvfile.write(["Filename"]+_EXPORT_FIELDS)
