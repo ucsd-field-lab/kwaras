@@ -1,6 +1,7 @@
 eclipse.preferences.version=1
 encoding//formats/eaf.py=utf-8
 encoding//formats/lift.py=utf-8
+encoding//formats/liftadd.py=utf-8
 encoding//formats/utfcsv.py=utf-8
 encoding//langs/Gitonga.py=utf-8
 encoding//langs/Mixtec.py=utf-8

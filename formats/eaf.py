@@ -37,6 +37,20 @@ class Eaf:
             self.times[aa.get("ANNOTATION_ID")] = [stimes[aa.get("TIME_SLOT_REF1")], stimes[aa.get("TIME_SLOT_REF2")]]
         self.times["ALL"] = (0, prev)
     
+    def getAnnotation(self,aref):
+        """Get the annotation with the given ANNOTATION_ID"""
+        anode = self.eafile.find("[@ANNOTATION_ID='{}']".format(aref))
+        return anode
+    
+    def getAnnotationOn(self,tid,node):
+        """Get the annotation on tier @tid directly dependent on annotation @node"""
+        aref = node.get("ANNOTATION_ID")
+        tier = self.getTierById(tid)
+        ranodes = tier.findall(".//REF_ANNOTATION")
+        for ra in ranodes:
+            if ra.get("ANNOTATION_REF") == aref:
+                return ra
+        
     def getAnnotationAt(self,tid,time):
         """Get the annotation on tier @tid containing or starting at @time"""
         tier = self.getTierById(tid)

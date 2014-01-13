@@ -41,7 +41,7 @@ New copy of wav clip to be copied to fileshare is created under the name:
 """
 __author__ = 'rhorton is a student at ucsd dawt edu'
 
-import os, random, sys
+import os, random, sys, re
 import wave
 from formats import utfcsv # local module
 from xml.etree import ElementTree as etree
@@ -78,7 +78,7 @@ if lang == "Raramuri":
     <a href="index.html">Corpus</a> - <a href="dict.xhtml">Dictionary</a>
     </div>"""
     # limit and give order for exported fields
-    _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","UttGloss","Spanish","English","Note"]
+    _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","UttGloss","Spanish","English","Note","UttType"]
 
 if lang == "Mixtec":
     # EDIT HERE TO MATCH YOUR ENVIRONMENT
@@ -222,7 +222,8 @@ def main():
         speaker = spkr_dict[os.path.splitext(wav_file)[0]]
         if comment_field in fields: # speaker annotation in comment field
             comment = values[fields.index(comment_field)]
-            if comment.strip() and comment.split()[0] == comment.split()[0].upper():
+            if comment.strip() and re.match("[A-Z, ]+", comment.split()[0]):
+                # formerly  == comment.split()[0].upper():
                 speaker = comment.split()[0]
         
         clip_fh.write(values + [clip_file,
