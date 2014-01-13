@@ -83,22 +83,24 @@ def cleanEaf(filename, template):
     eafile.importTypes(template)
 
     # back up the baseline tier into @_orthtier, unless it already exists
-    if (_orthtier in eafile.getTierIds() 
-        and eafile.getAnnotationsIn(_orthtier) is not []):
+    if (_orthtier in eafile.getTierIds() and eafile.getAnnotationsIn(_orthtier) is []):
+        orthbk = eafile.getTierById(_orthtier)
+        eafile.renameTier(orthbk,_orthtier+"_bk")
+    if (_orthtier not in eafile.getTierIds()): 
+        #and eafile.getAnnotationsIn(_orthtier) is not []):
                     
-        
-        bktier = eafile.copyTier(_basetier, targ_id="Ortho",
+        bktier = eafile.copyTier(_basetier, targ_id=_orthtier,
                               parent=_basetier, ltype="Alternate transcription")
         eafile.insertTier(bktier,after=_basetier)
         
-    # use new orthography
-    basenotes = eafile.getTierById(_basetier).iter("ANNOTATION_VALUE")
-    for note in basenotes:
-        if note.text:
-            #print note.text, ":", repr(note.text)
-            note.text = Orth2IPA(note.text)
-            note.text = note.text.strip()
-            #print ">",note.text
+        # use new orthography
+        basenotes = eafile.getTierById(_basetier).iter("ANNOTATION_VALUE")
+        for note in basenotes:
+            if note.text:
+                #print note.text, ":", repr(note.text)
+                note.text = Orth2IPA(note.text)
+                note.text = note.text.strip()
+                #print ">",note.text
             
     # use new orthography in words
     if _wordtier in eafile.getTierIds():
@@ -155,7 +157,7 @@ if __name__ == "__main__":
     _NEW_EAFS = "new/"
     _TEMPLATE = "bk2/tx1.eaf"
     _CSV = "rar-new.csv"
-    _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","UttGloss","Spanish","English","Note"]
+    _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","UttGloss","Spanish","English","Note","UttType"]
 
     csvfile = utfcsv.UnicodeWriter(os.path.join(_FILE_DIR,"status.csv"), "excel", mode="ab")
     csvfile.write(["Filename"]+_EXPORT_FIELDS)
