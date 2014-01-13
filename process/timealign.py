@@ -15,13 +15,20 @@ def framesToBytes(nframes,wavfile):
 def getFrames(clipname,longname):
     clip = wave.open(clipname)
     longsound = wave.open(longname)
-    
-    clipre = re.compile(re.escape(clip.readframes(clip.getframerate()/10))) # 0.1 seconds of bytes
+        
     cliplen = clip.getnframes()
+    clip.setpos(cliplen/2) #half-way
+    clipclip = clip.readframes(clip.getframerate()/10)  # 0.1 seconds of bytes
+    clipre = re.compile(re.escape(clipclip))
+
     clip.rewind()
     longsound.rewind()
     clipbytes = clip.readframes(cliplen)
-            
+                            
+    print len(clipbytes),repr([clipbytes[:30],clipbytes[-10:]])
+    print len(clipclip),repr([clipclip[:30],clipclip[-10:]])
+    print list(clipre.finditer(clipbytes))
+    
     chunk = longsound.getframerate()*100 # 100 seconds
     nframes = longsound.getnframes() / chunk
     framelen = len(longsound.readframes(1))
@@ -30,10 +37,12 @@ def getFrames(clipname,longname):
     for idx in range(nframes+1):
         longsound.setpos(idx*chunk)
         longpiece = longsound.readframes(chunk)
+        print len(longpiece),repr([longpiece[:30],longpiece[-10:]])
         matches = list(clipre.finditer(longpiece))
         for m in matches:
             longsound.setpos(idx*chunk + m.start()/framelen)
             longbytes = longsound.readframes(cliplen)
+            print len(longbytes),repr([longbytes[:30],longbytes[-10:]])
             if longbytes == clipbytes:
                 init = idx*chunk + m.start()/framelen
                 frames = (init,init+cliplen,clip.getframerate())
@@ -50,22 +59,27 @@ def getFrames(clipname,longname):
 
 
 if __name__ == "__main__":
-    
+    """
+    # find one clip in one long WAV
     clipname = "/Users/lucien/Data/Gitonga/my clips/clips/GT00169_4330_5610.wav"
     longname = "/Users/lucien/Data/Gitonga/my clips/WAV/GT00169.WAV"
 
     print "Finding",clipname,"in",longname,"..."
     print getFrames(wave.open(clipname),wave.open(longname))
-
-    clipdir = "/Users/lucien/Data/Gitonga/my clips/GT065-069/"
-    longname = "/Users/lucien/Data/Gitonga/gitonga/WAV files/GT00068.wav"
-    longsound = wave.open(longname)
-    for clipname in os.listdir(clipdir)[:5]:
+    """
+    
+    # find clips from clipdir in one long WAV
+    clipdir = "/Users/lucien/Data/Raramuri/Intonation/Intonation 2013/GFP/clips"
+    longname = "/Users/lucien/Data/Raramuri/Intonation/Intonation 2013/GFP/el1786.wav"
+    #longsound = wave.open(longname)
+    for clipname in [c for c in os.listdir(clipdir) if c.lower().endswith(".wav")][:20]:
         print "Finding",clipname,"in",longname,"..."
-        print getFrames(wave.open(os.path.join(clipdir,clipname)),longsound)
-     
-    clipdir = "/Users/lucien/Data/Gitonga/my clips/GT001"
-    wavdir = "/Users/lucien/Data/Gitonga/gitonga/WAV files"
+        print getFrames(os.path.join(clipdir,clipname),longname)
+    """
+    
+    # find clips from clipdir in long WAVs from wavdir
+    clipdir = "/Users/lucien/Data/Raramuri/Intonation/Intonation 2013/SFH/clips"
+    wavdir = "/Users/lucien/Data/Raramuri/Intonation/Intonation 2013/SFH"
 
     for longname in [l for l in os.listdir(wavdir)[:5] if l.lower().endswith(".wav")]:
         longsound = wave.open(os.path.join(wavdir,longname))
@@ -74,5 +88,5 @@ if __name__ == "__main__":
             # print "Finding",clipname,"in",longname,"..."
             if getFrames(wave.open(os.path.join(clipdir,clipname)),longsound):
                 print clipname,"in",longname
-        
+    """
 
