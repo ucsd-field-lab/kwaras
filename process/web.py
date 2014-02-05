@@ -78,7 +78,7 @@ if lang == "Raramuri":
     <a href="index.html">Corpus</a> - <a href="dict.xhtml">Dictionary</a>
     </div>"""
     # limit and give order for exported fields
-    _EXPORT_FIELDS = ["Broad","Ortho","Phonetic","UttGloss","Spanish","English","Note","UttType"]
+    _EXPORT_FIELDS = ["Broad","Ortho","NewOrtho","Phonetic","UttGloss","Spanish","English","Note","UttType"]
 
 if lang == "Mixtec":
     # EDIT HERE TO MATCH YOUR ENVIRONMENT
@@ -109,9 +109,14 @@ def main():
     # tiers, fields = parse_export_file(export_file, fields) 
     tiers, fields = parse_export_file(export_file)
     print "Export file parsed."
+    fnames = set([f.partition("@")[0] for f in fields])
     if _EXPORT_FIELDS is not []:
-        fields = [f for f in _EXPORT_FIELDS if f in fields]
-
+        fields = [f for f in fields if f.partition("@")[0] in _EXPORT_FIELDS]
+        fnames = [f for f in _EXPORT_FIELDS if f in fnames]
+    fields.sort(key = lambda f: _EXPORT_FIELDS.index(f.partition("@")[0]))
+    print fnames
+    print fields
+        
     # Find time ranges for which there is an IPA annotation and either an
     # English or Spanish annotation
     clippables = find_clippable_segments(tiers, fields)
@@ -125,7 +130,7 @@ def main():
     clip_fh = utfcsv.UnicodeWriter(open(meta_dir + '/clip_metadata.csv', 'w'))
     table_fh = open(meta_dir + '/clip_metadata.html', 'w')
     table_fh.write('<table id="clip_metadata">\n<thead>\n<tr>\n' +
-                   '\n'.join(['<th class="Annotation">'+f+'&nbsp;</th>' for f in fields]) +
+                   '\n'.join(['<th class="Annotation">'+f+'&nbsp;</th>' for f in fnames]) +
                    '\n' +
                    '<th class="Citation">Speaker&nbsp;</th>\n' +
                    '<th class="Citation">Citation&nbsp;</th>\n'
@@ -135,7 +140,7 @@ def main():
                    '</tr>\n</thead>\n')
     table_fh.write('<tfoot>\n<tr>\n' +
                    '\n'.join(['<th><div><input type="text" value="Search '+
-                              f+'" class="search_init"></div></th>' for f in fields]) +
+                              f+'" class="search_init"></div></th>' for f in fnames]) +
                    '\n' +
                    '\n'.join(['<th><div><input type="text" value="Search '+
                               f+'" class="search_init"></div></th>' 
@@ -180,7 +185,20 @@ def main():
         if (wav_file, start, stop) in already_clipped:
             continue
         
-        values = [tiers[f].get((eaf_file, start, stop),'') for f in fields]
+        vdict = {}
+        spkr_code = ''
+        speaker = ''
+        for f in fields:
+            fname = f.partition("@")[0]
+            v = tiers[f].get((eaf_file, start, stop),'')
+            vdict[fname] = vdict.get(fname,'') + v
+            if v is not '':
+                spkr_code = f.partition("@")[2]
+                if spkr_code is not '':
+                    speaker = spkr_code
+        values = [vdict[f] for f in fnames]
+        #values = [tiers[f].get((eaf_file, start, stop),'') for f in fields] #TODO dereference the fname vs field
+        print values, speaker
 
         clip_base = os.path.splitext(wav_file)[0]+"["+human_time(start)+"-"+human_time(stop)+"]"
         clip_base = clip_base.replace('.', '')
@@ -219,12 +237,21 @@ def main():
         already_clipped.add((wav_file, start, stop))
             
         # pull up name of speaker (contributor)
-        speaker = spkr_dict[os.path.splitext(wav_file)[0]]
-        if comment_field in fields: # speaker annotation in comment field
-            comment = values[fields.index(comment_field)]
-            if comment.strip() and re.match("[A-Z, ]+", comment.split()[0]):
-                # formerly  == comment.split()[0].upper():
-                speaker = comment.split()[0]
+        print "spkr 1:", speaker
+        if speaker == '':
+            speaker = spkr_dict[os.path.splitext(wav_file)[0]]
+            print "spkr 2:", speaker
+            if comment_field in fnames: # speaker annotation in comment field
+                comment = values[fnames.index(comment_field)]
+                if comment.strip() and re.match("[A-Z, ]+", comment.split()[0]):
+                    # formerly  == comment.split()[0].upper():
+                    speaker = comment.split()[0]
+                    print "spkr 3:", speaker
+            #if len(fields) > len(fnames):
+            #    spkr_codes = [f.partition("@")[2] for f in fields]
+            #    speaker = [s for s in spkr_codes if len(s) > 0][0]
+            #    print "spkr 4:", speaker
+            
         
         clip_fh.write(values + [clip_file,
                                 wav_file, eaf_file,
@@ -307,7 +334,13 @@ def find_wav_file(eaf_file):
 def find_clippable_segments(tiers, fields):
     """Find segments that have non-empty annotations"""
 
-    allkeys = tiers[fields[0]].keys() + tiers[fields[1]].keys() # assuming first two fields as baseline
+    fieldtypes = [f.partition("@")[0] for f in fields]
+    fnames = sorted(list(set(fieldtypes)), key = lambda x: fieldtypes.index(x))[:3] # assuming one of first 3 field types is baseline
+    print "fnames",fnames
+    basefields = [f for f in fields if f.partition("@")[0] in fnames]
+    print "basefields",basefields
+    allkeys = [k for f in basefields for k in tiers[f].keys()]
+    #tiers[fields[0]].keys() + tiers[fields[1]].keys() + tiers[fields[2]].keys() + tiers[fields[3]].keys()
     allkeys = list(set(allkeys)) # uniq
     good_keys = []
 
@@ -316,6 +349,7 @@ def find_clippable_segments(tiers, fields):
         if any(notes):
             good_keys.append(key)
                 
+    print len(allkeys), len(good_keys)
     return good_keys
 
 def filter_clippables(clippables, eaf_wav_files, eaf_creators):
