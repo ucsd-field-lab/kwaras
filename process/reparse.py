@@ -13,31 +13,39 @@ def update(eafile,tiers,eafl):
     for m in eafile.getAnnotationsIn(tiers["m"]):
         x = eafile.getAnnotationOn(tiers["x"], m)
         if x is not None:
-            gidm = re.search("\(([^.]*)\)",x.findtext("ANNOTATION_VALUE"))
-            gid = gidm.group(1)
-            print gid, x.findtext("ANNOTATION_VALUE")
-            e = eafl.getEntry(gid)
-            if e is not None:
+            aval = x.findtext("ANNOTATION_VALUE")
+            print aval
+            if aval is '':
+                print "Blank X annotation:", eaf.etree.tostring(x)
+                e = None
+            else:
+                gidm = re.search("\(([^.]*)\)",x.findtext("ANNOTATION_VALUE"))
+                gid = gidm.group(1)
+                print "gid:",gid
+                e = eafl.getEntry(gid)
+                
+            if e is None:
+                g = None
+            else:   
                 sns = eafl.getSenses(gid)
                 sense = sns[0]
-                if sense.find("gloss[@lang='{}']/text".format(_LANG_CODE)) is not None:
-                    newg = sense.find("gloss[@lang='{}']/text".format(_LANG_CODE)).text
-                    g = eafile.getAnnotationOn(tiers['g'], m)
-                    print g.find("ANNOTATION_VALUE").text, newg
-                    g.find("ANNOTATION_VALUE").text = newg
-                else:
-                    g = eafile.getAnnotationOn(tiers['g'], m)
-                    g.find("ANNOTATION_VALUE").text = ""                    
+                g = sense.find("gloss[@lang='{}']/text".format(_LANG_CODE))       
+                
+            if g is None:
+                gloss = eafile.getAnnotationOn(tiers['g'], m)
+                gloss.find("ANNOTATION_VALUE").text = ""                 
             else:
-                g = eafile.getAnnotationOn(tiers['g'], m)
-                g.find("ANNOTATION_VALUE").text = ""
+                newg = g.text
+                gloss = eafile.getAnnotationOn(tiers['g'], m)
+                print gloss.find("ANNOTATION_VALUE").text, "=>", newg
+                gloss.find("ANNOTATION_VALUE").text = newg
         
     return eafile
 
 if __name__ == '__main__':
     
-    testfile = r"C:\Users\Public\Documents\ELAN\texts\tx12.eaf"
-    outfile = r"C:\Users\Public\Documents\ELAN\texts\tx12.eaf"
+    testfile = r"C:\Users\Public\Documents\ELAN\texts\tx1.eaf"
+    outfile = r"C:\Users\Public\Documents\ELAN\texts\tx1.eaf"
     lexicon = r"C:\Users\Public\Documents\ELAN\ELAN.lift"
     
     eafile = eaf.Eaf(testfile)

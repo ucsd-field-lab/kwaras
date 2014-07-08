@@ -62,7 +62,8 @@ def Orth2IPA(u):
         for okey in oset:
             u = re.sub(okey,oset[okey],u)
     u = re.sub(u"[=\-\[\]]","",u)
-    u = re.sub(u"(["+_V_+"])[:ː]",u"\g<1>\g<1>",u) # recode length with double vowel
+    #u = re.sub(u"(["+_V_+"])[:ː]",u"\g<1>\g<1>",u) # recode length with double vowel
+    u = re.sub(u"(["+_V_+"])ː",u"\g<1>\g<1>",u) # recode length with double vowel
     u = re.sub(u"("+_C_+")ˈX",u"ˈX\g<1>",u) # move the stress mark before C
     u = re.sub(u"tˈX",u"ˈXt",u) # move it again in the case of tʃ
     u = re.sub(u"X",u"",u) # take out the marker of a new stress mark
@@ -75,10 +76,10 @@ def Orth2NewOrth(u):
     _orth_ = [
             {u"sh":u"s",
              u"š":u"s"},
-            {u"ch":u"CH"},
+            {u"ch":u"<CH>"},
             {u"j":u"y"},
-            {u"h":u"j"},
-            {u"CH":u"ch",
+            {u"h":u"j"},    # TODO: preaspiration should be left as <h>
+            {u"<CH>":u"ch",
              u"č":u"ch",
              u"¢":u"ch"},
             {u"rr":u"r"},
@@ -94,7 +95,8 @@ def Orth2NewOrth(u):
     for oset in _orth_:
         for okey in oset:
             u = re.sub(okey,oset[okey],u)
-    u = re.sub(u"(["+_V_+"])[:ː]",u"\g<1>\g<1>",u) # recode length with double vowel
+    #u = re.sub(u"(["+_V_+"])[:ː]",u"\g<1>\g<1>",u) # recode length with double vowel
+    u = re.sub(u"(["+_V_+"])ː",u"\g<1>\g<1>",u) # recode length with double vowel
     return u
 
 def cleanEaf(filename, template):
@@ -196,13 +198,15 @@ def cleanEafBlock(eafile, spkr=''):
                 
 if __name__ == "__main__":
     
-    _FILE_DIR = "R://ELAN corpus/"
+    #_FILE_DIR = "R://ELAN corpus/"
     #_FILE_DIR = "/Users/lucien/Data/Raramuri/ELAN corpus/"
-    #_FILE_DIR = r"C:\Users\Public\Documents\Alignment"
+    #_FILE_DIR = r"C:\Users\Public\Documents\Alignment\demo"
+    _FILE_DIR = "C:/Users/Public/Documents/ELAN/texts/temp"
+    
     _OLD_EAFS = ("","in","co","el","tx","new")[0]
     
     _NEW_EAFS = "new/"
-    _TEMPLATE = "new/tx19.eaf"
+    _TEMPLATE = "new/tx1.eaf"
     _CSV = "rar-new.csv"
     _EXPORT_FIELDS = ["Broad","Ortho","NewOrtho","Phonetic","UttGloss","Spanish","English","Note","UttType"]
 

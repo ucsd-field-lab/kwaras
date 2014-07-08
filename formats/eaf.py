@@ -267,19 +267,27 @@ class Eaf:
     def status(self, fields=None):
         """Report percent coverage of dependent tiers"""
         if fields is None:
-            fields = self.getTierIds()
-        baseline = fields[0]
-        basenotes = self.getAnnotationsIn(baseline)
+            fnames = self.getTierIds()
+        else:
+            fnames = [f for f in self.getTierIds() if f.partition("@")[0] in fields]
         coverage = {}
-        for f in fields:
-            count = 0
-            for bn in basenotes:
-                start, stop = self.getTime(bn)
-                fn = [n for n in self.getAnnotationsIn(f, start, stop) 
-                      if n.findtext("ANNOTATION_VALUE").strip() != '']
-                if len(fn) > 0:
-                    count += 1
-            coverage[f] = round(float(count) / len(basenotes),2)
+        spkrs = set([f.partition("@")[2] for f in fnames])
+        for spkr in spkrs:
+            fset = [f for f in fnames if f.partition("@")[2] == spkr]
+            baseline = fset[0]
+            basenotes = self.getAnnotationsIn(baseline)
+            for f in fset:
+                count = 0
+                if len(basenotes) > 0:
+                    for bn in basenotes:
+                        start, stop = self.getTime(bn)
+                        fn = [n for n in self.getAnnotationsIn(f, start, stop) 
+                              if n.findtext("ANNOTATION_VALUE").strip() != '']
+                        if len(fn) > 0:
+                            count += 1
+                    coverage[f] = round(float(count) / len(basenotes),2)
+                else:
+                    coverage[f] = 0
         return coverage
         
     def exportToCSV(self, filename, dialect='excel', fields=None, mode="wb"):
@@ -289,13 +297,15 @@ class Eaf:
         @fields: list of fields to export (default exports all)
         @mode: fopen mode code ('wb' to overwrite, 'ab' to append)"""
         
-        if not fields:
-            fields = self.getTierIds()
+        if fields is None:
+            fnames = self.getTierIds()
+        else:
+            fnames = [f for f in self.getTierIds() if f.partition("@")[0] in fields]
 
-        print "printing", fields
+        print "printing", fnames
         csvfile = utfcsv.UnicodeWriter(filename, dialect, mode=mode)
 
-        for f in fields:
+        for f in fnames:
             annots = self.getAnnotationsIn(f)
             #print "annots",len(annots)
             for a in annots:
