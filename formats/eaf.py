@@ -36,6 +36,10 @@ class Eaf:
         for aa in aanodes:
             self.times[aa.get("ANNOTATION_ID")] = [stimes[aa.get("TIME_SLOT_REF1")], stimes[aa.get("TIME_SLOT_REF2")]]
         self.times["ALL"] = (0, prev)
+        
+        ranodes = self.eafile.findall(".//REF_ANNOTATION")
+        for ra in ranodes:
+            self.times[ra.get("ANNOTATION_ID")] = self.times[ra.get("ANNOTATION_REF")]
     
     def getAnnotation(self,aref):
         """Get the annotation with the given ANNOTATION_ID"""
@@ -94,9 +98,20 @@ class Eaf:
     def getTime(self,annot):
         """Get the (start, stop) times of the annotation @annot"""
         if annot.tag == "ALIGNABLE_ANNOTATION":
-            return self.times[annot.get("ANNOTATION_ID")]
-        else: # REF_ANNOTATION
-            return self.times[annot.get("ANNOTATION_REF")]
+            ai = annot.get("ANNOTATION_ID")
+            if ai not in self.times:
+                print ai
+            return self.times[ai]
+        elif annot.tag == "REF_ANNOTATION": # REF_ANNOTATION
+            ar = annot.get("ANNOTATION_REF")
+            if ar not in self.times:
+                print ar
+            return self.times[ar]
+        elif annot.tag == "ANNOTATION":
+            child = annot.findall("*")[0]
+            return self.getTime(child)
+        else:
+            raise Exception("I can't find the time of a "+annot.tag)
         # need to create annotations for blank tiers
 
     def getTierIds(self):

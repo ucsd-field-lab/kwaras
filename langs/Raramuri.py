@@ -123,8 +123,13 @@ def cleanEafBlock(eafile, spkr=''):
     _orth2tier = "NewOrtho"+spkr
     _wordtier = "Word"+spkr
     _glosstier = "Gloss"+spkr
-    _uttglosstier = "UttGloss"+spkr
+    _morphtier = "Morph"+spkr
+    _mcattier = "MCat"+spkr
+    _uttwgltier = "UttWGloss"+spkr
+    _uttmgltier = "UttMGloss"+spkr
+    _uttgltier = "UttGloss"+spkr
     _transtiers = [tn+spkr for tn in ['English','Spanish']]
+    _mglosstiers = [tn+spkr for tn in ['MGloss', 'MGloss-ES']]
     _notetier = "Note"+spkr
  
     if _basetier in eafile.getTierIds():
@@ -149,13 +154,19 @@ def cleanEafBlock(eafile, spkr=''):
                     #print ">",note.text
                     
     if _orthtier in eafile.getTierIds():
-        neworth = eafile.copyTier(_orthtier, targ_id=_orth2tier,
+        if _orth2tier in eafile.getTierIds():
+            print _orth2tier,"already exists"
+        else:
+            neworth = eafile.copyTier(_orthtier, targ_id=_orth2tier,
                                   parent=_basetier, ltype="Alternate transcription")
-        eafile.insertTier(neworth,after=_orthtier)
-        o2notes = eafile.getTierById(_orth2tier).iter("ANNOTATION_VALUE")
-        for note in o2notes:
-            if note.text:
-                note.text = Orth2NewOrth(note.text)
+            eafile.insertTier(neworth,after=_orthtier)
+        onotes = eafile.getTierById(_orthtier).iter("[ANNOTATION_VALUE]")
+        for on in onotes:
+            print on, on.tag, on.attrib
+            ontime = eafile.getTime(on)
+            on2 = eafile.getAnnotationAt(_orth2tier,ontime[0])
+            if on.text:
+                on2.findall("ANNOTATION_VALUE")[0].text = Orth2NewOrth(on.findall("ANNOTATION_VALUE")[0].text)
             
     # use new orthography in words
     if _wordtier in eafile.getTierIds():
@@ -168,18 +179,61 @@ def cleanEafBlock(eafile, spkr=''):
                 note.text = note.text.strip()
                 #print ">",note.text
                 
-    # make utterance-level gloss tier from word/morph glosses
-    if (_uttglosstier not in eafile.getTierIds() and _glosstier in eafile.getTierIds()):
-        ugtier = eafile.copyTier(_basetier, targ_id=_uttglosstier,
+    # make utterance-level gloss tier from word glosses
+    if (_uttwgltier not in eafile.getTierIds() and _glosstier in eafile.getTierIds()):
+        ugtier = eafile.copyTier(_basetier, targ_id=_uttwgltier,
                                  parent=_basetier, ltype="Glosses")
         eafile.insertTier(ugtier,after=_orthtier)        
-    if (_uttglosstier in eafile.getTierIds() 
+    if (_uttwgltier in eafile.getTierIds() 
         and eafile.getAnnotationsIn(_glosstier) is not []):
-        for annot in eafile.getAnnotationsIn(_uttglosstier):
+        for annot in eafile.getAnnotationsIn(_uttwgltier):
             times = eafile.getTime(annot)
             glosses = eafile.getAnnotationsIn(_glosstier,times[0],times[1])
-            ug = ' '.join([g.find("ANNOTATION_VALUE").text for g in glosses])
-            annot.find("ANNOTATION_VALUE").text = ug
+            try:
+                ug = [g.find("ANNOTATION_VALUE").text for g in glosses]
+                ug = [g for g in ug if g is not None]
+                annot.find("ANNOTATION_VALUE").text = ' '.join(ug)
+            except:
+                print "What's wrong here:",[g.find("ANNOTATION_VALUE").text for g in glosses]
+
+    # make utterance-level gloss tier from morph glosses
+    if (_uttmgltier not in eafile.getTierIds() and _morphtier in eafile.getTierIds()):
+        umgltier = eafile.copyTier(_basetier, targ_id=_uttmgltier,
+                                 parent=_basetier, ltype="Glosses")
+        eafile.insertTier(umgltier,after=_orthtier)        
+    if (_uttmgltier in eafile.getTierIds() 
+        and eafile.getAnnotationsIn(_morphtier) is not []):
+        for annot in eafile.getAnnotationsIn(_uttmgltier):
+            utttab = "<table><tr>"
+            times = eafile.getTime(annot)
+            words = eafile.getAnnotationsIn(_wordtier,times[0],times[1])
+            for w in words:
+                wtimes = eafile.getTime(w)
+                tab = "<table>"
+                for tier in [_morphtier]: #[_morphtier, _mcattier]:
+                    morphs = eafile.getAnnotationsIn(tier,wtimes[0],wtimes[1])
+                    morphs = [m.find("ANNOTATION_VALUE").text for m in morphs]
+                    morphs = [m for m in morphs if m is not None]
+                    tab += "<tr><td>"+"</td><td>".join(morphs)+"</td></tr>"
+                for tier in _mglosstiers:
+                    morphs = eafile.getAnnotationsIn(tier,wtimes[0],wtimes[1])
+                    morphs = [m.find("ANNOTATION_VALUE").text for m in morphs]
+                    morphs = [m for m in morphs if m is not None]
+                    tab += "<tr><td>"+"</td><td>".join(morphs)+"</td></tr>"                    
+                tab += "</table>"
+                utttab += "<td>"+tab+"</td>"
+            utttab += "</tr></table>"
+            annot.find("ANNOTATION_VALUE").text = utttab
+
+                    
+#             try:
+#                 ug = [m.find("ANNOTATION_VALUE").text for m in morphs]
+#                 ug = [m for m in ug if m is not None]
+#                 annot.find("ANNOTATION_VALUE").text = "<tr><td>"+"</td><td>".join(ug)+"</tr>"
+#             except:
+#                 print "What's wrong here:",[g.find("ANNOTATION_VALUE").text for g in glosses]
+#                 raise
+            
         
     # make sure Note and Broad tiers are independent
     if _notetier in eafile.getTierIds():
@@ -198,17 +252,17 @@ def cleanEafBlock(eafile, spkr=''):
                 
 if __name__ == "__main__":
     
-    #_FILE_DIR = "R://ELAN corpus/"
+    _FILE_DIR = "R://ELAN corpus/master"
     #_FILE_DIR = "/Users/lucien/Data/Raramuri/ELAN corpus/"
     #_FILE_DIR = r"C:\Users\Public\Documents\Alignment\demo"
-    _FILE_DIR = "C:/Users/Public/Documents/ELAN/texts/temp"
+    #_FILE_DIR = "C:/Users/Public/Documents/ELAN/texts/temp"
     
     _OLD_EAFS = ("","in","co","el","tx","new")[0]
     
     _NEW_EAFS = "new/"
     _TEMPLATE = "new/tx1.eaf"
     _CSV = "rar-new.csv"
-    _EXPORT_FIELDS = ["Broad","Ortho","NewOrtho","Phonetic","UttGloss","Spanish","English","Note","UttType"]
+    _EXPORT_FIELDS = ["Broad","Ortho","NewOrtho","Phonetic","UttWGloss","UttMGloss","Spanish","English","Note"]
 
     csvfile = utfcsv.UnicodeWriter(os.path.join(_FILE_DIR,"status.csv"), "excel", mode="ab")
     csvfile.write(["Filename"]+_EXPORT_FIELDS)

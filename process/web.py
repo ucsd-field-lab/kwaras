@@ -78,7 +78,7 @@ if lang == "Raramuri":
     <a href="index.html">Corpus</a> - <a href="dict.xhtml">Dictionary</a>
     </div>"""
     # limit and give order for exported fields
-    _EXPORT_FIELDS = ["Broad","Ortho","NewOrtho","Phonetic","UttGloss","Spanish","English","Note","UttType"]
+    _EXPORT_FIELDS = ["Broad","Ortho","NewOrtho","Phonetic","UttWGloss","UttMGloss","Spanish","English","Note"]
 
 if lang == "Mixtec":
     # EDIT HERE TO MATCH YOUR ENVIRONMENT
