@@ -51,7 +51,7 @@ import re
 import wave
 from xml.etree import ElementTree as etree
 
-from src.formats import utfcsv
+from kwaras.formats import utfcsv
 
 lang = ["Gitonga", "Raramuri", "Mixtec"][1]
 

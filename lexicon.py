@@ -24,9 +24,14 @@ if __name__ == "__main__":
 
     base, ext = os.path.splitext(inf_name)
     if ext == ".lift":
-        print "Adding allomorphs to", inf_name
-        # add allomorphs to LIFT file
+        print "Exposing GUID as field in", inf_name
+        # update GUID field in lexicon
         lift = Lift(inf_name)
+        lift = liftadd.exposeGuid(lift)
+        lift.write(os.path.join(dir_name, base + "-guid.lift"))
+
+        # add allomorphs to LIFT file
+        print "Adding allomorphs to", inf_name
         lift = liftadd.addRarAllomorphs(lift)
         # dump the LIFT data to a new file
         outf_name = os.path.join(dir_name, base + "-added.lift")

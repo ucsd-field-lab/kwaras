@@ -37,3 +37,7 @@ if __name__ == "__main__":
         eafl_name = os.path.join(dir_name, base + "-import.eafl")
         lift.toEAFL(eafl_name)
         print "Data written to", eafl_name
+    else:
+        import tkMessageBox
+        tkMessageBox.showerror(title="Wrong format.",
+                               message="The selected file is not a LIFT lexicon file.")

@@ -8,7 +8,7 @@ Created on Jul 27, 2012
 import xml.etree.ElementTree as etree
 from copy import deepcopy
 
-from src.formats import utfcsv
+from kwaras.formats import utfcsv
 
 
 class Eaf:

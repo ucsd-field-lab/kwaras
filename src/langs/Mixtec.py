@@ -8,7 +8,7 @@ Created on Jul 27, 2012
 import os
 import re
 
-from src.formats import eaf
+from kwaras.formats import eaf
 
 
 

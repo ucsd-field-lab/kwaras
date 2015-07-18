@@ -66,11 +66,11 @@ class Lift:
             primary = self.getEntry(ref)
         return primary
 
-    def getAttr(self, guid, attr):
+    def getField(self, guid, field):
         """Get attribute @attr node (XPATH) of entry that has unique id @guid"""
         entry = self.getEntry(guid)
-        attrs = entry.findall(attr)
-        attrs += entry.findall("field[@type='{}']".format(attr))
+        attrs = entry.findall(field)
+        attrs += entry.findall("field[@type='{}']".format(field))
         if len(attrs) < 1:
             attr_node = None
         elif len (attrs) > 1:
@@ -143,6 +143,14 @@ class Lift:
         var = eTree.SubElement(entry, "variant")
         var.extend([form, trait])
         entry.set("dateModified", datetime.utcnow().isoformat().split(".")[0] + "Z")
+
+    def setDateModified(self, guid, date=None):
+        entry = self.getEntry(guid)
+        if date is None:
+            date =  datetime.utcnow().isoformat().split(".")[0] + "Z"
+        else:
+            date = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S").isoformat().split(".")[0] + "Z"
+        entry.set("dateModified", date)
 
     def write(self, filename):
         self.tree.write(filename, 'utf-8', True)

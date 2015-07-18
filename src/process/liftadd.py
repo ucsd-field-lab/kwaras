@@ -7,12 +7,12 @@ Created on Apr 16, 2013
 
 import re
 
-from src.formats.lift import Lift
+from kwaras.formats.lift import Lift
 
 
 def exposeGuid(lift):
     for lex, eid in lift.lexemes.items():
-        guid = lift.getAttr(eid, "GUID")
+        guid = lift.getField(eid, "GUID")
         print guid.find("form/text").text
         guid.find("form/text").text = eid.split("_")[-1]
         print eid
