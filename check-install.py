@@ -1,3 +1,5 @@
+#! env python2.7
+
 __author__ = 'Lucien'
 
 import tkMessageBox

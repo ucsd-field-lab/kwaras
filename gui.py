@@ -1,24 +1,27 @@
 #! env python2.7
-
 __author__ = 'Lucien'
+
+import argparse
 
 try:
     import kwaras
 except ImportError as e:
     import tkMessageBox
+
     tkMessageBox.showerror(title="Package not installed.",
                            message="The 'kwaras' package has not been installed yet. "
-                                   "Run 'setup.py' to install it first.")
+                                   "Run installer before running this.")
     raise e
 
-if __name__ == "__main__":
+
+def convert_lexicon():
     import os.path
     import json
     from kwaras.conf import config
     from kwaras.formats.lift import Lift
     from kwaras.process import liftadd
 
-    config.ConfigWindow("lexicon.cfg",parts=["EAFL"])
+    config.ConfigWindow("lexicon.cfg", parts=["EAFL"])
 
     cfg = json.load(open("lexicon.cfg"))
     dir_name = cfg["EAFL_DIR"]
@@ -48,3 +51,25 @@ if __name__ == "__main__":
         import tkMessageBox
         tkMessageBox.showerror(title="Wrong format.",
                                message="The selected file is not a LIFT lexicon file.")
+
+
+def main(args):
+    if args.convert_lexicon:
+        convert_lexicon()
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--convert-lexicon", action="store_true",
+                        help="Convert FLEx LIFT lexicon to ELAN-Corpa EAFL lexicon")
+    parser.add_argument("--export-corpus", action="store_true",
+                        help="Export an ELAN corpus as web interface files")
+    parser.add_argument("--reparse-corpus", action="store_true",
+                        help="Update a parsed ELAN corpus with fresh lexicon data")
+
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

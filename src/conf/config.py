@@ -73,20 +73,20 @@ class ConfigWindow:
 
         if "HTML" in parts:
             self.mk_label_row("Variables used for exporting CSV to HTML")
-            init_meta = self.get("META", os.path.join(updir, "audio", "metadata.csv"))
+            init_meta = self.cfg.get("META", os.path.join(updir, "audio", "metadata.csv"))
             self.mk_choice_row("META", init_meta, "WAV Session Metadata:")
-            init_wav = self.get("WAV", os.path.join(updir, "audio", "wav"))
+            init_wav = self.cfg.get("WAV", os.path.join(updir, "audio", "wav"))
             self.mk_choice_row("WAV", init_wav, "WAV Input Directory:", isdir=True)
-            init_www = self.get("WWW", os.path.join(updir, "audio", "www"))
+            init_www = self.cfg.get("WWW", os.path.join(updir, "audio", "www"))
             self.mk_choice_row("WWW", init_www, "Web Files Output Directory:", isdir=True)
-            init_clips = self.get("CLIPS", os.path.join(updir, "audio", "www", "clips"))
+            init_clips = self.cfg.get("CLIPS", os.path.join(updir, "audio", "www", "clips"))
             self.mk_choice_row("CLIPS", init_clips, "WAV Clips Output Directory:", isdir=True)
 
             self.mk_text_row("PG_TITLE", "Kwaras Corpus", "HTML Page Title:")
             nav_bar = """<div align="right">
                 <a href="index.html">Corpus</a> - <a href="dict.xhtml">Dictionary</a>
                 </div>"""
-            nav_bar = self.get("NAV_BAR", nav_bar)
+            nav_bar = self.cfg.get("NAV_BAR", nav_bar)
             self.mk_text_box("NAV_BAR", nav_bar, "HTML div for Navigation", rowspan=4)
 
         self.buttons["Okay"] = tk.Button(self.frame, text="Okay", command=self._destroy_root)
