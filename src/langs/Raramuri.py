@@ -11,9 +11,9 @@ import re
 from src.conf import rar_win as cfg
 from src.formats import eaf, utfcsv
 
-_V_ = "aeiouɪɛəɔʊ"  # Vowels
-_P_ = ",;?\.\)\(”“…"  # Punctuation NOTE: alternatively tokenize with:  .()”“…,?;
-_C_ = "[^ " + _V_ + _P_ + "]"
+_V_ = u"aeiouɪɛəɔʊ"  # Vowels
+_P_ = u",;?\.\)\(”“…"  # Punctuation NOTE: alternatively tokenize with:  .()”“…,?;
+_C_ = u"[^ " + _V_ + _P_ + u"]"
 
 def main():
 
@@ -85,8 +85,8 @@ def orth2IPA(u):
             u = re.sub(okey, oset[okey], u)
     u = re.sub(u"[=\-\[\]]", "", u)
     # u = re.sub(u"(["+_V_+"])[:ː]",u"\g<1>\g<1>",u) # recode length with double vowel
-    u = re.sub(u"([" + _V_ + "])ː", u"\g<1>\g<1>", u)  # recode length with double vowel
-    u = re.sub(u"(" + _C_ + ")ˈX", u"ˈX\g<1>", u)  # move the stress mark before C
+    u = re.sub(u"([" + _V_ + u"])ː", u"\g<1>\g<1>", u)  # recode length with double vowel
+    u = re.sub(u"(" + _C_ + u")ˈX", u"ˈX\g<1>", u)  # move the stress mark before C
     u = re.sub(u"tˈX", u"ˈXt", u)  # move it again in the case of tʃ
     u = re.sub(u"X", u"", u)  # take out the marker of a new stress mark
     u = re.sub(u"/", " ", u)
@@ -123,10 +123,11 @@ def orth2NewOrth(u):
     return u
 
 
-def cleanEaf(fname, template):
+def cleanEaf(fname, template=None):
     eafile = eaf.Eaf(fname)
 
-    eafile.importTypes(template)
+    if template is not None:
+        eafile.importTypes(template)
 
     tids = eafile.getTierIds()
     spkrs = set([s.partition('@')[2] for s in tids])

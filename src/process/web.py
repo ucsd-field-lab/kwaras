@@ -53,24 +53,28 @@ from xml.etree import ElementTree as etree
 
 from kwaras.formats import utfcsv
 
-lang = ["Gitonga", "Raramuri", "Mixtec"][1]
 
-if lang == "Gitonga":
-    cfg_file = "conf/gitonga.txt"
-elif lang == "Raramuri":
-    cfg_file = "conf/raramuri.txt"
-elif lang == "Mixtec":
-    cfg_file = "conf/mixtec.txt"
-else:
-    cfg_file = "config.txt"
+def config():
+    lang = ["Gitonga", "Raramuri", "Mixtec"][1]
 
-up_dir = os.path.dirname(os.getcwd())
+    if lang == "Gitonga":
+        cfg_file = "conf/gitonga.txt"
+    elif lang == "Raramuri":
+        cfg_file = "conf/raramuri.txt"
+    elif lang == "Mixtec":
+        cfg_file = "conf/mixtec.txt"
+    else:
+        cfg_file = "config.txt"
 
-print "Using", cfg_file, "in", up_dir, "for configuration settings."
-cfg = json.load(os.path.join(up_dir, cfg_file))
+    up_dir = os.path.dirname(os.getcwd())
 
-comment_field = "Note"  # necessary only if used for speaker annotation
-wrapper = os.path.join(up_dir, "web/index_wrapper.html")
+    print "Using", cfg_file, "in", up_dir, "for configuration settings."
+    cfg = json.load(os.path.join(up_dir, cfg_file))
+
+    comment_field = "Note"  # necessary only if used for speaker annotation
+    wrapper = os.path.join(up_dir, "web/index_wrapper.html")
+
+    return cfg, comment_field, wrapper
 
 def filter_fields(fields, export_fields):
     fnames = set([f.partition("@")[0] for f in fields])
@@ -80,8 +84,36 @@ def filter_fields(fields, export_fields):
     fields.sort(key=lambda f: export_fields.index(f.partition("@")[0]))
     return fnames, fields
 
+
+def export_elan(cfg):
+
+    csvfile = utfcsv.UnicodeWriter(os.path.join(cfg["FILE_DIR"], "status.csv"), "excel", mode="ab")
+    csvfile.write(["Filename"] + cfg["EXP_FIELDS"].split(","))
+
+    if True: # TODO support language selection
+        from kwaras.langs import Raramuri as language
+    else:
+        from kwaras.langs import Mixtec as language
+
+    for filename in os.listdir(os.path.join(cfg["FILE_DIR"], cfg["OLD_EAFS"])):
+        print filename
+        if not os.path.splitext(filename)[1].lower() == ".eaf":
+            print "Not an eaf:", filename, os.path.splitext(filename)
+        else:
+            fpath = os.path.join(cfg["FILE_DIR"], cfg["OLD_EAFS"], filename)
+            # template = os.path.join(cfg["FILE_DIR"], cfg["TEMPLATE"])
+            eafile = language.cleanEaf(fpath)
+            eafile.write(os.path.join(cfg["FILE_DIR"], cfg["NEW_EAFS"], filename))
+            eafile.exportToCSV(os.path.join(cfg["FILE_DIR"], cfg["CSV"]), "excel", cfg["EXP_FIELDS"].split(","), "ab")
+            status = sorted(eafile.status(cfg["EXP_FIELDS"].split(",")).items())
+            print status
+            csvfile.write([filename] + [str(v * 100) + "%" for (k, v) in status])
+
+
 def main(cfg):
     """Perform the metadata extraction and file renaming."""
+
+    export_elan(cfg)
 
     # Parse the ELAN export, get the IPA, English and Spanish timestamps
     # fields = ["IPA","English","Spanish"] # for Purepecha?
@@ -91,7 +123,7 @@ def main(cfg):
     print "Export file parsed."
 
     # filter and sort field names
-    fnames, fields = filter_fields(fields, cfg['EXPORT_FIELDS'])
+    fnames, fields = filter_fields(fields, cfg['EXP_FIELDS'])
     print "fnames:", fnames
     print "fields:", fields
 
@@ -473,4 +505,5 @@ def human_time(milliseconds):
 
 
 if __name__ == "__main__":
-    main()
+    cfg, comments, wrapper = config()
+    main(cfg)

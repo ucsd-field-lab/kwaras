@@ -84,7 +84,8 @@ class ConfigWindow:
 
             self.mk_text_row("PG_TITLE", "Kwaras Corpus", "HTML Page Title:")
             nav_bar = """<div align="right">
-                <a href="index.html">Corpus</a> - <a href="dict.xhtml">Dictionary</a>
+                <a href="index.html">Corpus</a>
+                - <a href="dict.xhtml">Dictionary</a>
                 </div>"""
             nav_bar = self.cfg.get("NAV_BAR", nav_bar)
             self.mk_text_box("NAV_BAR", nav_bar, "HTML div for Navigation", rowspan=4)

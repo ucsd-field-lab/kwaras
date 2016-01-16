@@ -142,7 +142,7 @@ def convertToOrtho(text):
     return text
     
 
-def cleanEaf(eafile):
+def cleanEaf(eafile, template=None):
 
     #ipa = eaf.getTierById(eafile, "IPA Transcription")
     #print eaf, ipa

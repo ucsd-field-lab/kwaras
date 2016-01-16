@@ -2,6 +2,8 @@
 __author__ = 'Lucien'
 
 import argparse
+import os.path
+import json
 
 try:
     import kwaras
@@ -9,14 +11,12 @@ except ImportError as e:
     import tkMessageBox
 
     tkMessageBox.showerror(title="Package not installed.",
-                           message="The 'kwaras' package has not been installed yet. "
+                           message="The 'kwaras' package has not been installed correctly yet. "
                                    "Run installer before running this.")
     raise e
 
 
 def convert_lexicon():
-    import os.path
-    import json
     from kwaras.conf import config
     from kwaras.formats.lift import Lift
     from kwaras.process import liftadd
@@ -53,19 +53,40 @@ def convert_lexicon():
                                message="The selected file is not a LIFT lexicon file.")
 
 
+def export_corpus():
+    from kwaras.conf import config
+    from kwaras.process import web
+
+    config.ConfigWindow("corpus.cfg", parts=["CSV", "HTML"])
+
+    cfg = json.load(open("corpus.cfg"))
+    web.main(cfg)
+
+
+def reparse_corpus():
+    print "Sorry, reparse_corpus is not implemented."
+
 def main(args):
+
     if args.convert_lexicon:
         convert_lexicon()
+
+    if args.reparse_corpus:
+        reparse_corpus()
+
+    if args.export_corpus:
+        export_corpus()
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
+
     parser.add_argument("--convert-lexicon", action="store_true",
                         help="Convert FLEx LIFT lexicon to ELAN-Corpa EAFL lexicon")
-    parser.add_argument("--export-corpus", action="store_true",
-                        help="Export an ELAN corpus as web interface files")
     parser.add_argument("--reparse-corpus", action="store_true",
                         help="Update a parsed ELAN corpus with fresh lexicon data")
+    parser.add_argument("--export-corpus", action="store_true",
+                        help="Export an ELAN corpus as web interface files")
 
     return parser.parse_args()
 
