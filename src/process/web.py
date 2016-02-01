@@ -49,6 +49,7 @@ import json
 import random
 import re
 import wave
+import logging
 from xml.etree import ElementTree as etree
 
 from kwaras.formats import utfcsv
@@ -76,6 +77,7 @@ def config():
 
     return cfg, comment_field, wrapper
 
+
 def filter_fields(fields, export_fields):
     fnames = set([f.partition("@")[0] for f in fields])
     if export_fields is not []:
@@ -85,27 +87,35 @@ def filter_fields(fields, export_fields):
     return fnames, fields
 
 
-def export_elan(cfg):
-
+def export_elan(cfg, export_fields):
     csvfile = utfcsv.UnicodeWriter(os.path.join(cfg["FILE_DIR"], "status.csv"), "excel", mode="ab")
-    csvfile.write(["Filename"] + cfg["EXP_FIELDS"].split(","))
+    csvfile.write(["Filename"] + export_fields)
 
-    if True: # TODO support language selection
+    if True:  # TODO support language selection
         from kwaras.langs import Raramuri as language
     else:
         from kwaras.langs import Mixtec as language
+    template = None
 
-    for filename in os.listdir(os.path.join(cfg["FILE_DIR"], cfg["OLD_EAFS"])):
+    cfg["CSV"] = os.path.join(cfg["FILE_DIR"], "data.csv")
+    cfg['NEW_EAFS'] = os.path.join(cfg['OLD_EAFS'], 'auto')
+    if not os.path.exists(cfg['NEW_EAFS']):
+        os.mkdir(cfg['NEW_EAFS'])
+
+    for filename in os.listdir(cfg["OLD_EAFS"]):
         print filename
         if not os.path.splitext(filename)[1].lower() == ".eaf":
             print "Not an eaf:", filename, os.path.splitext(filename)
         else:
-            fpath = os.path.join(cfg["FILE_DIR"], cfg["OLD_EAFS"], filename)
+            fpath = os.path.join(cfg["OLD_EAFS"], filename)
+            if template is None:
+                template = fpath
+                print "Using {0} as template for ELAN types".format(fpath)
             # template = os.path.join(cfg["FILE_DIR"], cfg["TEMPLATE"])
-            eafile = language.cleanEaf(fpath)
-            eafile.write(os.path.join(cfg["FILE_DIR"], cfg["NEW_EAFS"], filename))
-            eafile.exportToCSV(os.path.join(cfg["FILE_DIR"], cfg["CSV"]), "excel", cfg["EXP_FIELDS"].split(","), "ab")
-            status = sorted(eafile.status(cfg["EXP_FIELDS"].split(",")).items())
+            eafile = language.cleanEaf(fpath, template)
+            eafile.write(os.path.join(cfg["NEW_EAFS"], filename))
+            eafile.exportToCSV(cfg["CSV"], "excel", export_fields, "ab")
+            status = sorted(eafile.status(export_fields).items())
             print status
             csvfile.write([filename] + [str(v * 100) + "%" for (k, v) in status])
 
@@ -113,7 +123,10 @@ def export_elan(cfg):
 def main(cfg):
     """Perform the metadata extraction and file renaming."""
 
-    export_elan(cfg)
+    export_fields = [f.strip() for f in cfg["EXP_FIELDS"].split(',')]
+    print "Exporting fields: {0}".format(export_fields)
+    export_elan(cfg, export_fields)
+    print "ELAN data exported."
 
     # Parse the ELAN export, get the IPA, English and Spanish timestamps
     # fields = ["IPA","English","Spanish"] # for Purepecha?
@@ -123,7 +136,7 @@ def main(cfg):
     print "Export file parsed."
 
     # filter and sort field names
-    fnames, fields = filter_fields(fields, cfg['EXP_FIELDS'])
+    fnames, fields = filter_fields(fields, export_fields)
     print "fnames:", fnames
     print "fields:", fields
 
@@ -135,15 +148,15 @@ def main(cfg):
     eaf_wav_files = {}
     for eaf_file, start, stop in clippables:
         if eaf_file not in eaf_wav_files:
-            wav_file = find_wav_file(cfg['NEW_EAFS'] + '/' + eaf_file)
+            wav_file = find_wav_file(os.path.join(cfg['NEW_EAFS'], eaf_file))
             eaf_wav_files[eaf_file] = wav_file
 
     # Get mapping between EAFs and speakers
     spkr_dict = get_speakers(cfg['META'])
 
     # Output for clip metadata
-    clip_fh = utfcsv.UnicodeWriter(open(meta_dir + '/clip_metadata.csv', 'w'))
-    table_fh = open(meta_dir + '/clip_metadata.html', 'w')
+    clip_fh = utfcsv.UnicodeWriter(open(os.path.join(cfg['WWW'], 'clip_metadata.csv'), 'w'))
+    table_fh = open(os.path.join(cfg['WWW'], 'clip_metadata.html'), 'w')
 
     table_fh.write('<table id="clip_metadata">\n<thead>\n<tr>\n' +
                    '\n'.join(['<th class="Annotation">' + f + '&nbsp;</th>' for f in fnames]) +
@@ -182,45 +195,50 @@ def main(cfg):
             tokens[gkey] = ''.join([str(random.randint(0, 9)) for _i in range(8)])
             tokens[ckey] = tokens[gkey] + "-1"
 
-    if not os.path.exists(clip_dir):
-        os.mkdir(clip_dir)
+    cfg['CLIPS'] = os.path.join(cfg['FILE_DIR'], 'clips')
+    if not os.path.exists(cfg['CLIPS']):
+        os.mkdir(cfg['CLIPS'])
 
     print "Started clipping."
 
-    mk_table_rows(clippables)
+    mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, clip_fh, table_fh, tokens, cfg)
 
     table_fh.write('</tbody>\n</table>\n')
     clip_fh.close()
     table_fh.close()
 
+    wrap_html(cfg, 'web/index_wrapper.html')
+
 
 def wrap_html(cfg, wrapper):
+    wrap_fh = open(wrapper, 'rb')
 
-    wrap_fh = open(os.path.join(www_dir, wrapper), 'rb')
+    table_fh = open(os.path.join(cfg['WWW'], 'clip_metadata.html'), 'rb')
 
-    table_fh = open(os.path.join(cfg['WWW'], '/clip_metadata.html'), 'rb')
-
-    index_fh = open(meta_dir + '/index.html', 'wb')
+    index_fh = open(os.path.join(cfg['WWW'], 'index.html'), 'wb')
 
     for line in wrap_fh:
         if line.strip().startswith('<title>'):
-            index_fh.write('<title>' + page_title + '</title>')
+            index_fh.write('<title>' + cfg['PG_TITLE'] + '</title>')
         else:
             index_fh.write(line)
 
         if line.strip().startswith('<body>'):
-            index_fh.write(NAV_BAR)
+            index_fh.write(cfg['NAV_BAR'])
 
         if line.strip().startswith('<div class="container"'):
             index_fh.writelines(list(table_fh))
 
     index_fh.close()
 
-def mk_table_rows(clippables):
 
+def mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, clip_fh, table_fh, tokens, cfg):
+    comment_field = 'Note'
     already_clipped = set()
 
     for eaf_file, start, stop in clippables:
+
+        print
 
         wav_file = eaf_wav_files[eaf_file]
 
@@ -228,7 +246,6 @@ def mk_table_rows(clippables):
             continue
 
         vdict = {}
-        spkr_code = ''
         speaker = ''
         for f in fields:
             fname = f.partition("@")[0]
@@ -250,8 +267,7 @@ def mk_table_rows(clippables):
         # If the filename for output already exists, add a number to it
         file_index = ''
         if False:  # set to over-write
-            while os.path.exists(clip_dir + '/' + clip_base + str(file_index)
-                                         + '.wav'):
+            while os.path.exists(os.path.join(cfg['CLIPS'], clip_base + str(file_index) + '.wav')):
                 if file_index == '':
                     file_index = 1
                 else:
@@ -268,28 +284,36 @@ def mk_table_rows(clippables):
 
         # Write out the clip wav
         print eaf_file, clip_file
-        res = clip_wav(wav_dir + '/' + wav_file,
-                       clip_dir + '/' + clip_file,
+        try:
+            res = clip_wav(os.path.join(cfg['WAV'], wav_file),
+                       os.path.join(cfg['CLIPS'], clip_file),
                        start, stop)
-        print res
-        print
+        except IOError:
+            print "WARNING: no WAV file named {0} found".format(wav_file)
+            continue
+
+        print 'clipping successful:', res
         if not res:
             continue
 
         already_clipped.add((wav_file, start, stop))
 
         # pull up name of speaker (contributor)
-        print "spkr 1:", speaker
-        if speaker == '':
-            speaker = spkr_dict[os.path.splitext(wav_file)[0]]
-            print "spkr 2:", speaker
-            if comment_field in fnames:  # speaker annotation in comment field
-                comment = values[fnames.index(comment_field)]
-                if comment.strip() and re.match("[A-Z, ]+", comment.split()[0]):
-                    # formerly  == comment.split()[0].upper():
-                    speaker = comment.split()[0]
-                    print "spkr 3:", speaker
-
+        if speaker != '':
+            print "speaker value from tier name:", speaker
+        else:
+            wav_file_base = os.path.splitext(wav_file)[0]
+            if wav_file_base in spkr_dict:
+                speaker = spkr_dict[wav_file_base]
+                print "speaker value from metadata:", speaker
+            else:
+                print "WARNING: No metadata for {0} found in metadata file".format(wav_file_base)
+                if comment_field in fnames:  # speaker annotation in comment field
+                    comment = values[fnames.index(comment_field)]
+                    if comment.strip() and re.match("[A-Z, ]+", comment.split()[0]):
+                        # formerly  == comment.split()[0].upper():
+                        speaker = comment.split()[0]
+                        print "speaker value from comment field:", speaker
 
         clip_fh.write(values + [clip_file,
                                 wav_file, eaf_file,
@@ -328,7 +352,6 @@ def find_wav_file(eaf_file):
         return basename + ".WAV"
     else:
         return os.path.basename(media.get("MEDIA_URL"))
-
 
 
 def find_clippable_segments(tiers, fields):
@@ -388,6 +411,7 @@ def get_speakers(meta_file, spk_field="Contributor"):
     spk = {}
     for line in fh:
         if line["Format"].lower() == ("wav"):
+            print line[name_field]
             spk[line[name_field]] = line[spk_field]
 
     return spk

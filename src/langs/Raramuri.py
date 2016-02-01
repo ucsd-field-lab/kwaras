@@ -8,8 +8,7 @@ Created on March 22, 2013
 import os
 import re
 
-from src.conf import rar_win as cfg
-from src.formats import eaf, utfcsv
+from kwaras.formats import eaf, utfcsv
 
 _V_ = u"aeiouɪɛəɔʊ"  # Vowels
 _P_ = u",;?\.\)\(”“…"  # Punctuation NOTE: alternatively tokenize with:  .()”“…,?;

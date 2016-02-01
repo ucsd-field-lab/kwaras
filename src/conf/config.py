@@ -11,7 +11,7 @@ _WIDTH = 60
 
 
 class ConfigWindow:
-    def __init__(self, cfg_file=CFG_FILE, parts=["EAFL", "CSV", "HTML"]):
+    def __init__(self, cfg_file=CFG_FILE, parts=("EAFL", "CSV", "HTML")):
         self.tkroot = tk.Tk()
         self.tkroot.title("Configuration Settings")
 
@@ -56,31 +56,34 @@ class ConfigWindow:
             self.mk_label_row("Variables used in both CSV and HTML export steps")
             init_dir = self.cfg.get("FILE_DIR", updir)
             self.mk_choice_row("FILE_DIR", init_dir, "Working File Directory:", isdir=True)
-            init_csv = self.cfg.get("CSV", os.path.join(old_eafs, "auto", "data.csv"))
-            self.mk_choice_row("CSV", init_csv, "Output CSV File:")
+            out_dir = os.path.join(old_eafs, "auto")
+            if not os.path.exists(out_dir):
+                out_dir = init_dir
+            # init_csv = self.cfg.get("CSV", os.path.join(out_dir, "data.csv"))
+            # self.mk_choice_row("CSV", init_csv, "Output CSV File:", issave=True)
 
             exp_fields = self.cfg.get("EXP_FIELDS",             # List of fields to include
-                                      ["Broad", "Ortho", "NewOrtho", "Phonetic",
-                                       "UttWGloss", "UttMGloss",
-                                       "Spanish", "English", "Note"])
-            self.mk_text_row("EXP_FIELDS", ", ".join(exp_fields), "List of Fields to Export:")
+                                      ", ".join(["Broad", "Ortho", "NewOrtho", "Phonetic",
+                                                 "UttWGloss", "UttMGloss",
+                                                 "Spanish", "English", "Note"]))
+            self.mk_text_row("EXP_FIELDS", exp_fields, "List of Fields to Export:")
 
         if "CSV" in parts:
             self.mk_label_row("Variables used for exporting EAF to CSV")
             init_eafs = self.cfg.get("OLD_EAFS", old_eafs)
             self.mk_choice_row("OLD_EAFS", init_eafs, "Directory of Input EAFs:", isdir=True)
-            self.mk_choice_row("NEW_EAFS", os.path.join(init_eafs, "auto"), "Directory for Output EAFs:", isdir=True)
+            # self.mk_choice_row("NEW_EAFS", os.path.join(init_eafs, "auto"), "Directory for Output EAFs:", isdir=True)
 
         if "HTML" in parts:
             self.mk_label_row("Variables used for exporting CSV to HTML")
-            init_meta = self.cfg.get("META", os.path.join(updir, "audio", "metadata.csv"))
+            init_meta = self.cfg.get("META", os.path.join(updir, "metadata.csv"))
             self.mk_choice_row("META", init_meta, "WAV Session Metadata:")
-            init_wav = self.cfg.get("WAV", os.path.join(updir, "audio", "wav"))
+            init_wav = self.cfg.get("WAV", os.path.join(updir, "wav"))
             self.mk_choice_row("WAV", init_wav, "WAV Input Directory:", isdir=True)
-            init_www = self.cfg.get("WWW", os.path.join(updir, "audio", "www"))
+            init_www = self.cfg.get("WWW", os.path.join(updir, "www"))
             self.mk_choice_row("WWW", init_www, "Web Files Output Directory:", isdir=True)
-            init_clips = self.cfg.get("CLIPS", os.path.join(updir, "audio", "www", "clips"))
-            self.mk_choice_row("CLIPS", init_clips, "WAV Clips Output Directory:", isdir=True)
+            # init_clips = self.cfg.get("CLIPS", os.path.join(updir, "audio", "www", "clips"))
+            # self.mk_choice_row("CLIPS", init_clips, "WAV Clips Output Directory:", isdir=True)
 
             self.mk_text_row("PG_TITLE", "Kwaras Corpus", "HTML Page Title:")
             nav_bar = """<div align="right">
@@ -131,11 +134,11 @@ class ConfigWindow:
         self.labels[var] = tk.Label(self.frame, text=text)
         self.labels[var].grid(row=idx, column=1, sticky=E)
         self.variables[var] = tk.StringVar(value=self.cfg.get(var, default))
-        self.entries[var] = MyText(self.frame, self.variables[var], width=_WIDTH, height=rowspan, font=("Helvetica", 8))
+        self.entries[var] = MyText(self.frame, self.variables[var], width=_WIDTH, height=rowspan, font=("Helvetica", 12))
         self.entries[var].grid(row=idx, column=2, columnspan=1, sticky=W)
 
     # File/Directory Choice UI Rows
-    def mk_choice_row(self, var, default, text, isdir=False, idx=-1):
+    def mk_choice_row(self, var, default, text, isdir=False, issave=False, idx=-1):
         idx = idx if idx > 0 and idx not in self.indices else max(self.indices + [0]) + 1
         self._insert_index(idx)
         self.labels[var] = tk.Label(self.frame, text=text)
@@ -150,8 +153,12 @@ class ConfigWindow:
                 'parent': self.tkroot,
                 'title': "Choose " + text
             }
+            if not os.path.exists(options['initialdir']):
+                options['initialdir'] = ''
             if isdir:
                 dvar = tkFileDialog.askdirectory(**options)
+            elif issave:
+                dvar = tkFileDialog.asksaveasfilename(**options)
             else:
                 dvar = tkFileDialog.askopenfilename(**options)
             self.variables[var].set(dvar)
