@@ -91,10 +91,15 @@ def export_elan(cfg, export_fields):
     csvfile = utfcsv.UnicodeWriter(os.path.join(cfg["FILE_DIR"], "status.csv"), "excel", mode="ab")
     csvfile.write(["Filename"] + export_fields)
 
-    if True:  # TODO support language selection
+    if cfg['LANGUAGE'].lower() == "raramuri":
         from kwaras.langs import Raramuri as language
-    else:
+    elif cfg['LANGUAGE'].lower() == "mixtec":
         from kwaras.langs import Mixtec as language
+    elif cfg['LANGUAGE'].lower() == "kumiai":
+        from kwaras.langs import Kumiai as language
+    else:
+        raise ValueError("Language '{0}' not recognized".format(cfg['LANGUAGE']))
+
     template = None
 
     cfg["CSV"] = os.path.join(cfg["FILE_DIR"], "data.csv")
@@ -403,6 +408,10 @@ def filter_clippables(clippables, eaf_wav_files, eaf_creators):
 
 def get_speakers(meta_file, spk_field="Contributor"):
     """Parse the metadata file to return Speaker guesses for each WAV file"""
+    if not os.path.exists(meta_file):
+        print "WARNING: no META data file '{0}' found".format(meta_file)
+        return {}
+
     fh = utfcsv.UnicodeReader(open(meta_file, 'r'), fieldnames=True)
 
     print fh.fieldnames

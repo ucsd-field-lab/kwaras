@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='kwaras',
-    version='2.1.3',
+    version='2.1.4',
     packages=['kwaras', 'kwaras.langs', 'kwaras.conf', 'kwaras.formats', 'kwaras.process'],
     package_dir={'kwaras': '',
                  'kwaras.langs': 'src/langs', 'kwaras.conf': 'src/conf',

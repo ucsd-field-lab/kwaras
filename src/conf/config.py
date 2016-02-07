@@ -70,6 +70,7 @@ class ConfigWindow:
 
         if "CSV" in parts:
             self.mk_label_row("Variables used for exporting EAF to CSV")
+            self.mk_text_row("LANGUAGE", "Raramuri", "Language template:")
             init_eafs = self.cfg.get("OLD_EAFS", old_eafs)
             self.mk_choice_row("OLD_EAFS", init_eafs, "Directory of Input EAFs:", isdir=True)
             # self.mk_choice_row("NEW_EAFS", os.path.join(init_eafs, "auto"), "Directory for Output EAFs:", isdir=True)
