@@ -57,9 +57,14 @@ def export_corpus():
     from kwaras.conf import config
     from kwaras.process import web
 
-    config.ConfigWindow("corpus.cfg", parts=["CSV", "HTML"])
+    config.ConfigWindow("corpus.cfg", parts=["MAIN"])
 
-    cfg = json.load(open("corpus.cfg"))
+    main_cfg = json.load(open("corpus.cfg"))
+
+    config.ConfigWindow("{0}.cfg".format(main_cfg["LANGUAGE"]),
+                        parts=["MAIN", "CSV", "HTML"], defaults=main_cfg)
+
+    cfg = json.load(open("{0}.cfg".format(main_cfg["LANGUAGE"])))
     web.main(cfg)
 
 

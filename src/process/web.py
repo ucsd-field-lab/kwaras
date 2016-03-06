@@ -111,6 +111,8 @@ def export_elan(cfg, export_fields):
         print filename
         if not os.path.splitext(filename)[1].lower() == ".eaf":
             print "Not an eaf:", filename, os.path.splitext(filename)
+        elif os.path.basename(filename).startswith('.'):
+            print "Hidden file:", filename
         else:
             fpath = os.path.join(cfg["OLD_EAFS"], filename)
             if template is None:
@@ -163,27 +165,32 @@ def main(cfg):
     clip_fh = utfcsv.UnicodeWriter(open(os.path.join(cfg['WWW'], 'clip_metadata.csv'), 'w'))
     table_fh = open(os.path.join(cfg['WWW'], 'clip_metadata.html'), 'w')
 
-    table_fh.write('<table id="clip_metadata">\n<thead>\n<tr>\n' +
-                   '\n'.join(['<th class="Annotation">' + f + '&nbsp;</th>' for f in fnames]) +
-                   '\n' +
-                   '<th class="Citation">Speaker&nbsp;</th>\n' +
-                   '<th class="Citation">Citation&nbsp;</th>\n'
-                   '<th>Length&nbsp;</th>\n' +
-                   '\n'.join(['<th class="Hide">' + f + '&nbsp;</th>'
-                              for f in ['Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']]) +
-                   '</tr>\n</thead>\n')
-    table_fh.write('<tfoot>\n<tr>\n' +
-                   '\n'.join(['<th><div><input type="text" value="Search ' +
-                              f + '" class="search_init"></div></th>' for f in fnames]) +
-                   '\n' +
-                   '\n'.join(['<th><div><input type="text" value="Search ' +
-                              f + '" class="search_init"></div></th>'
-                              for f in ['Speaker', 'Citation', 'Length']]) +
-                   '\n' +
-                   '\n'.join(['<th><div><input type="text" value="Search ' +
-                              f + '" class="search_init"></div></th>'
-                              for f in ['Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']]) +
-                   '\n</tr>\n</tfoot>\n<tbody>\n')
+    table_fh.write('''<table id="clip_metadata">
+                        <thead>
+                          <tr>
+                            ''' +
+                            '\n'.join(['<th class="Annotation">{0}&nbsp;</th>'.format(f) for f in fnames]) +
+                            '''
+                            <th class="Citation">Speaker&nbsp;</th>
+                            <th class="Citation">Citation&nbsp;</th>
+                            <th>Length&nbsp;</th>'
+                            ''' +
+                            '\n'.join(['<th class="Hide">{0}&nbsp;</th>'.format(f)
+                                      for f in ['Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']]) +
+                            '''
+                          </tr>
+                        </thead>''')
+
+    table_fh.write('''<tfoot>
+                        <tr>
+                          ''' +
+                          '\n'.join(['<th><div><input type="text" value="Search {0}" class="search_init"></div></th>'
+                                     for f in fnames + ['Speaker', 'Citation', 'Length', 'Start', 'Stop',
+                                                        'WAV', 'EAF', 'File', 'Token']]) +
+                          '''
+                        </tr>
+                      </tfoot>
+                      <tbody>''')
 
 
     # If there are multiple eafs that define the same clipping regions for 
@@ -200,7 +207,7 @@ def main(cfg):
             tokens[gkey] = ''.join([str(random.randint(0, 9)) for _i in range(8)])
             tokens[ckey] = tokens[gkey] + "-1"
 
-    cfg['CLIPS'] = os.path.join(cfg['FILE_DIR'], 'clips')
+    cfg['CLIPS'] = os.path.join(cfg['WWW'], 'clips')
     if not os.path.exists(cfg['CLIPS']):
         os.mkdir(cfg['CLIPS'])
 
@@ -213,6 +220,8 @@ def main(cfg):
     table_fh.close()
 
     wrap_html(cfg, 'web/index_wrapper.html')
+
+    print "Finished."
 
 
 def wrap_html(cfg, wrapper):
@@ -264,10 +273,10 @@ def mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, c
         # values = [tiers[f].get((eaf_file, start, stop),'') for f in fields] #TODO dereference the fname vs field
         print values, speaker
 
-        clip_base = os.path.splitext(wav_file)[0] + "[" + human_time(start) + "-" + human_time(stop) + "]"
+        clip_base = os.path.splitext(wav_file)[0] + "[" + human_time(start, True) + "-" + human_time(stop, True) + "]"
         clip_base = clip_base.replace('.', '')
         clip_base = clip_base.replace(':', '_')
-        cite_code = os.path.splitext(wav_file)[0] + ":" + human_time(start)
+        cite_code = os.path.splitext(wav_file)[0] + ":" + human_time(start, padded=True)
 
         # If the filename for output already exists, add a number to it
         file_index = ''
@@ -327,19 +336,18 @@ def mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, c
                                 start_human, stop_human, length_human,
                                 str(start), str(stop), str(length)])
 
-        table_fh.write('<tr clip="' + clip_file.encode('utf-8') + '">\n' +
-                       '\n'.join(['<td>' + v.encode('utf-8') + '</td>' for v in values]) +
-                       '\n' +
-                       '<td>' + speaker + '</td>\n' +
-                       '<td>' + cite_code + '</td>\n' +
-                       '<td>' + length_human + '</td>\n' +
-                       '<td>' + start_human + '</td>\n' +
-                       '<td>' + stop_human + '</td>\n' +
-                       '<td>' + wav_file + '</td>\n' +
-                       '<td>' + eaf_file + '</td>\n' +
-                       '<td> <a href="clips/' + clip_file + '" target="_blank">' + clip_file + '</a></td>\n' +
-                       '<td>' + tokens[(eaf_file, start, stop)] + '</td>\n' +
-                       '</tr>\n')
+        row = u'\n'.join([u'<tr clip="{0}">'.format(clip_file)] +
+                         [u'<td>{0}</td>'.format(v) for v in values] +
+                         [u'<td>{0}</td>'.format(v) for v in (speaker, cite_code, length_human, start_human,
+                                                              stop_human, wav_file, eaf_file)] +
+                         [u'<td> <a href="clips/{0}" target="_blank">{1}</a></td>'.format(clip_file, clip_file)] +
+                         [u'<td>{0}</td>'.format(tokens[(eaf_file, start, stop)])]
+                         )
+        try:
+            table_fh.write(row.encode('utf-8'))
+        except UnicodeDecodeError as err:
+            print "WARNING: Skipping annotation because it can't be decoded:", err.message
+            print repr(row)
 
 
 def find_wav_file(eaf_file):
@@ -514,7 +522,7 @@ def clip_wav(wav_file, clip_file, start, stop):
     return True
 
 
-def human_time(milliseconds):
+def human_time(milliseconds, padded=False):
     """Take a timsetamp in milliseconds and convert it into the familiar
     minutes:seconds format.
 
@@ -531,10 +539,12 @@ def human_time(milliseconds):
     seconds = milliseconds / 1000.0
     minutes = seconds / 60
 
-    seconds = "{0:0>4.1f}".format(seconds % 60)
-    minutes = str(int(minutes))
+    if padded:
+        stamp = "{0:0>2}:{1:0>4.1f}".format(int(minutes), seconds % 60)
+    else:
+        stamp = "{0}:{1:0>4.1f}".format(int(minutes), seconds % 60)
 
-    return minutes + ':' + seconds
+    return stamp
 
 
 if __name__ == "__main__":

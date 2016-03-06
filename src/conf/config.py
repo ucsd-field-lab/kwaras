@@ -11,7 +11,7 @@ _WIDTH = 60
 
 
 class ConfigWindow:
-    def __init__(self, cfg_file=CFG_FILE, parts=("EAFL", "CSV", "HTML")):
+    def __init__(self, cfg_file=CFG_FILE, parts=("EAFL", "CSV", "HTML"), defaults=None):
         self.tkroot = tk.Tk()
         self.tkroot.title("Configuration Settings")
 
@@ -21,6 +21,8 @@ class ConfigWindow:
         self.variables = {}
         self.buttons = {}
         self.indices = []
+        if defaults is None:
+            defaults = {}
 
         # Make container frame
         self.frame = tk.Frame(self.tkroot, relief=RIDGE, borderwidth=2)
@@ -45,6 +47,10 @@ class ConfigWindow:
         updir = os.path.dirname(os.getcwd())
         old_eafs = os.path.join(updir, "corpus-data-versions")
 
+        if "MAIN" in parts:
+            self.mk_menu_row("LANGUAGE", defaults.get("LANGUAGE", "Raramuri"), "Language template:")
+
+
         if "EAFL" in parts:
             self.mk_label_row("Variables used in creating EAFL file")
             init_lift = self.cfg.get("LIFT", os.path.join(updir, "FLEx.lift"))
@@ -63,14 +69,9 @@ class ConfigWindow:
             # self.mk_choice_row("CSV", init_csv, "Output CSV File:", issave=True)
 
             exp_fields = self.cfg.get("EXP_FIELDS",             # List of fields to include
-                                      ", ".join(["Broad", "Ortho", "NewOrtho", "Phonetic",
-                                                 "UttWGloss", "UttMGloss",
-                                                 "Spanish", "English", "Note"]))
+                                      ", ".join(["Phonetic", "Spanish", "English", "Note"]))
             self.mk_text_row("EXP_FIELDS", exp_fields, "List of Fields to Export:")
 
-        if "CSV" in parts:
-            self.mk_label_row("Variables used for exporting EAF to CSV")
-            self.mk_text_row("LANGUAGE", "Raramuri", "Language template:")
             init_eafs = self.cfg.get("OLD_EAFS", old_eafs)
             self.mk_choice_row("OLD_EAFS", init_eafs, "Directory of Input EAFs:", isdir=True)
             # self.mk_choice_row("NEW_EAFS", os.path.join(init_eafs, "auto"), "Directory for Output EAFs:", isdir=True)
@@ -120,7 +121,7 @@ class ConfigWindow:
                  font=("Helvetica", 12)).grid(row=idx, column=1, columnspan=3, sticky=(E, W))
 
     def mk_text_row(self, var, default, text, idx=-1):
-        """Make Line Entry Rows"""
+        """Make single-line Entry row"""
         idx = idx if idx > 0 and idx not in self.indices else max(self.indices + [0]) + 1
         self._insert_index(idx)
         self.labels[var] = tk.Label(self.frame, text=text)
@@ -130,6 +131,7 @@ class ConfigWindow:
         self.entries[var].grid(row=idx, column=2, sticky=W)
 
     def mk_text_box(self, var, default, text, rowspan=2, idx=-1):
+        """Make a multi-line Text Box field"""
         idx = idx if idx > 0 and idx not in self.indices else max(self.indices + [0]) + 1
         self._insert_index(idx)
         self.labels[var] = tk.Label(self.frame, text=text)
@@ -138,8 +140,18 @@ class ConfigWindow:
         self.entries[var] = MyText(self.frame, self.variables[var], width=_WIDTH, height=rowspan, font=("Helvetica", 12))
         self.entries[var].grid(row=idx, column=2, columnspan=1, sticky=W)
 
-    # File/Directory Choice UI Rows
+    def mk_menu_row(self, var, default, text, idx=-1):
+        """Make Option Menu rows"""
+        idx = idx if idx > 0 and idx not in self.indices else max(self.indices + [0]) + 1
+        self._insert_index(idx)
+        self.labels[var] = tk.Label(self.frame, text=text)
+        self.labels[var].grid(row=idx, column=1, sticky=E)
+        self.variables[var] = tk.StringVar(value=self.cfg.get(var, default))
+        self.entries[var] = tk.OptionMenu(self.frame, self.variables[var], "Raramuri", "Kumiai", "Mixtec")
+        self.entries[var].grid(row=idx, column=2, sticky=W)
+
     def mk_choice_row(self, var, default, text, isdir=False, issave=False, idx=-1):
+        """Make a row for a File/Directory selector"""
         idx = idx if idx > 0 and idx not in self.indices else max(self.indices + [0]) + 1
         self._insert_index(idx)
         self.labels[var] = tk.Label(self.frame, text=text)
