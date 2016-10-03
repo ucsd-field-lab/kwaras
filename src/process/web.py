@@ -55,8 +55,7 @@ from xml.etree import ElementTree as etree
 from kwaras.formats import utfcsv
 
 
-def config():
-    lang = ["Gitonga", "Raramuri", "Mixtec"][1]
+def config(lang=None):
 
     if lang == "Gitonga":
         cfg_file = "conf/gitonga.txt"
@@ -64,7 +63,9 @@ def config():
         cfg_file = "conf/raramuri.txt"
     elif lang == "Mixtec":
         cfg_file = "conf/mixtec.txt"
-    else:
+    elif lang == "Kumiai":
+        cfg_file = "conf/kumiai.txt"
+    else: # Other
         cfg_file = "config.txt"
 
     up_dir = os.path.dirname(os.getcwd())
@@ -72,10 +73,7 @@ def config():
     print "Using", cfg_file, "in", up_dir, "for configuration settings."
     cfg = json.load(os.path.join(up_dir, cfg_file))
 
-    comment_field = "Note"  # necessary only if used for speaker annotation
-    wrapper = os.path.join(up_dir, "web/index_wrapper.html")
-
-    return cfg, comment_field, wrapper
+    return cfg
 
 
 def filter_fields(fields, export_fields):
@@ -98,7 +96,7 @@ def export_elan(cfg, export_fields):
     elif cfg['LANGUAGE'].lower() == "kumiai":
         from kwaras.langs import Kumiai as language
     else:
-        raise ValueError("Language '{0}' not recognized".format(cfg['LANGUAGE']))
+        from kwaras.langs import Other as language
 
     template = None
 
@@ -414,22 +412,32 @@ def filter_clippables(clippables, eaf_wav_files, eaf_creators):
     return new_clippables
 
 
-def get_speakers(meta_file, spk_field="Contributor"):
+def get_speakers(meta_file):
     """Parse the metadata file to return Speaker guesses for each WAV file"""
+    filename_fields = ["Name", "File"]
+    speaker_fields = ["Contributor"]
+    format_fields = ["Format"]
+
     if not os.path.exists(meta_file):
         print "WARNING: no META data file '{0}' found".format(meta_file)
         return {}
 
     fh = utfcsv.UnicodeReader(open(meta_file, 'r'), fieldnames=True)
 
-    print fh.fieldnames
-    name_field = [f for f in ["Name", "File"] if f in fh.fieldnames][0]
+    print 'Session Metadata Column Names:', fh.fieldnames
+    name_field = [f for f in filename_fields if f in fh.fieldnames][0]
+    spk_field = [f for f in speaker_fields if f in fh.fieldnames][0]
+    fmt_field = [f for f in format_fields if f in fh.fieldnames]
+    fmt_field = fmt_field[0] if len(fmt_field) > 0 else None
 
     spk = {}
-    for line in fh:
-        if line["Format"].lower() == ("wav"):
-            print line[name_field]
+    if fmt_field is None:
+        for line in fh:
             spk[line[name_field]] = line[spk_field]
+    else:
+        for line in fh:
+            if line["Format"].lower() == ("wav"):
+                spk[line[name_field]] = line[spk_field]
 
     return spk
 
@@ -548,5 +556,5 @@ def human_time(milliseconds, padded=False):
 
 
 if __name__ == "__main__":
-    cfg, comments, wrapper = config()
+    config()
     main(cfg)

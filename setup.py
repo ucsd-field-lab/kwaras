@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='kwaras',
-    version='2.1.9',
+    version='2.1.10',
     packages=['kwaras', 'kwaras.langs', 'kwaras.conf', 'kwaras.formats', 'kwaras.process'],
     package_dir={'kwaras': '',
                  'kwaras.langs': 'src/langs', 'kwaras.conf': 'src/conf',
@@ -11,7 +11,7 @@ setup(
     package_data={'kwaras': ['web/*.html', 'web/css/*.css', 'web/js/*.js',
                              'web/css/smoothness/*.css', 'web/css/smoothness/images/*.png']},
     data_files=[('', ['convert-lexicon.COMMAND', 'install-macos.COMMAND', 'export-corpus.COMMAND'])],
-    url='http://github.com/serapio/kwaras',
+    url='http://github.com/ucsd-field-lab/kwaras',
     license='MIT-LICENSE',
     author='Lucien Carroll',
     author_email='lucien@discurs.us',

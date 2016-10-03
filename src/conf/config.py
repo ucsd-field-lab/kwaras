@@ -79,7 +79,7 @@ class ConfigWindow:
         if "HTML" in parts:
             self.mk_label_row("Variables used for exporting CSV to HTML")
             init_meta = self.cfg.get("META", os.path.join(updir, "metadata.csv"))
-            self.mk_choice_row("META", init_meta, "WAV Session Metadata:")
+            self.mk_choice_row("META", init_meta, "WAV Session Metadata (optional):")
             init_wav = self.cfg.get("WAV", os.path.join(updir, "wav"))
             self.mk_choice_row("WAV", init_wav, "WAV Input Directory:", isdir=True)
             init_www = self.cfg.get("WWW", os.path.join(updir, "www"))
@@ -147,7 +147,7 @@ class ConfigWindow:
         self.labels[var] = tk.Label(self.frame, text=text)
         self.labels[var].grid(row=idx, column=1, sticky=E)
         self.variables[var] = tk.StringVar(value=self.cfg.get(var, default))
-        self.entries[var] = tk.OptionMenu(self.frame, self.variables[var], "Raramuri", "Kumiai", "Mixtec")
+        self.entries[var] = tk.OptionMenu(self.frame, self.variables[var], "Raramuri", "Kumiai", "Mixtec", "Other")
         self.entries[var].grid(row=idx, column=2, sticky=W)
 
     def mk_choice_row(self, var, default, text, isdir=False, issave=False, idx=-1):
