@@ -4,11 +4,13 @@ __author__ = 'Lucien'
 import argparse
 import os.path
 import json
+import Tkinter as tk
+import tkMessageBox
+from Tkconstants import *
 
 try:
     import kwaras
 except ImportError as e:
-    import tkMessageBox
 
     tkMessageBox.showerror(title="Package not installed.",
                            message="The 'kwaras' package has not been installed correctly yet. "
@@ -48,7 +50,6 @@ def convert_lexicon():
         lift.toEAFL(eafl_name)
         print "Data written to", eafl_name
     else:
-        import tkMessageBox
         tkMessageBox.showerror(title="Wrong format.",
                                message="The selected file is not a LIFT lexicon file.")
 
@@ -69,7 +70,8 @@ def export_corpus():
 
 
 def reparse_corpus():
-    print "Sorry, reparse_corpus is not implemented."
+    tkMessageBox.showerror(title="Not implemented",
+                           message="Sorry, reparse_corpus is not implemented yet.")
 
 def main(args):
 
@@ -96,6 +98,44 @@ def parse_args():
     return parser.parse_args()
 
 
+class ChoiceWindow:
+    def __init__(self, args):
+        self.args = args
+        self.tkroot = tk.Tk()
+        self.tkroot.title("Choose Process")
+
+        # Make container frame
+        self.frame = tk.Frame(self.tkroot, relief=RIDGE, borderwidth=2)
+        self.frame.grid(column=0, row=0, sticky=(N, W, E, S))
+        self.frame.columnconfigure(0, weight=1)
+        self.frame.rowconfigure(0, weight=1)
+        self.frame.pack(fill=BOTH, expand=1)
+
+        label = tk.Label(self.frame, text="Process")
+        label.grid(row=10, column=1, sticky=E)
+        self.var = tk.StringVar()
+        entry = tk.OptionMenu(self.frame, self.var, "Export Corpus", "Convert Lexicon", "Reparse Corpus")
+        entry.grid(row=10, column=2, sticky=W)
+
+        button = tk.Button(self.frame, text="Okay", command=self._destroy_root)
+        button.grid(row=100, column=3, sticky=E)
+        tk.mainloop()
+
+    def _destroy_root(self):
+        self.tkroot.destroy()
+        var_str = self.var.get()
+        if var_str == "Export Corpus":
+            self.args.export_corpus = True
+        elif var_str == "Convert Lexicon":
+            self.args.convert_lexicon = True
+        elif var_str == "Reparse Corpus":
+            self.args.reparse_corpus = True
+        else:
+            tkMessageBox.showerror("Unrecognized process name")
+
+
 if __name__ == "__main__":
     args = parse_args()
+    if not (args.convert_lexicon or args.reparse_corpus or args.export_corpus):
+        ChoiceWindow(args)
     main(args)
