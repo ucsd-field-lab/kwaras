@@ -86,7 +86,7 @@ def filter_fields(fields, export_fields):
 
 
 def export_elan(cfg, export_fields):
-    csvfile = utfcsv.UnicodeWriter(os.path.join(cfg["FILE_DIR"], "status.csv"), "excel", mode="ab")
+    csvfile = utfcsv.UnicodeWriter(os.path.join(cfg["FILE_DIR"], "status.csv"), "excel", mode="wb")
     csvfile.write(["Filename"] + export_fields)
 
     if cfg['LANGUAGE'].lower() == "raramuri":
@@ -119,7 +119,7 @@ def export_elan(cfg, export_fields):
             # template = os.path.join(cfg["FILE_DIR"], cfg["TEMPLATE"])
             eafile = language.cleanEaf(fpath, template)
             eafile.write(os.path.join(cfg["NEW_EAFS"], filename))
-            eafile.exportToCSV(cfg["CSV"], "excel", export_fields, "ab")
+            eafile.exportToCSV(cfg["CSV"], "excel", export_fields, "wb")
             status = sorted(eafile.status(export_fields).items())
             print status
             csvfile.write([filename] + [str(v * 100) + "%" for (k, v) in status])
@@ -136,7 +136,7 @@ def main(cfg):
     # Parse the ELAN export, get the IPA, English and Spanish timestamps
     # fields = ["IPA","English","Spanish"] # for Purepecha?
     # fields = [] # will collect all fields, assuming the first one is primary phonetic
-    # tiers, fields = parse_export_file(export_file, fields) 
+    # tiers, fields = parse_export_file(export_file, fields)
     tiers, fields = parse_export_file(cfg['CSV'])
     print "Export file parsed."
 
@@ -191,7 +191,7 @@ def main(cfg):
                       <tbody>''')
 
 
-    # If there are multiple eafs that define the same clipping regions for 
+    # If there are multiple eafs that define the same clipping regions for
     # the same wav file, we want to use the EAF that is in the EAF metadata.
     # clippables = filter_clippables(clippables, eaf_wav_files, eaf_creators)
 
