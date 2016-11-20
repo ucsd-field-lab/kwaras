@@ -52,7 +52,7 @@ import wave
 import logging
 from xml.etree import ElementTree as etree
 
-from kwaras.formats import utfcsv
+from kwaras.formats import utfcsv, xlsx
 
 
 def config(lang=None):
@@ -421,8 +421,12 @@ def get_speakers(meta_file):
     if not os.path.exists(meta_file):
         print "WARNING: no META data file '{0}' found".format(meta_file)
         return {}
-
-    fh = utfcsv.UnicodeReader(open(meta_file, 'r'), fieldnames=True)
+    if os.path.splitext(meta_file) == 'csv':
+        fh = utfcsv.UnicodeReader(open(meta_file, 'r'), fieldnames=True)
+    elif os.path.splitext(meta_file) == 'xlsx':
+        fh = xlsx.ExcelReader(meta_file)
+    else:
+        print "Error: file type '{}' not recognized".format(os.path.splitext(meta_file))
 
     print 'Session Metadata Column Names:', fh.fieldnames
     name_field = [f for f in filename_fields if f in fh.fieldnames][0]
