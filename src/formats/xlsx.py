@@ -3,9 +3,9 @@ from openpyxl import load_workbook
 
 class ExcelReader:
 
-    def __init__(self, f):
+    def __init__(self, filename):
 
-        wb = load_workbook(f)
+        wb = load_workbook(filename)
         self.worksheet = wb.get_active_sheet()
         self.fieldnames = self.worksheet.rows.next()
 

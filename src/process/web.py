@@ -104,11 +104,13 @@ def export_elan(cfg, export_fields):
     cfg['NEW_EAFS'] = os.path.join(cfg['OLD_EAFS'], 'auto')
     if not os.path.exists(cfg['NEW_EAFS']):
         os.mkdir(cfg['NEW_EAFS'])
+    if os.path.exists(cfg["CSV"]):
+        os.remove(cfg["CSV"])
 
     for filename in os.listdir(cfg["OLD_EAFS"]):
         print filename
         if not os.path.splitext(filename)[1].lower() == ".eaf":
-            print "Not an eaf:", filename, os.path.splitext(filename)
+            print "Not an eaf:", filename, os.path.splitext(filename)[1]
         elif os.path.basename(filename).startswith('.'):
             print "Hidden file:", filename
         else:
@@ -119,7 +121,7 @@ def export_elan(cfg, export_fields):
             # template = os.path.join(cfg["FILE_DIR"], cfg["TEMPLATE"])
             eafile = language.cleanEaf(fpath, template)
             eafile.write(os.path.join(cfg["NEW_EAFS"], filename))
-            eafile.exportToCSV(cfg["CSV"], "excel", export_fields, "wb")
+            eafile.exportToCSV(cfg["CSV"], "excel", export_fields, "ab")
             status = sorted(eafile.status(export_fields).items())
             print status
             csvfile.write([filename] + [str(v * 100) + "%" for (k, v) in status])
@@ -162,6 +164,9 @@ def main(cfg):
     # Output for clip metadata
     clip_fh = utfcsv.UnicodeWriter(open(os.path.join(cfg['WWW'], 'clip_metadata.csv'), 'w'))
     table_fh = open(os.path.join(cfg['WWW'], 'clip_metadata.html'), 'w')
+
+    # Write header/footer
+    clip_fh.write(fnames + ['Speaker', 'Citation', 'Length', 'Start', 'Stop', 'WAV', 'EAF', 'File', 'Token'])
 
     table_fh.write('''<table id="clip_metadata">
                         <thead>
@@ -327,17 +332,17 @@ def mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, c
                         speaker = comment.split()[0]
                         print "speaker value from comment field:", speaker
 
-        clip_fh.write(values + [clip_file,
+        clip_fh.write(values + [speaker, cite_code, length_human,
+                                start_human, stop_human,
                                 wav_file, eaf_file,
-                                speaker,
-                                # creator,
-                                start_human, stop_human, length_human,
-                                str(start), str(stop), str(length)])
+                                clip_file,
+                                tokens[(eaf_file, start, stop)]])
 
         row = u'\n'.join([u'<tr clip="{0}">'.format(clip_file)] +
                          [u'<td>{0}</td>'.format(v) for v in values] +
-                         [u'<td>{0}</td>'.format(v) for v in (speaker, cite_code, length_human, start_human,
-                                                              stop_human, wav_file, eaf_file)] +
+                         [u'<td>{0}</td>'.format(v) for v in (speaker, cite_code, length_human,
+                                                              start_human, stop_human,
+                                                              wav_file, eaf_file)] +
                          [u'<td> <a href="clips/{0}" target="_blank">{1}</a></td>'.format(clip_file, clip_file)] +
                          [u'<td>{0}</td>'.format(tokens[(eaf_file, start, stop)])]
                          )
@@ -421,12 +426,12 @@ def get_speakers(meta_file):
     if not os.path.exists(meta_file):
         print "WARNING: no META data file '{0}' found".format(meta_file)
         return {}
-    if os.path.splitext(meta_file) == 'csv':
+    if os.path.splitext(meta_file)[1].lower() == '.csv':
         fh = utfcsv.UnicodeReader(open(meta_file, 'r'), fieldnames=True)
-    elif os.path.splitext(meta_file) == 'xlsx':
+    elif os.path.splitext(meta_file)[1].lower() == '.xlsx':
         fh = xlsx.ExcelReader(meta_file)
     else:
-        print "Error: file type '{}' not recognized".format(os.path.splitext(meta_file))
+        print "Error: file type '{}' not recognized".format(os.path.splitext(meta_file)[1])
 
     print 'Session Metadata Column Names:', fh.fieldnames
     name_field = [f for f in filename_fields if f in fh.fieldnames][0]
