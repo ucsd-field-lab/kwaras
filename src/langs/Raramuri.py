@@ -7,31 +7,36 @@ Created on March 22, 2013
 
 import os
 import re
+import json
 
-from kwaras.formats import eaf, utfcsv
+from ..formats import eaf, utfcsv
 
 _V_ = u"aeiouɪɛəɔʊ"  # Vowels
 _P_ = u",;?\.\)\(”“…"  # Punctuation NOTE: alternatively tokenize with:  .()”“…,?;
 _C_ = u"[^ " + _V_ + _P_ + u"]"
 
+
 def main():
+    cfg_file = "config.txt"
+    up_dir = os.path.dirname(os.getcwd())
+    cfg = json.load(os.path.join(up_dir, cfg_file))
+    csvfile = utfcsv.UnicodeWriter(os.path.join(cfg["FILE_DIR"], "status.csv"), "excel", mode="ab")
+    csvfile.write(["Filename"] + cfg["EXPORT_FIELDS"])
 
-    csvfile = utfcsv.UnicodeWriter(os.path.join(cfg.FILE_DIR, "status.csv"), "excel", mode="ab")
-    csvfile.write(["Filename"] + cfg.EXPORT_FIELDS)
-
-    for filename in os.listdir(os.path.join(cfg.FILE_DIR, cfg.OLD_EAFS)):
+    for filename in os.listdir(os.path.join(cfg["FILE_DIR"], cfg["OLD_EAFS"])):
         print filename
         if not os.path.splitext(filename)[1].lower() == ".eaf":
             print "Not an eaf:", filename, os.path.splitext(filename)
         else:
-            fpath = os.path.join(cfg.FILE_DIR, cfg.OLD_EAFS, filename)
-            template = os.path.join(cfg.FILE_DIR, cfg.TEMPLATE)
-            eafile = cleanEaf(fpath, template)
-            eafile.write(os.path.join(cfg.FILE_DIR, cfg._NEW_EAFS, filename))
-            eafile.exportToCSV(os.path.join(cfg.FILE_DIR, cfg.CSV), "excel", cfg.EXPORT_FIELDS, "ab")
-            status = sorted(eafile.status(cfg.EXPORT_FIELDS).items())
+            fpath = os.path.join(cfg["FILE_DIR"], cfg["OLD_EAFS"], filename)
+            template = os.path.join(cfg["FILE_DIR"], cfg["TEMPLATE"])
+            eafile = clean_eaf(fpath, template)
+            eafile.write(os.path.join(cfg["FILE_DIR"], cfg["NEW_EAFS"], filename))
+            eafile.export_to_csv(os.path.join(cfg["FILE_DIR"], cfg["CSV"]), "excel", cfg["EXPORT_FIELDS"], "ab")
+            status = sorted(eafile.status(cfg["EXPORT_FIELDS"]).items())
             print status
             csvfile.write([filename] + [str(v * 100) + "%" for (k, v) in status])
+
 
 def orth2IPA(u):
     u = u"" + u
@@ -122,22 +127,22 @@ def orth2NewOrth(u):
     return u
 
 
-def cleanEaf(fname, template=None):
+def clean_eaf(fname, template=None):
     eafile = eaf.Eaf(fname)
 
     if template is not None:
-        eafile.importTypes(template)
+        eafile.import_types(template)
 
-    tids = eafile.getTierIds()
+    tids = eafile.get_tier_ids()
     spkrs = set([s.partition('@')[2] for s in tids])
 
     for s in spkrs:
-        cleanEafBlock(eafile, s)
+        clean_eaf_block(eafile, s)
 
     return eafile
 
 
-def cleanEafBlock(eafile, spkr=''):
+def clean_eaf_block(eafile, spkr=''):
     if spkr != '':
         spkr = '@' + spkr
 
@@ -157,18 +162,18 @@ def cleanEafBlock(eafile, spkr=''):
 
     if _basetier in eafile.getTierIds():
         # back up the baseline tier into @_orthtier, unless it already exists
-        if _orthtier in eafile.getTierIds() and eafile.getAnnotationsIn(_orthtier) is []:
+        if _orthtier in eafile.getTierIds() and eafile.get_annotations_in(_orthtier) is []:
             # we have an empty orthtier -- move it out of the way
-            orthbk = eafile.getTierById(_orthtier)
-            eafile.renameTier(orthbk, _orthtier + "_bk")
+            orthbk = eafile.get_tier_by_id(_orthtier)
+            eafile.rename_tier(orthbk, _orthtier + "_bk")
         if _orthtier not in eafile.getTierIds():
             # there is not yet an orthtier, so make it
-            bktier = eafile.copyTier(_basetier, targ_id=_orthtier,
-                                     parent=_basetier, ltype="Alternate transcription")
-            eafile.insertTier(bktier, after=_basetier)
+            bktier = eafile.copy_tier(_basetier, targ_id=_orthtier,
+                                      parent=_basetier, ltype="Alternate transcription")
+            eafile.insert_tier(bktier, after=_basetier)
 
             # use IPA in baseline tier
-            basenotes = eafile.getTierById(_basetier).iter("ANNOTATION_VALUE")
+            basenotes = eafile.get_tier_by_id(_basetier).iter("ANNOTATION_VALUE")
             for note in basenotes:
                 if note.text:
                     # print note.text, ":", repr(note.text)
@@ -180,20 +185,20 @@ def cleanEafBlock(eafile, spkr=''):
         if _orth2tier in eafile.getTierIds():
             print _orth2tier, "already exists"
         else:
-            neworth = eafile.copyTier(_orthtier, targ_id=_orth2tier,
-                                      parent=_basetier, ltype="Alternate transcription")
-            eafile.insertTier(neworth, after=_orthtier)
-        onotes = eafile.getTierById(_orthtier).iter("[ANNOTATION_VALUE]")
+            neworth = eafile.copy_tier(_orthtier, targ_id=_orth2tier,
+                                       parent=_basetier, ltype="Alternate transcription")
+            eafile.insert_tier(neworth, after=_orthtier)
+        onotes = eafile.get_tier_by_id(_orthtier).iter("[ANNOTATION_VALUE]")
         for on in onotes:
             print on, on.tag, on.attrib
-            ontime = eafile.getTime(on)
-            on2 = eafile.getAnnotationAt(_orth2tier, ontime[0])
+            ontime = eafile.get_time(on)
+            on2 = eafile.get_annotation_at(_orth2tier, ontime[0])
             if on.text:
                 on2.findall("ANNOTATION_VALUE")[0].text = orth2NewOrth(on.findall("ANNOTATION_VALUE")[0].text)
 
     # use new orthography in words
-    if _wordtier in eafile.getTierIds():
-        wordnotes = eafile.getTierById(_wordtier).iter("ANNOTATION_VALUE")
+    if _wordtier in eafile.get_tier_ids():
+        wordnotes = eafile.get_tier_by_id(_wordtier).iter("ANNOTATION_VALUE")
         for note in wordnotes:
             if note.text:
                 # print note.text, ":", repr(note.text)
@@ -203,16 +208,14 @@ def cleanEafBlock(eafile, spkr=''):
                 # print ">",note.text
 
     # make utterance-level gloss tier from word glosses
-    if (_uttwgltier not in eafile.getTierIds()
-            and _glosstier in eafile.getTierIds()):
-        ugtier = eafile.copyTier(_basetier, targ_id=_uttwgltier,
-                                 parent=_basetier, ltype="Glosses")
-        eafile.insertTier(ugtier, after=_orthtier)
-    if (_uttwgltier in eafile.getTierIds()
-            and eafile.getAnnotationsIn(_glosstier) is not []):
-        for annot in eafile.getAnnotationsIn(_uttwgltier):
-            times = eafile.getTime(annot)
-            glosses = eafile.getAnnotationsIn(_glosstier, times[0], times[1])
+    if _uttwgltier not in eafile.get_tier_ids() and _glosstier in eafile.get_tier_ids():
+        ugtier = eafile.copy_tier(_basetier, targ_id=_uttwgltier,
+                                  parent=_basetier, ltype="Glosses")
+        eafile.insert_tier(ugtier, after=_orthtier)
+    if _uttwgltier in eafile.get_tier_ids() and eafile.get_annotations_in(_glosstier) is not []:
+        for annot in eafile.get_annotations_in(_uttwgltier):
+            times = eafile.get_time(annot)
+            glosses = eafile.get_annotations_in(_glosstier, times[0], times[1])
             try:
                 ug = [g.find("ANNOTATION_VALUE").text for g in glosses]
                 ug = [g for g in ug if g is not None]
@@ -221,27 +224,25 @@ def cleanEafBlock(eafile, spkr=''):
                 print "What's wrong here:", [g.find("ANNOTATION_VALUE").text for g in glosses]
 
     # make utterance-level gloss tier from morph glosses
-    if (_uttmgltier not in eafile.getTierIds()
-            and _morphtier in eafile.getTierIds()):
-        umgltier = eafile.copyTier(_basetier, targ_id=_uttmgltier,
-                                   parent=_basetier, ltype="Glosses")
-        eafile.insertTier(umgltier, after=_orthtier)
-    if (_uttmgltier in eafile.getTierIds()
-            and eafile.getAnnotationsIn(_morphtier) is not []):
-        for annot in eafile.getAnnotationsIn(_uttmgltier):
+    if _uttmgltier not in eafile.get_tier_ids() and _morphtier in eafile.get_tier_ids():
+        umgltier = eafile.copy_tier(_basetier, targ_id=_uttmgltier,
+                                    parent=_basetier, ltype="Glosses")
+        eafile.insert_tier(umgltier, after=_orthtier)
+    if _uttmgltier in eafile.get_tier_ids() and eafile.get_annotations_in(_morphtier) is not []:
+        for annot in eafile.get_annotations_in(_uttmgltier):
             utttab = "<table><tr>"
-            times = eafile.getTime(annot)
-            words = eafile.getAnnotationsIn(_wordtier, times[0], times[1])
+            times = eafile.get_time(annot)
+            words = eafile.get_annotations_in(_wordtier, times[0], times[1])
             for w in words:
-                wtimes = eafile.getTime(w)
+                wtimes = eafile.get_time(w)
                 tab = "<table>"
                 for tier in [_morphtier]:  # [_morphtier, _mcattier]:
-                    morphs = eafile.getAnnotationsIn(tier, wtimes[0], wtimes[1])
+                    morphs = eafile.get_annotations_in(tier, wtimes[0], wtimes[1])
                     morphs = [m.find("ANNOTATION_VALUE").text for m in morphs]
                     morphs = [m for m in morphs if m is not None]
                     tab += "<tr><td>" + "</td><td>".join(morphs) + "</td></tr>"
                 for tier in _mglosstiers:
-                    morphs = eafile.getAnnotationsIn(tier, wtimes[0], wtimes[1])
+                    morphs = eafile.get_annotations_in(tier, wtimes[0], wtimes[1])
                     morphs = [m.find("ANNOTATION_VALUE").text for m in morphs]
                     morphs = [m for m in morphs if m is not None]
                     tab += "<tr><td>" + "</td><td>".join(morphs) + "</td></tr>"
@@ -258,18 +259,18 @@ def cleanEafBlock(eafile, spkr=''):
             #                 raise
 
     # make sure Note and Broad tiers are independent
-    if _notetier in eafile.getTierIds():
-        note_tier = eafile.getTierById(_notetier)
-        eafile.changeParent(note_tier, None, "Note")
-    if _basetier in eafile.getTierIds():
-        broad_tier = eafile.getTierById(_basetier)
-        eafile.changeParent(broad_tier, None, "Transcription")
+    if _notetier in eafile.get_tier_ids():
+        note_tier = eafile.get_tier_by_id(_notetier)
+        eafile.change_parent(note_tier, None, "Note")
+    if _basetier in eafile.get_tier_ids():
+        broad_tier = eafile.get_tier_by_id(_basetier)
+        eafile.change_parent(broad_tier, None, "Transcription")
 
     # make sure Spanish and English tiers are dependent
     for tn in _transtiers:
-        if tn in eafile.getTierIds():
-            tntier = eafile.getTierById(tn)
-            eafile.changeParent(tntier, _basetier, "Free translation")
+        if tn in eafile.get_tier_ids():
+            tntier = eafile.get_tier_by_id(tn)
+            eafile.change_parent(tntier, _basetier, "Free translation")
 
 
 if __name__ == "__main__":

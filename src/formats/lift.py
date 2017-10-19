@@ -43,7 +43,7 @@ class Lift:
             hm = 1
             key = (lx, hm)
             while key in self.lexemes:
-                hm = hm + 1
+                hm += 1
                 key = (lx, hm)
             self.lexemes[key] = eid
 
@@ -73,7 +73,7 @@ class Lift:
         attrs += entry.findall("field[@type='{}']".format(field))
         if len(attrs) < 1:
             attr_node = None
-        elif len (attrs) > 1:
+        elif len(attrs) > 1:
             # print "Multiple instances of attribute", attr
             attr_node = attrs[0]
         else:
@@ -147,7 +147,7 @@ class Lift:
     def setDateModified(self, guid, date=None):
         entry = self.getEntry(guid)
         if date is None:
-            date =  datetime.utcnow().isoformat().split(".")[0] + "Z"
+            date = datetime.utcnow().isoformat().split(".")[0] + "Z"
         else:
             date = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S").isoformat().split(".")[0] + "Z"
         entry.set("dateModified", date)

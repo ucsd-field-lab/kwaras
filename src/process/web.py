@@ -42,21 +42,18 @@ New copy of wav clip to be copied to fileshare is created under the name:
 Authors: Lucien Carroll, Russ Horton
 
 """
-__author__ = 'lucien@discurs.us'
 
 import os
 import json
 import random
 import re
 import wave
-import logging
 from xml.etree import ElementTree as etree
 
 from kwaras.formats import utfcsv, xlsx
 
 
 def config(lang=None):
-
     if lang == "Gitonga":
         cfg_file = "conf/gitonga.txt"
     elif lang == "Raramuri":
@@ -65,7 +62,7 @@ def config(lang=None):
         cfg_file = "conf/mixtec.txt"
     elif lang == "Kumiai":
         cfg_file = "conf/kumiai.txt"
-    else: # Other
+    else:  # Other
         cfg_file = "config.txt"
 
     up_dir = os.path.dirname(os.getcwd())
@@ -121,7 +118,7 @@ def export_elan(cfg, export_fields):
             # template = os.path.join(cfg["FILE_DIR"], cfg["TEMPLATE"])
             eafile = language.cleanEaf(fpath, template)
             eafile.write(os.path.join(cfg["NEW_EAFS"], filename))
-            eafile.exportToCSV(cfg["CSV"], "excel", export_fields, "ab")
+            eafile.export_to_csv(cfg["CSV"], "excel", export_fields, "ab")
             status = sorted(eafile.status(export_fields).items())
             print status
             csvfile.write([filename] + [str(v * 100) + "%" for (k, v) in status])
@@ -172,29 +169,28 @@ def main(cfg):
                         <thead>
                           <tr>
                             ''' +
-                            '\n'.join(['<th class="Annotation">{0}&nbsp;</th>'.format(f) for f in fnames]) +
-                            '''
+                   '\n'.join(['<th class="Annotation">{0}&nbsp;</th>'.format(f) for f in fnames]) +
+                   '''
                             <th class="Citation">Speaker&nbsp;</th>
                             <th class="Citation">Citation&nbsp;</th>
                             <th>Length&nbsp;</th>'
                             ''' +
-                            '\n'.join(['<th class="Hide">{0}&nbsp;</th>'.format(f)
-                                      for f in ['Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']]) +
-                            '''
+                   '\n'.join(['<th class="Hide">{0}&nbsp;</th>'.format(f)
+                              for f in ['Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']]) +
+                   '''
                           </tr>
                         </thead>''')
 
     table_fh.write('''<tfoot>
                         <tr>
                           ''' +
-                          '\n'.join(['<th><div><input type="text" value="Search {0}" class="search_init"></div></th>'
-                                     for f in fnames + ['Speaker', 'Citation', 'Length', 'Start', 'Stop',
-                                                        'WAV', 'EAF', 'File', 'Token']]) +
-                          '''
+                   '\n'.join(['<th><div><input type="text" value="Search {0}" class="search_init"></div></th>'
+                              for _ in fnames + ['Speaker', 'Citation', 'Length', 'Start', 'Stop',
+                                                 'WAV', 'EAF', 'File', 'Token']]) +
+                   '''
                         </tr>
                       </tfoot>
                       <tbody>''')
-
 
     # If there are multiple eafs that define the same clipping regions for
     # the same wav file, we want to use the EAF that is in the EAF metadata.
@@ -207,7 +203,7 @@ def main(cfg):
         if gkey in tokens:
             tokens[ckey] = tokens[gkey] + "-2"
         else:
-            tokens[gkey] = ''.join([str(random.randint(0, 9)) for _i in range(8)])
+            tokens[gkey] = ''.join([str(random.randint(0, 9)) for _ in range(8)])
             tokens[ckey] = tokens[gkey] + "-1"
 
     cfg['CLIPS'] = os.path.join(cfg['WWW'], 'clips')
@@ -303,8 +299,8 @@ def mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, c
         print eaf_file, clip_file
         try:
             res = clip_wav(os.path.join(cfg['WAV'], wav_file),
-                       os.path.join(cfg['CLIPS'], clip_file),
-                       start, stop)
+                           os.path.join(cfg['CLIPS'], clip_file),
+                           start, stop)
         except IOError:
             print "WARNING: no WAV file named {0} found".format(wav_file)
             continue
@@ -359,7 +355,7 @@ def find_wav_file(eaf_file):
     tree = etree.ElementTree()
     tree.parse(eaf_file)
     media = tree.find("HEADER/MEDIA_DESCRIPTOR")
-    if media == None:
+    if media is None:
         print "WARNING: No MEDIA_DESCRIPTOR tag found."
         print etree.tostring(tree.getroot())[:400]
         basename = os.path.splitext(os.path.basename(eaf_file))[0]
@@ -445,13 +441,13 @@ def get_speakers(meta_file):
             spk[line[name_field]] = line[spk_field]
     else:
         for line in fh:
-            if line["Format"].lower() == ("wav"):
+            if line["Format"].lower() == "wav":
                 spk[line[name_field]] = line[spk_field]
 
     return spk
 
 
-def parse_export_file(filename, fields=[]):
+def parse_export_file(filename, fields=()):
     """Parse an ELAN text export file. Columns are assumed to be:
 
         annotation type
@@ -565,5 +561,5 @@ def human_time(milliseconds, padded=False):
 
 
 if __name__ == "__main__":
-    config()
+    cfg = config()
     main(cfg)

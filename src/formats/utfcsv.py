@@ -1,9 +1,12 @@
-## Unicode csv stream ##
 # -*- coding: utf-8 -*-
+"""Unicode csv stream
 
-## based on code from python csv module documentation ##
+based on code from python csv module documentation
+"""
 
-import csv, codecs, cStringIO
+import cStringIO
+import codecs
+import csv
 
 # these are the defaults for *writing* csv files only
 csv.excel.lineterminator = '\n'
@@ -11,31 +14,33 @@ csv.excel.delimiter = ','
 
 csv.excel_tab.quoting = csv.QUOTE_ALL
 
+
 class CsvRow(list):
     """
     A named list, indexed by both position and by dict-type string keys,
     like named tuples, but overloading row[key] rather than using row.key notation
     """
 
-    def __init__(self,elems,fieldnames):
+    def __init__(self, elems, fieldnames):
         self.fieldnames = fieldnames
-        self._dict = dict(zip(self.fieldnames,elems)+zip(range(len(elems)),elems))
-        list.__init__(self,elems)
+        self._dict = dict(zip(self.fieldnames, elems) + zip(range(len(elems)), elems))
+        list.__init__(self, elems)
 
     def __getitem__(self, key):
         return self._dict[key]
 
     def items(self):
-        return [(k,self._dict[k]) for k in self.fieldnames]
+        return [(k, self._dict[k]) for k in self.fieldnames]
 
     def get(self, key, d=None):
-        return self._dict.get(key,d)
+        return self._dict.get(key, d)
+
 
 class UTF8Recoder:
     """
     Iterator that reads an encoded stream and reencodes the input to UTF-8
     """
-    
+
     def __init__(self, f, encoding):
         self.reader = codecs.getreader(encoding)(f)
 
@@ -48,8 +53,9 @@ class UTF8Recoder:
     def readlines(self, size):
         return [line.encode("utf-8") for line in self.reader.readlines(size)]
 
-    def seek(self,pos):
+    def seek(self, pos):
         self.reader.seek(pos)
+
 
 class UnicodeReader:
     """
@@ -62,37 +68,38 @@ class UnicodeReader:
     """
 
     def __init__(self, f, dialect=None, fieldnames=None, encoding="utf-8", **kwds):
-        
-        if isinstance(f,(str,unicode)):
-            fstream = open(f,"rb")
+
+        if isinstance(f, (str, unicode)):
+            fstream = open(f, "rb")
         else:
             fstream = f
 
         r = UTF8Recoder(fstream, encoding)
         sniffdata = '\n'.join(r.readlines(500))
         r.seek(0)
-        
+
         if dialect is None:
-            dialect = csv.Sniffer().sniff(sniffdata,",\t")
-        #print sniffdata
-        #print repr([dialect,dialect.quotechar,dialect.delimiter])
-        #print sniffdata.split(dialect.lineterminator)
+            dialect = csv.Sniffer().sniff(sniffdata, ",\t")
+        # print sniffdata
+        # print repr([dialect,dialect.quotechar,dialect.delimiter])
+        # print sniffdata.split(dialect.lineterminator)
         self.reader = csv.reader(r, dialect=dialect, **kwds)
 
         if fieldnames is True or csv.Sniffer().has_header(sniffdata):
             fieldnames = [unicode(s, "utf-8") for s in self.reader.next()]
         else:
             cols = len(sniffdata.split('\n')[0].split(dialect.delimiter))
-            fieldnames = [u"V"+str(i) for i in range(cols)]
+            fieldnames = [u"V" + str(i) for i in range(cols)]
         self.fieldnames = tuple([unicode(n) for n in fieldnames])
 
     def next(self):
         row = [unicode(s, "utf-8") for s in self.reader.next()]
-        return CsvRow(row,self.fieldnames)
+        return CsvRow(row, self.fieldnames)
 
     def __iter__(self):
         return self
-        
+
+
 class UnicodeWriter:
     """
     A CSV writer which will write rows to CSV file @f,
@@ -103,11 +110,11 @@ class UnicodeWriter:
         # Redirect output to a queue
         self.queue = cStringIO.StringIO()
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
-        if isinstance(f,(str,unicode)):
-            self.stream = open(f,mode) # if passed a string, assume it's a filename
+        if isinstance(f, (str, unicode)):
+            self.stream = open(f, mode)  # if passed a string, assume it's a filename
             # self.filename = f
         else:
-            self.stream = f # otherwise assume it is file-like stream
+            self.stream = f  # otherwise assume it is file-like stream
             # self.filename = f.name
         self.encoder = codecs.getincrementalencoder(encoding)()
 
@@ -130,9 +137,13 @@ class UnicodeWriter:
     def close(self):
         self.stream.close()
 
+
 if __name__ == '__main__':
 
-    import unittest, tempfile, random
+    import unittest
+    import tempfile
+    import random
+
 
     class TestUtfCsv(unittest.TestCase):
 
@@ -142,12 +153,12 @@ if __name__ == '__main__':
             self._testdat = u"áçcèñt"
 
         def test_quoted_csv(self):
-            uw = UnicodeWriter(self.file,dialect=csv.excel_tab)
+            uw = UnicodeWriter(self.file, dialect=csv.excel_tab)
             header = [random.choice(self._testdat) + str(i)
                       for i in range(10)]
             uw.write(header)
             for row in range(10):
-                uw.write([ str(i)+random.choice(""" '"`:-/\t""")
+                uw.write([str(i) + random.choice(""" '"`:-/\t""")
                           for i in range(10)])
             self.file.seek(0)
 
@@ -157,16 +168,16 @@ if __name__ == '__main__':
             print ' | '.join(ur.fieldnames)
             print ur.next()
             print '\t'.join(ur.next())
-            
+
         def test_headed_csv(self):
-            
+
             uw = UnicodeWriter(self.file)
             header = [random.choice(self._testdat) + str(i)
                       for i in range(10)]
             uw.write(header)
             for row in range(10):
-                uw.write([ str(i)
-                        # random.choice(self._testdat)
+                uw.write([str(i)
+                          # random.choice(self._testdat)
                           for i in range(10)])
             self.file.seek(0)
 
@@ -176,20 +187,19 @@ if __name__ == '__main__':
             print ' | '.join(header)
             print ' | '.join(ur.fieldnames)
             print ur.next()
-            
+
             self.assertTrue(ur.fieldnames == tuple(header))
-            
+
         def test_vaguely_headed_csv(self):
-            
+
             uw = UnicodeWriter(self.file)
             header = [random.choice(self._testdat) + str(i)
                       for i in range(10)]
             uw.write(header)
             for row in range(10):
-                uw.write([ str(i) + random.choice(self._testdat)
+                uw.write([str(i) + random.choice(self._testdat)
                           for i in range(10)])
 
-            
             self.file.seek(0)
             print
             print "A utf-8 file with unclear headers"
@@ -197,9 +207,9 @@ if __name__ == '__main__':
             print ' | '.join(header)
             print ' | '.join(ur.fieldnames)
             print ur.next()
-            
+
             self.assertFalse(ur.fieldnames == tuple(header))
-            
+
             self.file.seek(0)
             print
             print "Believe that the top line is headers"
@@ -207,9 +217,10 @@ if __name__ == '__main__':
             print ' | '.join(header)
             print ' | '.join(ur.fieldnames)
             print ur.next()
-            
+
             self.assertTrue(ur.fieldnames == tuple(header))
-            
+
+
     try:
         unittest.main()
     except SystemExit:

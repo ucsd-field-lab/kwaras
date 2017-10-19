@@ -1,4 +1,3 @@
-__author__ = 'Lucien'
 
 import json
 import os.path
@@ -50,7 +49,6 @@ class ConfigWindow:
         if "MAIN" in parts:
             self.mk_menu_row("LANGUAGE", defaults.get("LANGUAGE", "Raramuri"), "Language template:")
 
-
         if "EAFL" in parts:
             self.mk_label_row("Variables used in creating EAFL file")
             init_lift = self.cfg.get("LIFT", os.path.join(updir, "FLEx.lift"))
@@ -68,7 +66,7 @@ class ConfigWindow:
             # init_csv = self.cfg.get("CSV", os.path.join(out_dir, "data.csv"))
             # self.mk_choice_row("CSV", init_csv, "Output CSV File:", issave=True)
 
-            exp_fields = self.cfg.get("EXP_FIELDS",             # List of fields to include
+            exp_fields = self.cfg.get("EXP_FIELDS",  # List of fields to include
                                       ", ".join(["Phonetic", "Spanish", "English", "Note"]))
             self.mk_text_row("EXP_FIELDS", exp_fields, "List of Fields to Export:")
 
@@ -137,7 +135,8 @@ class ConfigWindow:
         self.labels[var] = tk.Label(self.frame, text=text)
         self.labels[var].grid(row=idx, column=1, sticky=E)
         self.variables[var] = tk.StringVar(value=self.cfg.get(var, default))
-        self.entries[var] = MyText(self.frame, self.variables[var], width=_WIDTH, height=rowspan, font=("Helvetica", 12))
+        self.entries[var] = MyText(self.frame, self.variables[var], width=_WIDTH, height=rowspan,
+                                   font=("Helvetica", 12))
         self.entries[var].grid(row=idx, column=2, columnspan=1, sticky=W)
 
     def mk_menu_row(self, var, default, text, idx=-1):
@@ -193,6 +192,7 @@ class MyText(tk.Text):
     def destroy(self):
         self.textvar.set(self.get("1.0", END))
         tk.Text.destroy(self)
+
 
 if __name__ == "__main__":
     ConfigWindow(CFG_FILE)

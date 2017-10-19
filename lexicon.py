@@ -18,7 +18,7 @@ if __name__ == "__main__":
     from kwaras.formats.lift import Lift
     from kwaras.process import liftadd
 
-    config.ConfigWindow("lexicon.cfg",parts=["EAFL"])
+    config.ConfigWindow("lexicon.cfg", parts=["EAFL"])
 
     cfg = json.load(open("lexicon.cfg"))
     dir_name = cfg["EAFL_DIR"]

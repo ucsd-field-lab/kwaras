@@ -1,5 +1,4 @@
 #! env python2.7
-__author__ = 'Lucien'
 
 import argparse
 import os.path
@@ -73,8 +72,8 @@ def reparse_corpus():
     tkMessageBox.showerror(title="Not implemented",
                            message="Sorry, reparse_corpus is not implemented yet.")
 
-def main(args):
 
+def main(args):
     if args.convert_lexicon:
         convert_lexicon()
 

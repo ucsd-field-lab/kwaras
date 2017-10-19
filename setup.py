@@ -1,6 +1,5 @@
 from distutils.core import setup
-#import py2exe
-import os, os.path
+import os
 
 css_dir = 'web/css'
 css_files = [os.path.join(css_dir, f)
@@ -17,7 +16,7 @@ image_files = [os.path.join(images_dir, f)
 
 setup(
     name='kwaras',
-    version='2.1.15',
+    version='2.2.0_1',
     install_requires=['openpyxl'],
     packages=['kwaras', 'kwaras.langs', 'kwaras.conf', 'kwaras.formats', 'kwaras.process'],
     package_dir={'kwaras': '',

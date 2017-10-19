@@ -109,7 +109,6 @@ OLDOOTEXTFILE = re.compile(r"""(?x)
 """)
 
 
-
 #################################################################
 # TextGrid Class
 #################################################################
@@ -166,7 +165,7 @@ class TextGrid(object):
     def _load_tiers(self, header):
         """
         Iterates over each tier and grabs tier information.
-        """ 
+        """
 
         tiers = []
         if self.text_type == "ChronTextFile":
@@ -175,7 +174,7 @@ class TextGrid(object):
             tier_re = " \d+.?\d* \d+.?\d*[\r\n]+\"[^\"]*\""
             for i in range(0, self.size):
                 tier_info = [tier_headers[i]] + \
-                re.findall(str(i + 1) + tier_re, self.read_file)
+                            re.findall(str(i + 1) + tier_re, self.read_file)
                 tier_info = "\n".join(tier_info)
                 tiers.append(Tier(tier_info, self.text_type, self.t_time))
             return tiers
@@ -188,7 +187,7 @@ class TextGrid(object):
             tier_info = self.read_file[begin:end]
             tiers.append(Tier(tier_info, self.text_type, self.t_time))
         return tiers
-    
+
     def _check_type(self):
         """
         Figures out the TextGrid format.
@@ -207,10 +206,10 @@ class TextGrid(object):
                 text_type = "ooTextFile"
         elif type_id == "\"Praat chronological TextGrid text file\"":
             text_type = "ChronTextFile"
-        else: 
-            raise TypeError("Unknown format '(%s)'", (type_id))
+        else:
+            raise TypeError("Unknown format '(%s)'", type_id)
         return text_type
-        
+
     def _find_tiers(self):
         """
         Splits the textgrid file into substrings corresponding to tiers. 
@@ -252,8 +251,8 @@ class TextGrid(object):
             chron_file += tier_header + "\n"
             transcript = tier.simple_transcript
             for (xmin, xmax, utt) in transcript:
-                chron_file += str(idx) + " " + str(xmin) 
-                chron_file += " " + str(xmax) +"\n"
+                chron_file += str(idx) + " " + str(xmin)
+                chron_file += " " + str(xmax) + "\n"
                 chron_file += "\"" + utt + "\"\n"
         return chron_file
 
@@ -261,7 +260,7 @@ class TextGrid(object):
         """ 
         @return:  A string in OoTextGrid file format.
         """
-   
+
         oo_file = ""
         oo_file += "File type = \"ooTextFile\"\n"
         oo_file += "Object class = \"TextGrid\"\n\n"
@@ -328,12 +327,12 @@ class Tier(object):
             self.mark_type = "intervals"
         else:
             self.mark_type = "points"
-            self.header = [("class", self.classid), ("name", self.nameid), \
-            ("xmin", self.xmin), ("xmax", self.xmax), ("size", self.size)]
+            self.header = [("class", self.classid), ("name", self.nameid),
+                           ("xmin", self.xmin), ("xmax", self.xmax), ("size", self.size)]
 
     def __iter__(self):
         return self
-  
+
     def _make_info(self):
         """
         Figures out most attributes of the tier object:
@@ -367,10 +366,10 @@ class Tier(object):
         self.nameid = self.tier_info[1]
         self.xmin = float(self.tier_info[2])
         self.xmax = float(self.tier_info[3])
-        if self.size != None:
+        if self.size is not None:
             self.size = int(self.tier_info[4])
         self.transcript = self.tier_info[-1]
-            
+
     def make_simple_transcript(self):
         """ 
         @return:  Transcript of the tier, in form [(start_time end_time label)]
@@ -385,7 +384,7 @@ class Tier(object):
             trans_head = " +\S+ \[\d+\]: *[\r\n]+"
             trans_xmin = " +\S+ = (\S+) *[\r\n]+"
             trans_xmax = " +\S+ = (\S+) *[\r\n]+"
-            trans_text = " +\S+ = \"([^\"]*?)\""    
+            trans_text = " +\S+ = \"([^\"]*?)\""
         elif self.text_type == "OldooTextFile":
             trans_head = ""
             trans_xmin = "(.*)[\r\n]+"
@@ -401,7 +400,7 @@ class Tier(object):
         """
         @return:  Transcript of the tier, as it appears in the file.
         """
-       
+
         return self.transcript
 
     def time(self, non_speech_char="."):
@@ -417,7 +416,7 @@ class Tier(object):
                 if utt and not utt[0] == ".":
                     total += (float(time2) - float(time1))
         return total
-                    
+
     def tier_name(self):
         """
         @return:  Tier name of a given tier.
@@ -437,13 +436,15 @@ class Tier(object):
         @return:  (xmin, xmax) tuple for a given tier.
         """
 
-        return (self.xmin, self.xmax)
+        return self.xmin, self.xmax
 
     def __repr__(self):
-        return "<%s \"%s\" (%.2f, %.2f) %.2f%%>" % (self.classid, self.nameid, self.xmin, self.xmax, 100*self.time()/self.t_time)
+        return "<%s \"%s\" (%.2f, %.2f) %.2f%%>" % (
+            self.classid, self.nameid, self.xmin, self.xmax, 100 * self.time() / self.t_time)
 
     def __str__(self):
         return self.__repr__() + "\n  " + "\n  ".join(" ".join(row) for row in self.simple_transcript)
+
 
 def demo_TextGrid(demo_data):
     print "** Demo of the TextGrid class. **"
@@ -455,6 +456,7 @@ def demo_TextGrid(demo_data):
         print "\n***"
         print "Tier:", i + 1
         print tier
+
 
 def demos():
     # Each demo demonstrates different TextGrid formats.
@@ -649,4 +651,3 @@ demo_data3 = """"Praat chronological TextGrid text file"
 
 if __name__ == "__main__":
     demos()
-

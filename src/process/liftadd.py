@@ -10,7 +10,7 @@ import re
 from kwaras.formats.lift import Lift
 
 
-def exposeGuid(lift):
+def expose_guid(lift):
     for lex, eid in lift.lexemes.items():
         guid = lift.getField(eid, "GUID")
         print guid.find("form/text").text
@@ -20,7 +20,8 @@ def exposeGuid(lift):
 
     return lift
 
-def addRarAllomorphs(lift):
+
+def add_allomorphs(lift):
     _V_ = u"aeiouɪɛəɔʊ"
 
     for lex, eid in lift.lexemes.items():
@@ -109,6 +110,7 @@ def addRarAllomorphs(lift):
 
     return lift
 
+
 if __name__ == "__main__":
     import sys
     import os
@@ -120,19 +122,19 @@ if __name__ == "__main__":
         if ext == ".lift":
             print "Exposing GUID as lexeme field in", fname
             lift = Lift(os.path.join(dirname, fname))
-            lift = exposeGuid(lift)
+            lift = expose_guid(lift)
             lift.write(os.path.join(dirname, base + "-guid.lift"))
-            print "Data written to",os.path.join(dirname, base + "-guid.lift")
+            print "Data written to", os.path.join(dirname, base + "-guid.lift")
 
             print "Adding allormorphs to", fname
             # add allomorphs to LIFT file
-            lift = addRarAllomorphs(lift)
+            lift = add_allomorphs(lift)
             # dump the LIFT data to a new file
             lift.write(os.path.join(dirname, base + "-added.lift"))
-            print "Data written to",os.path.join(dirname, base + "-added.lift")
+            print "Data written to", os.path.join(dirname, base + "-added.lift")
 
             print "Converting LIFT format to EAFL format"
             lift.toEAFL(os.path.join(dirname, base + "-import.eafl"))
-            print "Data written to",os.path.join(dirname, base + "-import.eafl")
+            print "Data written to", os.path.join(dirname, base + "-import.eafl")
         else:
             print "Not converting", fname, "with extension:", ext
