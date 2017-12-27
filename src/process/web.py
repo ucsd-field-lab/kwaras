@@ -116,7 +116,7 @@ def export_elan(cfg, export_fields):
                 template = fpath
                 print "Using {0} as template for ELAN types".format(fpath)
             # template = os.path.join(cfg["FILE_DIR"], cfg["TEMPLATE"])
-            eafile = language.cleanEaf(fpath, template)
+            eafile = language.clean_eaf(fpath, template)
             eafile.write(os.path.join(cfg["NEW_EAFS"], filename))
             eafile.export_to_csv(cfg["CSV"], "excel", export_fields, "ab")
             status = sorted(eafile.status(export_fields).items())
@@ -482,6 +482,7 @@ def parse_export_file(filename, fields=()):
                 print 'Invalid atype:', atype
 
     else:  # collect info on all the fields found
+        fields = []
         for line in fh:
             if len(line) == 5:
                 atype, start, stop, value, eaf = line

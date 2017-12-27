@@ -160,13 +160,13 @@ def clean_eaf_block(eafile, spkr=''):
     _mglosstiers = [tn + spkr for tn in ['MGloss', 'MGloss-ES']]
     _notetier = "Note" + spkr
 
-    if _basetier in eafile.getTierIds():
+    if _basetier in eafile.get_tier_ids():
         # back up the baseline tier into @_orthtier, unless it already exists
-        if _orthtier in eafile.getTierIds() and eafile.get_annotations_in(_orthtier) is []:
+        if _orthtier in eafile.get_tier_ids() and eafile.get_annotations_in(_orthtier) is []:
             # we have an empty orthtier -- move it out of the way
             orthbk = eafile.get_tier_by_id(_orthtier)
             eafile.rename_tier(orthbk, _orthtier + "_bk")
-        if _orthtier not in eafile.getTierIds():
+        if _orthtier not in eafile.get_tier_ids():
             # there is not yet an orthtier, so make it
             bktier = eafile.copy_tier(_basetier, targ_id=_orthtier,
                                       parent=_basetier, ltype="Alternate transcription")
@@ -181,8 +181,8 @@ def clean_eaf_block(eafile, spkr=''):
                     note.text = note.text.strip()
                     # print ">",note.text
 
-    if _orthtier in eafile.getTierIds():
-        if _orth2tier in eafile.getTierIds():
+    if _orthtier in eafile.get_tier_ids():
+        if _orth2tier in eafile.get_tier_ids():
             print _orth2tier, "already exists"
         else:
             neworth = eafile.copy_tier(_orthtier, targ_id=_orth2tier,

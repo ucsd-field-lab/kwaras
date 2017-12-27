@@ -39,7 +39,7 @@ _SPELLING = [{
 _COMMENT = re.compile(" ?(\[[a-z]+\])")
 
 
-def cleanEaf(eaf):
+def clean_eaf(eaf):
     # use new orthography
     orthnotes = eaf.get_tier_by_id("Transcription").iter("ANNOTATION_VALUE")
     for note in orthnotes:
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         else:
             fstr = open(os.path.join(_FILE_DIR, _OLD_EAFS, filename))
             eaf = etree.fromstring('\n'.join(fstr))
-            eaf = cleanEaf(eaf)
+            eaf = clean_eaf(eaf)
 
             outstr = open(os.path.join(_FILE_DIR, _NEW_EAFS, filename), "w")
             outstr.write(etree.tostring(eaf))

@@ -25,7 +25,7 @@ def main():
         else:
             fpath = os.path.join(cfg["FILE_DIR"], cfg["OLD_EAFS"], filename)
             template = os.path.join(cfg["FILE_DIR"], cfg["TEMPLATE"])
-            eafile = cleanEaf(fpath, template)
+            eafile = clean_eaf(fpath, template)
             eafile.write(os.path.join(cfg["FILE_DIR"], cfg["NEW_EAFS"], filename))
             eafile.export_to_csv(os.path.join(cfg["FILE_DIR"], cfg["CSV"]), "excel", cfg["EXPORT_FIELDS"], "ab")
             status = sorted(eafile.status(cfg["EXPORT_FIELDS"]).items())
@@ -33,7 +33,7 @@ def main():
             csvfile.write([filename] + [str(v * 100) + "%" for (k, v) in status])
 
 
-def cleanEaf(fname, template=None):
+def clean_eaf(fname, template=None):
     eafile = eaf.Eaf(fname)
 
     if template is not None:
@@ -43,12 +43,12 @@ def cleanEaf(fname, template=None):
     spkrs = set([s.partition('@')[2] for s in tids])
 
     for s in spkrs:
-        cleanEafBlock(eafile, s)
+        clean_eaf_block(eafile, s)
 
     return eafile
 
 
-def cleanEafBlock(eafile, spkr=''):
+def clean_eaf_block(eafile, spkr=''):
     pass
 
 

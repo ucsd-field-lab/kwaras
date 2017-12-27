@@ -138,9 +138,6 @@ def convert_to_ortho(text):
 
 
 def clean_eaf(eafile, template=None):
-    # ipa = eaf.getTierById(eafile, "IPA Transcription")
-    # print eaf, ipa
-    # print ipa.attrib
 
     tiers = eafile.get_tier_ids()
     has_ortho = ("Orthographic" in tiers and
@@ -172,7 +169,6 @@ def clean_eaf(eafile, template=None):
             phonnotes = eafile.get_tier_by_id("Phonetic").iter("ANNOTATION_VALUE")
             print phonnotes[:5]
             raise Exception
-            # eafile.renameTier( eafile.getTierById("Phonetic"), "Phonetic-bk")
         if "Orthographic" in eafile.get_tier_ids():
             eafile.rename_tier(eafile.get_tier_by_id("Orthographic"), "Orthographic-bk")  # should be blank tiers only
 
@@ -208,7 +204,7 @@ def clean_eaf(eafile, template=None):
                 note.text = convert_to_ortho(note.text)
 
     # else: # both Phon and Ortho tiers already exist, but some may be empty in places
-    #    phonnotes = eafile.getTierById("Phonetic").iter("ANNOTATION_VALUE")
+    #    phonnotes = eafile.get_tier_by_id("Phonetic").iter("ANNOTATION_VALUE")
 
     # standardize other tier names
     if "Traslation (English)" in eafile.get_tier_ids():

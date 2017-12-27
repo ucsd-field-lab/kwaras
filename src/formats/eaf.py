@@ -77,7 +77,7 @@ class Eaf:
         if stop is None:
             stop = self.times["ALL"][1]
         annots = []
-        if tid in self.getTierIds():
+        if tid in self.get_tier_ids():
             tier = self.get_tier_by_id(tid)
             aanodes = tier.findall(".//ALIGNABLE_ANNOTATION")
             if aanodes:
@@ -139,7 +139,7 @@ class Eaf:
     def insert_tier(self, tier, after=None):
 
         # make sure tid is not a duplicate
-        tierids = self.getTierIds()
+        tierids = self.get_tier_ids()
         tid = tier.get("TIER_ID")
         if tid in tierids:
             raise NameError("TIER_ID {} already used.".format(tid))
@@ -283,9 +283,9 @@ class Eaf:
     def status(self, fields=None):
         """Report percent coverage of dependent tiers"""
         if fields is None:
-            fnames = self.getTierIds()
+            fnames = self.get_tier_ids()
         else:
-            fnames = [f for f in self.getTierIds() if f.partition("@")[0] in fields]
+            fnames = [f for f in self.get_tier_ids() if f.partition("@")[0] in fields]
         coverage = {}
         spkrs = set([f.partition("@")[2] for f in fnames])
         for spkr in spkrs:
@@ -314,9 +314,9 @@ class Eaf:
         @mode: fopen mode code ('wb' to overwrite, 'ab' to append)"""
 
         if fields is None:
-            fnames = self.getTierIds()
+            fnames = self.get_tier_ids()
         else:
-            fnames = [f for f in self.getTierIds() if f.partition("@")[0] in fields]
+            fnames = [f for f in self.get_tier_ids() if f.partition("@")[0] in fields]
 
         print "printing", fnames
         csvfile = utfcsv.UnicodeWriter(filename, dialect, mode=mode)
