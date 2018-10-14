@@ -2,6 +2,7 @@
 
 import argparse
 import os.path
+import traceback
 import json
 import Tkinter as tk
 import tkMessageBox
@@ -65,7 +66,13 @@ def export_corpus():
                         parts=["MAIN", "CSV", "HTML"], defaults=main_cfg)
 
     cfg = json.load(open("{0}.cfg".format(main_cfg["LANGUAGE"])))
-    web.main(cfg)
+    try:
+        web.main(cfg)
+    except Exception as err:
+        print traceback.format_exc()
+        tkMessageBox.showerror(title="Unexpected Error",
+                               message=traceback.format_exc())
+        raise err
 
 
 def reparse_corpus():
@@ -93,6 +100,8 @@ def parse_args():
                         help="Update a parsed ELAN corpus with fresh lexicon data")
     parser.add_argument("--export-corpus", action="store_true",
                         help="Export an ELAN corpus as web interface files")
+    parser.add_argument("--select-action", action="store_true",
+                        help="Use GUI widget to choose action")
 
     return parser.parse_args()
 
@@ -135,6 +144,8 @@ class ChoiceWindow:
 
 if __name__ == "__main__":
     args = parse_args()
-    if not (args.convert_lexicon or args.reparse_corpus or args.export_corpus):
+    if args.select_action:
         ChoiceWindow(args)
+    elif not (args.convert_lexicon or args.reparse_corpus or args.export_corpus):
+        args.export_corpus = True
     main(args)
