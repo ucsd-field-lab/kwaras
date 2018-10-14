@@ -39,8 +39,19 @@ class Eaf:
         self.times["ALL"] = (0, prev)
 
         ranodes = self.eafile.findall(".//REF_ANNOTATION")
+        links = {}
         for ra in ranodes:
-            self.times[ra.get("ANNOTATION_ID")] = self.times[ra.get("ANNOTATION_REF")]
+            links[ra.get("ANNOTATION_ID")] = ra.get("ANNOTATION_REF")
+        for ra in ranodes:
+            ra_id = ref = ra.get("ANNOTATION_ID")
+            times = None
+            for iter in range(5):
+                ref = links.get(ref)
+                if ref:
+                    times = self.times.get(ref)
+                    if times is not None:
+                        break
+            self.times[ra_id] = times
 
     def get_annotation(self, aref):
         """Get the annotation with the given ANNOTATION_ID"""
