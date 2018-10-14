@@ -1,5 +1,9 @@
 from distutils.core import setup
 import os
+try:
+    import py2exe
+except ImportError:
+    print("Warning: package py2exe is not available.")
 
 css_dir = 'web/css'
 css_files = [os.path.join(css_dir, f)
@@ -16,15 +20,13 @@ image_files = [os.path.join(images_dir, f)
 
 setup(
     name='kwaras',
-    version='2.2.0_1',
+    version='2.2.1.12',
     install_requires=['openpyxl'],
     packages=['kwaras', 'kwaras.langs', 'kwaras.conf', 'kwaras.formats', 'kwaras.process'],
     package_dir={'kwaras': '',
                  'kwaras.langs': 'src/langs', 'kwaras.conf': 'src/conf',
                  'kwaras.formats': 'src/formats', 'kwaras.process': 'src/process'},
-    py_modules=['lexicon'],
-    data_files=[('', ['convert-lexicon.COMMAND', 'install-macos.COMMAND', 'export-corpus.COMMAND']),
-                ('web', ['web/index_wrapper.html']),
+    data_files=[('web', ['web/index_wrapper.html']),
                 (css_dir, css_files),
                 (js_dir, js_files),
                 (smoothness_dir, smoothness_files),
