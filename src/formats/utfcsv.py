@@ -83,14 +83,19 @@ class UnicodeReader:
                 dialect = csv.Sniffer().sniff(sniffdata, ",\t")
             except csv.Error:
                 dialect = csv.excel
-        # print sniffdata
-        # print repr([dialect,dialect.quotechar,dialect.delimiter])
-        # print sniffdata.split(dialect.lineterminator)
+        if not fieldnames and fieldnames is not False:
+            try:
+                fieldnames = csv.Sniffer().has_header(sniffdata)
+            except csv.Error:
+                fieldnames = True
+
         self.reader = csv.reader(r, dialect=dialect, **kwds)
 
-        if fieldnames is True or csv.Sniffer().has_header(sniffdata):
-            fieldnames = [unicode(s, "utf-8") for s in self.reader.next()]
-        else:
+        if fieldnames is True:
+            header = self.reader.next()
+            print header
+            fieldnames = [unicode(s, "utf-8") for s in header]
+        elif not fieldnames:
             cols = len(sniffdata.split('\n')[0].split(dialect.delimiter))
             fieldnames = [u"V" + str(i) for i in range(cols)]
         self.fieldnames = tuple([unicode(n) for n in fieldnames])
