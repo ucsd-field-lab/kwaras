@@ -79,7 +79,10 @@ class UnicodeReader:
         r.seek(0)
 
         if dialect is None:
-            dialect = csv.Sniffer().sniff(sniffdata, ",\t")
+            try:
+                dialect = csv.Sniffer().sniff(sniffdata, ",\t")
+            except csv.Error:
+                dialect = csv.excel
         # print sniffdata
         # print repr([dialect,dialect.quotechar,dialect.delimiter])
         # print sniffdata.split(dialect.lineterminator)

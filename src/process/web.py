@@ -232,12 +232,12 @@ def wrap_html(cfg, wrapper):
 
     for line in wrap_fh:
         if line.strip().startswith('<title>'):
-            index_fh.write('<title>' + cfg['PG_TITLE'] + '</title>')
+            index_fh.write('<title>' + cfg['PG_TITLE'].encode('utf-8') + '</title>')
         else:
             index_fh.write(line)
 
         if line.strip().startswith('<body>'):
-            index_fh.write(cfg['NAV_BAR'])
+            index_fh.write(cfg['NAV_BAR'].encode('utf-8'))
 
         if line.strip().startswith('<div class="container"'):
             index_fh.writelines(list(table_fh))
@@ -419,15 +419,26 @@ def get_speakers(meta_file):
     speaker_fields = ["Contributor"]
     format_fields = ["Format"]
 
+    fh = None
     if not os.path.exists(meta_file):
         print "WARNING: no META data file '{0}' found".format(meta_file)
         return {}
     if os.path.splitext(meta_file)[1].lower() == '.csv':
-        fh = utfcsv.UnicodeReader(open(meta_file, 'r'), fieldnames=True)
+        for encoding in ('utf-8', 'windows-1252', 'windows-1251'):
+            try:
+                fh = utfcsv.UnicodeReader(open(meta_file, 'r'), fieldnames=True, encoding=encoding)
+            except UnicodeDecodeError:
+                print "Failed to decode metadata file as {} encoding.".format(encoding)
+            else:
+                print "Opening metadata file as {} encoding.".format(encoding)
+                break
     elif os.path.splitext(meta_file)[1].lower() == '.xlsx':
         fh = xlsx.ExcelReader(meta_file)
     else:
         print "Error: file type '{}' not recognized".format(os.path.splitext(meta_file)[1])
+    if fh is None:
+        print "WARNING: Failed to read metadata file. Try saving as XLSX or UTF-8 CSV."
+        return {}
 
     print 'Session Metadata Column Names:', fh.fieldnames
     name_field = [f for f in filename_fields if f in fh.fieldnames][0]
