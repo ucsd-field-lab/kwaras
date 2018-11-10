@@ -184,8 +184,8 @@ def main(cfg):
     table_fh.write('''<tfoot>
                         <tr>
                           ''' +
-                   '\n'.join(['<th><div><input type="text" value="Search {0}" class="search_init"></div></th>'
-                              for _ in fnames + ['Speaker', 'Citation', 'Length', 'Start', 'Stop',
+                   '\n'.join(['<th><div><input type="text" value="Search {0}" class="search_init"></div></th>'.format(f)
+                              for f in fnames + ['Speaker', 'Citation', 'Length', 'Start', 'Stop',
                                                  'WAV', 'EAF', 'File', 'Token']]) +
                    '''
                         </tr>

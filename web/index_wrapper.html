@@ -73,7 +73,8 @@
 		var iColumns = colHeads.length;
 
 		var oTable = $('#clip_metadata').dataTable({
-			"sDom": '<"H"fp<TC>r>t<"F"ilp>',	 			"bJQueryUI" : true,
+			"sDom": '<"H"fp<TC>r>t<"F"ilp>',
+			"bJQueryUI" : true,
 			"sPaginationType" : "full_numbers",
 			"oLanguage" : {
 				"sSearch" : "Search all columns:"
@@ -120,7 +121,7 @@
 
     	$("tfoot input").keyup( function () {
     	    /* Filter on the column (the index) of this element */
-    	    oTable.fnFilter( this.value, $("tfoot input").index(this), 1, 0 );
+    	    oTable.fnFilter( this.value, oTable._fnVisibleToColumnIndex( $("tfoot input").index(this) ), 1, 0 );
     	} );
      
      
