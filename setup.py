@@ -5,9 +5,17 @@ Usage:
     python setup.py py2app
 """
 
-from setuptools import setup
+from distutils.core import setup
 import os
+import sys
 
+if sys.platform == 'darwin':
+    try:
+        import py2app
+    except:
+        pass
+else:
+    import py2exe
 
 css_dir = 'web/css'
 css_files = [os.path.join(css_dir, f)
@@ -23,7 +31,8 @@ image_files = [os.path.join(images_dir, f)
                for f in os.listdir(images_dir) if os.path.splitext(f)[1] == '.png']
 
 APP = ['gui.py']
-DATA_FILES = [('web', ['web/index_wrapper.html']),
+DATA_FILES = [('', ['install-macos.COMMAND', 'export-corpus.COMMAND']),
+                ('web', ['web/index_wrapper.html']),
                 (css_dir, css_files),
                 (js_dir, js_files),
                 (smoothness_dir, smoothness_files),
@@ -32,7 +41,7 @@ OPTIONS = {"argv_emulation": True}
 
 setup(
     name='kwaras',
-    version='2.2.1.12',
+    version='2.2.1.13',
     install_requires=['openpyxl'],
     setup_requires=['py2app'],
     packages=['kwaras', 'kwaras.langs', 'kwaras.conf', 'kwaras.formats', 'kwaras.process'],
