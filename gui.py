@@ -4,15 +4,15 @@ import argparse
 import os.path
 import traceback
 import json
-import Tkinter as tk
-import tkMessageBox
-from Tkconstants import *
+import tkinter as tk
+import tkinter.messagebox
+from tkinter.constants import *
 
 try:
     import kwaras
 except ImportError as e:
 
-    tkMessageBox.showerror(title="Package not installed.",
+    tkinter.messagebox.showerror(title="Package not installed.",
                            message="The 'kwaras' package has not been installed correctly yet. "
                                    "Run installer before running this.")
     raise e
@@ -31,26 +31,26 @@ def convert_lexicon():
 
     base, ext = os.path.splitext(inf_name)
     if ext == ".lift":
-        print "Exposing GUID as field in", inf_name
+        print("Exposing GUID as field in", inf_name)
         # update GUID field in lexicon
         lift = Lift(inf_name)
         lift = liftadd.exposeGuid(lift)
         lift.write(os.path.join(dir_name, base + "-guid.lift"))
 
         # add allomorphs to LIFT file
-        print "Adding allomorphs to", inf_name
+        print("Adding allomorphs to", inf_name)
         lift = liftadd.addRarAllomorphs(lift)
         # dump the LIFT data to a new file
         outf_name = os.path.join(dir_name, base + "-added.lift")
         lift.write(outf_name)
-        print "Data written to", outf_name
+        print("Data written to", outf_name)
 
-        print "Converting LIFT format to EAFL format"
+        print("Converting LIFT format to EAFL format")
         eafl_name = os.path.join(dir_name, base + "-import.eafl")
         lift.toEAFL(eafl_name)
-        print "Data written to", eafl_name
+        print("Data written to", eafl_name)
     else:
-        tkMessageBox.showerror(title="Wrong format.",
+        tkinter.messagebox.showerror(title="Wrong format.",
                                message="The selected file is not a LIFT lexicon file.")
 
 
@@ -69,14 +69,14 @@ def export_corpus():
     try:
         web.main(cfg)
     except Exception as err:
-        print traceback.format_exc()
-        tkMessageBox.showerror(title="Unexpected Error",
+        print(traceback.format_exc())
+        tkinter.messagebox.showerror(title="Unexpected Error",
                                message=traceback.format_exc())
         raise err
 
 
 def reparse_corpus():
-    tkMessageBox.showerror(title="Not implemented",
+    tkinter.messagebox.showerror(title="Not implemented",
                            message="Sorry, reparse_corpus is not implemented yet.")
 
 
@@ -139,7 +139,7 @@ class ChoiceWindow:
         elif var_str == "Reparse Corpus":
             self.args.reparse_corpus = True
         else:
-            tkMessageBox.showerror("Unrecognized process name")
+            tkinter.messagebox.showerror("Unrecognized process name")
 
 
 if __name__ == "__main__":
