@@ -113,7 +113,7 @@ class Eaf:
             if ai not in self.times:
                 print(ai)
             return self.times[ai]
-        elif annot.tag == "REF_ANNOTATION":  # REF_ANNOTATION
+        elif annot.tag == "REF_ANNOTATION":
             ar = annot.get("ANNOTATION_REF")
             if ar not in self.times:
                 print(ar)
@@ -321,7 +321,7 @@ class Eaf:
         @filename: path of new csv file
         @dialect: a csv.Dialect instance or the name of a registered Dialect
         @fields: list of fields to export (default exports all)
-        @mode: fopen mode code ('wb' to overwrite, 'ab' to append)"""
+        @mode: fopen mode code ('w' to overwrite, 'a' to append)"""
 
         if fields is None:
             fnames = self.get_tier_ids()
@@ -329,30 +329,30 @@ class Eaf:
             fnames = [f for f in self.get_tier_ids() if f.partition("@")[0] in fields]
 
         print("printing", fnames)
-        csvfile = csv.writer(open(filename, mode, encoding='utf-8'), dialect)
+        columns = ("fieldname", "start", "end", "value", "filename")
+        csvfile = csv.DictWriter(
+            open(filename, mode, encoding='utf-8'), 
+            dialect=dialect, 
+            fieldnames=columns
+        )
+        if 'w' in mode:
+            csvfile.writeheader()
 
         for f in fnames:
             annots = self.get_annotations_in(f)
-            # print "annots",len(annots)
             for a in annots:
                 value = a.findtext("ANNOTATION_VALUE").strip()
-                at = [str(t) for t in self.get_time(a)]
-                print([f] + at + [value, self.filename])
-                csvfile.writerow([f] + at + [value, self.filename])
-                #
-                #        for t in tiers:
-                #            tid = t.get("TIER_ID")
-                #            aanodes = t.findall(".//ALIGNABLE_ANNOTATION")
-                #            for aa in aanodes:
-                #                value = aa.findtext("ANNOTATION_VALUE")
-                #                aid = aa.get("ANNOTATION_ID")
-                #                csvfile.write([tid] + aatimes[aid] + [value, self.filename])
-                #            ranodes = t.findall(".//REF_ANNOTATION")
-                #            for ra in ranodes:
-                #                value = ra.findtext("ANNOTATION_VALUE")
-                #                aid = ra.get("ANNOTATION_REF")
-                #                csvfile.write([tid] + aatimes[aid] + [value, self.filename])
-                #
+                start, end = [str(t) for t in self.get_time(a)]
+                row = {
+                    "fieldname": f,
+                    "start": start,
+                    "end": end,
+                    "value": value,
+                    "filename": self.filename
+                }
+                print(row)
+                csvfile.writerow(row)
+
 
 
 if __name__ == '__main__':

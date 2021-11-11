@@ -84,8 +84,11 @@ def filter_fields(fields, export_fields):
 
 
 def export_elan(cfg, export_fields):
-    csvfile = csv.writer(open(os.path.join(cfg["FILE_DIR"], "status.csv"), mode="w", encoding='utf-8'))
-    csvfile.writerow(["Filename"] + export_fields)
+    csvfile = csv.DictWriter(
+        open(os.path.join(cfg["FILE_DIR"], "status.csv"), mode="w", encoding='utf-8'),
+        fieldnames=["Filename", "Speaker"] + export_fields, 
+    )
+    csvfile.writeheader()
 
     if cfg['LANGUAGE'].lower() == "raramuri":
         from kwaras.langs import Raramuri as language
@@ -122,7 +125,13 @@ def export_elan(cfg, export_fields):
             eafile.export_to_csv(cfg["CSV"], "excel", export_fields, "a")
             status = sorted(eafile.status(export_fields).items())
             print(status)
-            csvfile.writerow([filename] + [str(v * 100) + "%" for (k, v) in status])
+            speakers = {k.partition('@')[2] for k, v in status}
+            row = {s: {"Filename": filename, "Speaker": s} for s in speakers}
+            for k, v in status:
+                field, _, spkr = k.partition('@')
+                row[spkr][field] = f"{v*100}%"
+            for r in row.values():
+                csvfile.writerow(r)
 
 
 def main(cfg):
@@ -160,11 +169,14 @@ def main(cfg):
     spkr_dict = get_speakers(cfg['META'])
 
     # Output for clip metadata
-    clip_fh = csv.writer(open(os.path.join(cfg['WWW'], 'clip_metadata.csv'), 'w'))
-    table_fh = open(os.path.join(cfg['WWW'], 'clip_metadata.html'), 'w')
+    clip_fh = csv.DictWriter(
+        open(os.path.join(cfg['WWW'], 'clip_metadata.csv'), 'w', encoding='utf-8'), 
+        fieldnames = fnames + ['Speaker', 'Citation', 'Length', 'Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']
+    )
+    table_fh = open(os.path.join(cfg['WWW'], 'clip_metadata.html'), 'w', encoding='utf-8')
 
-    # Write header/footer
-    clip_fh.write(fnames + ['Speaker', 'Citation', 'Length', 'Start', 'Stop', 'WAV', 'EAF', 'File', 'Token'])
+    # Write header and footer
+    clip_fh.writeheader()
 
     table_fh.write('''<table id="clip_metadata">
                         <thead>
@@ -216,7 +228,6 @@ def main(cfg):
     mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, clip_fh, table_fh, tokens, cfg)
 
     table_fh.write('</tbody>\n</table>\n')
-    clip_fh.close()
     table_fh.close()
 
     wrap_html(cfg, 'web/index_wrapper.html')
@@ -225,20 +236,20 @@ def main(cfg):
 
 
 def wrap_html(cfg, wrapper):
-    wrap_fh = open(wrapper, 'rb')
+    wrap_fh = open(wrapper, 'r', encoding='utf-8')
 
-    table_fh = open(os.path.join(cfg['WWW'], 'clip_metadata.html'), 'rb')
+    table_fh = open(os.path.join(cfg['WWW'], 'clip_metadata.html'), 'r', encoding='utf-8')
 
-    index_fh = open(os.path.join(cfg['WWW'], 'index.html'), 'wb')
+    index_fh = open(os.path.join(cfg['WWW'], 'index.html'), 'w', encoding='utf-8')
 
     for line in wrap_fh:
         if line.strip().startswith('<title>'):
-            index_fh.write('<title>' + cfg['PG_TITLE'].encode('utf-8') + '</title>')
+            index_fh.write('<title>' + cfg['PG_TITLE'] + '</title>')
         else:
             index_fh.write(line)
 
         if line.strip().startswith('<body>'):
-            index_fh.write(cfg['NAV_BAR'].encode('utf-8'))
+            index_fh.write(cfg['NAV_BAR'])
 
         if line.strip().startswith('<div class="container"'):
             index_fh.writelines(list(table_fh))
@@ -329,11 +340,14 @@ def mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, c
                         speaker = comment.split()[0]
                         print("speaker value from comment field:", speaker)
 
-        clip_fh.write(values + [speaker, cite_code, length_human,
-                                start_human, stop_human,
-                                wav_file, eaf_file,
-                                clip_file,
-                                tokens[(eaf_file, start, stop)]])
+        row = {
+            **dict(zip(fnames, values)),
+            **dict(zip(
+                ['Speaker', 'Citation', 'Length', 'Start', 'Stop', 'WAV', 'EAF', 'File', 'Token'],
+                [speaker, cite_code, length_human, start_human, stop_human, wav_file, eaf_file, clip_file, tokens[(eaf_file, start, stop)]]
+            ))
+        }
+        clip_fh.writerow(row)
 
         row = '\n'.join(['<tr clip="{0}">'.format(clip_file)] +
                          ['<td>{0}</td>'.format(v) for v in values] +
@@ -344,7 +358,7 @@ def mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, c
                          ['<td>{0}</td>'.format(tokens[(eaf_file, start, stop)])]
                          )
         try:
-            table_fh.write(row.encode('utf-8'))
+            table_fh.write(row)
         except UnicodeDecodeError as err:
             print("WARNING: Skipping annotation because it can't be decoded:", err.message)
             print(repr(row))
@@ -427,8 +441,7 @@ def get_speakers(meta_file):
     if os.path.splitext(meta_file)[1].lower() == '.csv':
         for encoding in ('utf-8', 'windows-1252', 'windows-1251'):
             try:
-                fh = csv.reader(open(meta_file, 'r', encoding=encoding, newline=''))
-                fieldnames = next(fh)
+                fh = csv.DictReader(open(meta_file, 'r', encoding=encoding, newline=''))
             except UnicodeDecodeError:
                 print("Failed to decode metadata file as {} encoding.".format(encoding))
             else:
@@ -436,17 +449,16 @@ def get_speakers(meta_file):
                 break
     elif os.path.splitext(meta_file)[1].lower() == '.xlsx':
         fh = xlsx.ExcelReader(meta_file)
-        fieldnames = fh.fieldnames
     else:
         print("Error: file type '{}' not recognized".format(os.path.splitext(meta_file)[1]))
     if fh is None:
         print("WARNING: Failed to read metadata file. Try saving as XLSX or UTF-8 CSV.")
         return {}
 
-    print('Session Metadata Column Names:', fieldnames)
-    name_field = [f for f in filename_fields if f in fieldnames][0]
-    spk_field = [f for f in speaker_fields if f in fieldnames][0]
-    fmt_field = [f for f in format_fields if f in fieldnames]
+    print('Session Metadata Column Names:', fh.fieldnames)
+    name_field = [f for f in filename_fields if f in fh.fieldnames][0]
+    spk_field = [f for f in speaker_fields if f in fh.fieldnames][0]
+    fmt_field = [f for f in format_fields if f in fh.fieldnames]
     fmt_field = fmt_field[0] if len(fmt_field) > 0 else None
 
     spk = {}
