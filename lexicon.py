@@ -1,4 +1,4 @@
-#! env python2.7
+#! env python3
 
 __author__ = 'Lucien'
 
