@@ -41,7 +41,7 @@ OPTIONS = {"argv_emulation": True}
 
 setup(
     name='kwaras',
-    version='2.2.1.13',
+    version='3.0.0rc1',
     install_requires=['openpyxl'],
     setup_requires=['py2exe'],
     packages=['kwaras', 'kwaras.langs', 'kwaras.conf', 'kwaras.formats', 'kwaras.process'],
