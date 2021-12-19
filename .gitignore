@@ -7,3 +7,4 @@ bdist/*
 build/*
 env/*
 web/clips
+.python-version
