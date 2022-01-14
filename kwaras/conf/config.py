@@ -8,7 +8,7 @@ import tkinter as tk
 import tkinter.filedialog
 from tkinter.constants import *
 
-CFG_FILE = "config.txt"
+CFG_FILE = "config.cfg"
 _WIDTH = 60
 
 
@@ -50,7 +50,7 @@ class ConfigWindow:
         old_eafs = os.path.join(updir, "corpus-data-versions")
 
         if "MAIN" in parts:
-            self.mk_menu_row("LANGUAGE", defaults.get("LANGUAGE", "Raramuri"), "Language template:")
+            self.mk_menu_row("LANGUAGE", defaults.get("LANGUAGE", cfg_file.split('.')[0]), "Language template:")
 
         if "EAFL" in parts:
             self.mk_label_row("Variables used in creating EAFL file")

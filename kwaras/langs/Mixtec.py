@@ -137,8 +137,8 @@ def convert_to_ortho(text):
     return text
 
 
-def clean_eaf(eafile, template=None):
-
+def clean_eaf(fname, template=None):
+    eafile = eaf.Eaf(fname)
     tiers = eafile.get_tier_ids()
     has_ortho = ("Orthographic" in tiers and
                  len([eafile.get_tier_by_id("Orthographic").iter("ANNOTATION_VALUE")]) > 0)

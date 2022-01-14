@@ -22,7 +22,7 @@ def update(eafile, tiers, eafl):
             aval = x.findtext("ANNOTATION_VALUE")
             # print aval
             if aval is '':
-                print("Blank X annotation:", eaf.etree.tostring(x))
+                print("Blank X annotation:", etree.tostring(x))
                 e = None
             else:
                 gidm = re.search("\(([^.]*)\)", x.findtext("ANNOTATION_VALUE"))

@@ -328,10 +328,10 @@ class Eaf:
         else:
             fnames = [f for f in self.get_tier_ids() if f.partition("@")[0] in fields]
 
-        print("printing", fnames)
+        print("From", filename, "printing", fnames)
         columns = ("fieldname", "start", "end", "value", "filename")
         csvfile = csv.DictWriter(
-            open(filename, mode, encoding='utf-8'), 
+            open(filename, mode, encoding='utf-8', newline=''), 
             dialect=dialect, 
             fieldnames=columns
         )
@@ -350,7 +350,6 @@ class Eaf:
                     "value": value,
                     "filename": self.filename
                 }
-                print(row)
                 csvfile.writerow(row)
 
 

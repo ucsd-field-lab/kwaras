@@ -54,18 +54,19 @@ def convert_lexicon():
                                message="The selected file is not a LIFT lexicon file.")
 
 
-def export_corpus():
+def export_corpus(cfg_path):
     from kwaras.conf import config
     from kwaras.process import web
 
-    window = config.ConfigWindow("corpus.cfg", parts=["MAIN"])
+    if not cfg_path:
+        window = config.ConfigWindow("corpus.cfg", parts=["MAIN"])
 
-    main_cfg = json.load(open("corpus.cfg"))
+        main_cfg = json.load(open("corpus.cfg"))
+        cfg_path = "{0}.cfg".format(main_cfg["LANGUAGE"])
 
-    window = config.ConfigWindow("{0}.cfg".format(main_cfg["LANGUAGE"]),
-                        parts=["MAIN", "CSV", "HTML"], defaults=main_cfg)
+    window = config.ConfigWindow(cfg_path, parts=["MAIN", "CSV", "HTML"])
 
-    cfg = json.load(open("{0}.cfg".format(main_cfg["LANGUAGE"])))
+    cfg = json.load(open(cfg_path))
     try:
         web.main(cfg)
     except Exception as err:
@@ -75,20 +76,12 @@ def export_corpus():
         raise err
 
 
-def reparse_corpus():
-    tkinter.messagebox.showerror(title="Not implemented",
-                           message="Sorry, reparse_corpus is not implemented yet.")
-
-
 def main(args):
     if args.convert_lexicon:
         convert_lexicon()
 
-    if args.reparse_corpus:
-        reparse_corpus()
-
     if args.export_corpus:
-        export_corpus()
+        export_corpus(args.config)
 
 
 def parse_args():
@@ -96,12 +89,12 @@ def parse_args():
 
     parser.add_argument("--convert-lexicon", action="store_true",
                         help="Convert FLEx LIFT lexicon to ELAN-Corpa EAFL lexicon")
-    parser.add_argument("--reparse-corpus", action="store_true",
-                        help="Update a parsed ELAN corpus with fresh lexicon data")
     parser.add_argument("--export-corpus", action="store_true",
                         help="Export an ELAN corpus as web interface files")
     parser.add_argument("--select-action", action="store_true",
                         help="Use GUI widget to choose action")
+    parser.add_argument("--config",
+                        help="Path of the config file to read")
 
     return parser.parse_args()
 
@@ -122,7 +115,7 @@ class ChoiceWindow:
         label = tk.Label(self.frame, text="Process")
         label.grid(row=10, column=1, sticky=E)
         self.var = tk.StringVar()
-        entry = tk.OptionMenu(self.frame, self.var, "Export Corpus", "Convert Lexicon", "Reparse Corpus")
+        entry = tk.OptionMenu(self.frame, self.var, "Export Corpus", "Convert Lexicon")
         entry.grid(row=10, column=2, sticky=W)
 
         button = tk.Button(self.frame, text="Okay", command=self._destroy_root)
@@ -136,8 +129,6 @@ class ChoiceWindow:
             self.args.export_corpus = True
         elif var_str == "Convert Lexicon":
             self.args.convert_lexicon = True
-        elif var_str == "Reparse Corpus":
-            self.args.reparse_corpus = True
         else:
             tkinter.messagebox.showerror("Unrecognized process name")
 
@@ -146,6 +137,6 @@ if __name__ == "__main__":
     args = parse_args()
     if args.select_action:
         ChoiceWindow(args)
-    elif not (args.convert_lexicon or args.reparse_corpus or args.export_corpus):
+    elif not (args.convert_lexicon or args.export_corpus):
         args.export_corpus = True
     main(args)
