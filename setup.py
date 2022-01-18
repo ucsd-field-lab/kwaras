@@ -10,12 +10,12 @@ import os
 import sys
 
 if sys.platform == 'darwin':
-    try:
-        import py2app
-    except:
-        pass
+    PY2EXE = 'py2app'
+    import py2app
 else:
+    PY2EXE = 'py2exe'
     import py2exe
+
 
 css_dir = 'web/css'
 css_files = [os.path.join(css_dir, f)
@@ -43,7 +43,7 @@ setup(
     name='kwaras',
     version='3.0.0rc1',
     install_requires=['openpyxl'],
-    setup_requires=['py2exe'],
+    setup_requires=[PY2EXE],
     packages=['kwaras', 'kwaras.langs', 'kwaras.conf', 'kwaras.formats', 'kwaras.process'],
     package_dir={'kwaras': '',
                  'kwaras.langs': 'kwaras/langs', 'kwaras.conf': 'kwaras/conf',

@@ -1,9 +1,6 @@
 
 import json
 import os.path
-import shlex
-import subprocess
-import sys
 import tkinter as tk
 import tkinter.filedialog
 from tkinter.constants import *
@@ -104,14 +101,6 @@ class ConfigWindow:
 
     def _focus(self):
         self.tkroot.attributes("-topmost", True)
-        if sys.platform == "darwin":
-            # MacOS doesn't let tk manipulate window order, so use an applescript command
-            command = """ /usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' """
-            try:
-                subprocess.check_call(shlex.split(command))
-            except subprocess.CalledProcessError as e:
-                print("Warning: Unable to bring Kwaras window to front.")
-                print((e.message))
         self.tkroot.focus_force()
         self.tkroot.attributes("-topmost", False)
 

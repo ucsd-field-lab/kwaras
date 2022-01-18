@@ -128,7 +128,7 @@ def export_elan(cfg, export_fields):
             eafile.write(os.path.join(cfg["NEW_EAFS"], filename))
             eafile.export_to_csv(cfg["CSV"], "excel", export_fields, "a")
             status = sorted(eafile.status(export_fields).items())
-            logger.info("Status: %s" status)
+            logger.info("Status: %s", status)
             speakers = {k.partition('@')[2] for k, v in status}
             row = {s: {"Filename": filename, "Speaker": s} for s in speakers}
             for k, v in status:
