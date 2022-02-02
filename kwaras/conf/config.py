@@ -4,11 +4,11 @@ import os.path
 import shlex
 import subprocess
 import sys
-import Tkinter as tk
-import tkFileDialog
-from Tkconstants import *
+import tkinter as tk
+import tkinter.filedialog
+from tkinter.constants import *
 
-CFG_FILE = "config.txt"
+CFG_FILE = "config.cfg"
 _WIDTH = 60
 
 
@@ -36,7 +36,7 @@ class ConfigWindow:
         # Load previous configuration settings
         if os.path.exists(cfg_file):
             cfgstr = ''.join(list(open(cfg_file)))
-            if cfgstr is not '':
+            if cfgstr:
                 self.cfg = json.loads(cfgstr)
             else:
                 self.cfg = {}
@@ -50,7 +50,7 @@ class ConfigWindow:
         old_eafs = os.path.join(updir, "corpus-data-versions")
 
         if "MAIN" in parts:
-            self.mk_menu_row("LANGUAGE", defaults.get("LANGUAGE", "Raramuri"), "Language template:")
+            self.mk_menu_row("LANGUAGE", defaults.get("LANGUAGE", cfg_file.split('.')[0]), "Language template:")
 
         if "EAFL" in parts:
             self.mk_label_row("Variables used in creating EAFL file")
@@ -111,7 +111,7 @@ class ConfigWindow:
                 subprocess.check_call(shlex.split(command))
             except subprocess.CalledProcessError as e:
                 print("Warning: Unable to bring Kwaras window to front.")
-                print(e.message)
+                print((e.message))
         self.tkroot.focus_force()
         self.tkroot.attributes("-topmost", False)
 
@@ -186,11 +186,11 @@ class ConfigWindow:
             if not os.path.exists(options['initialdir']):
                 options['initialdir'] = ''
             if isdir:
-                dvar = tkFileDialog.askdirectory(**options)
+                dvar = tkinter.filedialog.askdirectory(**options)
             elif issave:
-                dvar = tkFileDialog.asksaveasfilename(**options)
+                dvar = tkinter.filedialog.asksaveasfilename(**options)
             else:
-                dvar = tkFileDialog.askopenfilename(**options)
+                dvar = tkinter.filedialog.askopenfilename(**options)
             self.variables[var].set(dvar)
 
         self.buttons[var] = tk.Button(self.frame, text="Choose", command=callback)

@@ -2,4 +2,4 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR
-python2.7 gui.py --convert-lexicon
+python3 gui.py --convert-lexicon

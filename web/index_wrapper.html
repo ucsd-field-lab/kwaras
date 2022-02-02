@@ -53,7 +53,8 @@
 			}
 		}
 		var clip = nTr.getAttribute('clip');
-		sOut += '<tr><td><a class="media" href="clips/' + clip + '"> </a> </td>';
+
+		sOut += '<tr><td><audio control autoplay><source src="clips/' + clip + '" type="audio/wav"> </audio> </td>';
 		sOut += '<td><a href="clips/' + clip + '">&lt; ';
 		for (idx = 0; idx < aData.length; ++idx) {
 			if ( colHeads[idx].className.indexOf("Citation") >= 0 ) {
@@ -163,17 +164,12 @@
             	oTable.fnClose( nTr );
         	}
         	else {
+				/* Stop any other audio players */
+				Array.from($('#clip_metadata')[0].getElementsByTagName("audio")).forEach(e => e.pause());
 				/* Open this row */
 				oTable.fnOpen( nTr, fnFormatDetails(oTable, nTr), 'details' );
 			}
 
-			/* var clip = $(this).attr('clip'); */
-			/* $('#play').html('<a class="media" href="clips/' + clip + '">' + clip + '</a>'); */
-			$('a.media').media({
-				width : 100,
-				height : 20,
-				autoplay : true
-			});
 		});
 	});
 

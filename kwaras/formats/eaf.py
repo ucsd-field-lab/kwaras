@@ -7,8 +7,7 @@ Created on Jul 27, 2012
 
 import xml.etree.ElementTree as etree
 from copy import deepcopy
-
-from kwaras.formats import utfcsv
+import csv
 
 
 class Eaf:
@@ -112,12 +111,12 @@ class Eaf:
         if annot.tag == "ALIGNABLE_ANNOTATION":
             ai = annot.get("ANNOTATION_ID")
             if ai not in self.times:
-                print ai
+                print(ai)
             return self.times[ai]
-        elif annot.tag == "REF_ANNOTATION":  # REF_ANNOTATION
+        elif annot.tag == "REF_ANNOTATION":
             ar = annot.get("ANNOTATION_REF")
             if ar not in self.times:
-                print ar
+                print(ar)
             return self.times[ar]
         elif annot.tag == "ANNOTATION":
             child = annot.findall("*")[0]
@@ -140,8 +139,8 @@ class Eaf:
             tierids = [t.get("TIER_ID") for t in tiers]
             sizes = [len(list(t)) for t in matchlist]
             targ = matchlist[sizes.index(max(sizes))]  # the largest tier
-            print("WARNING: TIER_ID {} matched {} nodes with lengths {}.\n{}"
-                  .format(tid, len(matchlist), sizes, tierids))
+            print(("WARNING: TIER_ID {} matched {} nodes with lengths {}.\n{}"
+                  .format(tid, len(matchlist), sizes, tierids)))
         else:
             tierids = [t.get("TIER_ID") for t in tiers]
             raise NameError("TIER_ID {} matched {} nodes.\n{}".format(tid, len(matchlist), tierids))
@@ -232,7 +231,7 @@ class Eaf:
         if ltype_node.get("TIME_ALIGNABLE") == "true":
             refnotes = tier.findall("ANNOTATION/REF_ANNOTATION")
             if len(refnotes) > 0:
-                print "REF_ANNOTATION in time-alignable tier", tier.get("TIER_ID")
+                print("REF_ANNOTATION in time-alignable tier", tier.get("TIER_ID"))
                 for note in refnotes:
                     tref = self.get_time(note)
                     note.set("TIME_SLOT_REF1", tref[0])
@@ -242,7 +241,7 @@ class Eaf:
         else:
             alignnotes = tier.findall("ANNOTATION/ALIGNABLE_ANNOTATION")
             if len(alignnotes) > 0:
-                print "ALIGNABLE_ANNOTATION in symbolic tier", tier.get("TIER_ID")
+                print("ALIGNABLE_ANNOTATION in symbolic tier", tier.get("TIER_ID"))
                 for note in alignnotes:
                     tref = self.get_time(note)
                     aref = self.get_annotation_at(parent, tref[0]).get("ANNOTATION_ID")
@@ -287,8 +286,8 @@ class Eaf:
     # def importTiers(): maybe better to use ELAN's multiple edit
 
     def write(self, filename):
-        outstr = open(filename, 'wb')
-        outstr.write(etree.tostring(self.eafile, encoding="UTF-8"))
+        outstr = open(filename, 'w', encoding='utf-8')
+        outstr.write(etree.tostring(self.eafile, encoding="unicode"))
         outstr.close()
 
     def status(self, fields=None):
@@ -317,44 +316,42 @@ class Eaf:
                     coverage[f] = 0
         return coverage
 
-    def export_to_csv(self, filename, dialect='excel', fields=None, mode="wb"):
+    def export_to_csv(self, filename, dialect='excel', fields=None, mode="w"):
         """Duplicate the ELAN export function, with our settings and safe csv format
         @filename: path of new csv file
         @dialect: a csv.Dialect instance or the name of a registered Dialect
         @fields: list of fields to export (default exports all)
-        @mode: fopen mode code ('wb' to overwrite, 'ab' to append)"""
+        @mode: fopen mode code ('w' to overwrite, 'a' to append)"""
 
         if fields is None:
             fnames = self.get_tier_ids()
         else:
             fnames = [f for f in self.get_tier_ids() if f.partition("@")[0] in fields]
 
-        print "printing", fnames
-        csvfile = utfcsv.UnicodeWriter(filename, dialect, mode=mode)
+        print("From", filename, "printing", fnames)
+        columns = ("fieldname", "start", "end", "value", "filename")
+        csvfile = csv.DictWriter(
+            open(filename, mode, encoding='utf-8', newline=''), 
+            dialect=dialect, 
+            fieldnames=columns
+        )
+        if 'w' in mode:
+            csvfile.writeheader()
 
         for f in fnames:
             annots = self.get_annotations_in(f)
-            # print "annots",len(annots)
             for a in annots:
-                value = a.findtext("ANNOTATION_VALUE")
-                at = [str(t) for t in self.get_time(a)]
-                # print [f] + at + [value, self.filename]
-                csvfile.write([f] + at + [value, self.filename])
-                #
-                #        for t in tiers:
-                #            tid = t.get("TIER_ID")
-                #            aanodes = t.findall(".//ALIGNABLE_ANNOTATION")
-                #            for aa in aanodes:
-                #                value = aa.findtext("ANNOTATION_VALUE")
-                #                aid = aa.get("ANNOTATION_ID")
-                #                csvfile.write([tid] + aatimes[aid] + [value, self.filename])
-                #            ranodes = t.findall(".//REF_ANNOTATION")
-                #            for ra in ranodes:
-                #                value = ra.findtext("ANNOTATION_VALUE")
-                #                aid = ra.get("ANNOTATION_REF")
-                #                csvfile.write([tid] + aatimes[aid] + [value, self.filename])
-                #
-        csvfile.close()
+                value = a.findtext("ANNOTATION_VALUE").strip()
+                start, end = [str(t) for t in self.get_time(a)]
+                row = {
+                    "fieldname": f,
+                    "start": start,
+                    "end": end,
+                    "value": value,
+                    "filename": self.filename
+                }
+                csvfile.writerow(row)
+
 
 
 if __name__ == '__main__':
