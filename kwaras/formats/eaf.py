@@ -272,7 +272,7 @@ class Eaf:
         """@template: filename of a .etf or .eaf with the types to be imported"""
         types = [lt.get("LINGUISTIC_TYPE_ID") for lt in self.eafile.findall("LINGUISTIC_TYPE")]
 
-        fstr = open(template)
+        fstr = open(template, encoding='utf8')
         etf = etree.fromstring('\n'.join(fstr))
         ltnodes = etf.findall("LINGUISTIC_TYPE")
         ltnodes = [lt for lt in ltnodes if lt.get("LINGUISTIC_TYPE_ID") not in types]
