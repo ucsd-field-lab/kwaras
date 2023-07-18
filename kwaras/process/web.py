@@ -44,30 +44,37 @@ Authors: Lucien Carroll, Russ Horton
 """
 
 import os
+import csv
 import json
+import logging
 import random
 import re
 import wave
 from xml.etree import ElementTree as etree
 
-from kwaras.formats import utfcsv, xlsx
+from kwaras.formats import xlsx
+
+logger = logging.getLogger(__file__)
+
+CITATION_COLUMNS = ['Speaker', 'Citation', 'Length']
+HIDDEN_COLUMNS = ['Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']
 
 
 def config(lang=None):
     if lang == "Gitonga":
-        cfg_file = "conf/gitonga.txt"
+        cfg_file = "gitonga.cfg`"
     elif lang == "Raramuri":
-        cfg_file = "conf/raramuri.txt"
+        cfg_file = "raramuri.cfg"
     elif lang == "Mixtec":
-        cfg_file = "conf/mixtec.txt"
+        cfg_file = "mixtec.cfg"
     elif lang == "Kumiai":
-        cfg_file = "conf/kumiai.txt"
+        cfg_file = "kumiai.cfg"
     else:  # Other
-        cfg_file = "config.txt"
+        cfg_file = "config.cfg"
 
     up_dir = os.path.dirname(os.getcwd())
 
-    print "Using", cfg_file, "in", up_dir, "for configuration settings."
+    logger.info("Using %s in %s for configuration settings.", cfg_file, up_dir)
     cfg = json.load(os.path.join(up_dir, cfg_file))
 
     return cfg
@@ -83,8 +90,11 @@ def filter_fields(fields, export_fields):
 
 
 def export_elan(cfg, export_fields):
-    csvfile = utfcsv.UnicodeWriter(os.path.join(cfg["FILE_DIR"], "status.csv"), "excel", mode="wb")
-    csvfile.write(["Filename"] + export_fields)
+    csvfile = csv.DictWriter(
+        open(os.path.join(cfg["FILE_DIR"], "status.csv"), mode="w", encoding='utf-8', newline=''),
+        fieldnames=["Filename", "Speaker"] + export_fields, 
+    )
+    csvfile.writeheader()
 
     if cfg['LANGUAGE'].lower() == "raramuri":
         from kwaras.langs import Raramuri as language
@@ -105,48 +115,46 @@ def export_elan(cfg, export_fields):
         os.remove(cfg["CSV"])
 
     for filename in os.listdir(cfg["OLD_EAFS"]):
-        print filename
         if not os.path.splitext(filename)[1].lower() == ".eaf":
-            print "Not an eaf:", filename, os.path.splitext(filename)[1]
+            logger.info("Skipping %s as not an eaf", filename)
         elif os.path.basename(filename).startswith('.'):
-            print "Hidden file:", filename
+            logger.info("Skipping hidden file: %s", filename)
         else:
             fpath = os.path.join(cfg["OLD_EAFS"], filename)
             if template is None:
                 template = fpath
-                print "Using {0} as template for ELAN types".format(fpath)
-            # template = os.path.join(cfg["FILE_DIR"], cfg["TEMPLATE"])
+                logger.info("Using %s as template for ELAN types", fpath)
             eafile = language.clean_eaf(fpath, template)
             eafile.write(os.path.join(cfg["NEW_EAFS"], filename))
-            eafile.export_to_csv(cfg["CSV"], "excel", export_fields, "ab")
+            eafile.export_to_csv(cfg["CSV"], "excel", export_fields, "a")
             status = sorted(eafile.status(export_fields).items())
-            print status
-            csvfile.write([filename] + [str(v * 100) + "%" for (k, v) in status])
+            logger.info("Status: %s", status)
+            speakers = {k.partition('@')[2] for k, v in status}
+            row = {s: {"Filename": filename, "Speaker": s} for s in speakers}
+            for k, v in status:
+                field, _, spkr = k.partition('@')
+                row[spkr][field] = f"{v*100}%"
+            for r in row.values():
+                csvfile.writerow(r)
 
 
 def main(cfg):
     """Perform the metadata extraction and file renaming."""
 
     export_fields = [f.strip() for f in cfg["EXP_FIELDS"].split(',')]
-    print "Exporting fields: {0}".format(export_fields)
+    logger.info("Exporting fields: %s".format(export_fields))
     export_elan(cfg, export_fields)
-    print "ELAN data exported."
+    logger.info("ELAN data exported.")
 
-    # Parse the ELAN export, get the IPA, English and Spanish timestamps
-    # fields = ["IPA","English","Spanish"] # for Purepecha?
-    # fields = [] # will collect all fields, assuming the first one is primary phonetic
-    # tiers, fields = parse_export_file(export_file, fields)
+    # Parse the ELAN export
     tiers, fields = parse_export_file(cfg['CSV'])
-    print "Export file parsed."
+    logger.info("Export file parsed.")
 
     # filter and sort field names
     fnames, fields = filter_fields(fields, export_fields)
-    print "fnames:", fnames
-    print "fields:", fields
 
     # Find time ranges for which there is indexable annotation
     clippables = find_clippable_segments(tiers, fields)
-    print "Clippables found."
 
     # Look in each EAF to see which wav file it references
     eaf_wav_files = {}
@@ -159,24 +167,22 @@ def main(cfg):
     spkr_dict = get_speakers(cfg['META'])
 
     # Output for clip metadata
-    clip_fh = utfcsv.UnicodeWriter(open(os.path.join(cfg['WWW'], 'clip_metadata.csv'), 'w'))
-    table_fh = open(os.path.join(cfg['WWW'], 'clip_metadata.html'), 'w')
+    clip_fh = csv.DictWriter(
+        open(os.path.join(cfg['WWW'], 'clip_metadata.csv'), 'w', encoding='utf-8', newline=''), 
+        fieldnames = fnames + CITATION_COLUMNS + HIDDEN_COLUMNS
+    )
+    table_fh = open(os.path.join(cfg['WWW'], 'clip_metadata.html'), 'w', encoding='utf-8')
 
-    # Write header/footer
-    clip_fh.write(fnames + ['Speaker', 'Citation', 'Length', 'Start', 'Stop', 'WAV', 'EAF', 'File', 'Token'])
+    # Write header and footer
+    clip_fh.writeheader()
 
     table_fh.write('''<table id="clip_metadata">
                         <thead>
                           <tr>
                             ''' +
                    '\n'.join(['<th class="Annotation">{0}&nbsp;</th>'.format(f) for f in fnames]) +
-                   '''
-                            <th class="Citation">Speaker&nbsp;</th>
-                            <th class="Citation">Citation&nbsp;</th>
-                            <th>Length&nbsp;</th>'
-                            ''' +
-                   '\n'.join(['<th class="Hide">{0}&nbsp;</th>'.format(f)
-                              for f in ['Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']]) +
+                   '\n'.join(['<th class="Citation">{0}&nbsp;</th>'.format(f) for f in CITATION_COLUMNS]) +
+                   '\n'.join(['<th class="Hide">{0}&nbsp;</th>'.format(f) for f in HIDDEN_COLUMNS]) +
                    '''
                           </tr>
                         </thead>''')
@@ -185,8 +191,7 @@ def main(cfg):
                         <tr>
                           ''' +
                    '\n'.join(['<th><div><input type="text" value="Search {0}" class="search_init"></div></th>'.format(f)
-                              for f in fnames + ['Speaker', 'Citation', 'Length', 'Start', 'Stop',
-                                                 'WAV', 'EAF', 'File', 'Token']]) +
+                              for f in fnames + CITATION_COLUMNS + HIDDEN_COLUMNS]) +
                    '''
                         </tr>
                       </tfoot>
@@ -210,34 +215,33 @@ def main(cfg):
     if not os.path.exists(cfg['CLIPS']):
         os.mkdir(cfg['CLIPS'])
 
-    print "Started clipping."
+    logger.info("Started clipping.")
 
     mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, clip_fh, table_fh, tokens, cfg)
 
     table_fh.write('</tbody>\n</table>\n')
-    clip_fh.close()
     table_fh.close()
 
     wrap_html(cfg, 'web/index_wrapper.html')
 
-    print "Finished."
+    logger.info("Finished.")
 
 
 def wrap_html(cfg, wrapper):
-    wrap_fh = open(wrapper, 'rb')
+    wrap_fh = open(wrapper, 'r', encoding='utf-8')
 
-    table_fh = open(os.path.join(cfg['WWW'], 'clip_metadata.html'), 'rb')
+    table_fh = open(os.path.join(cfg['WWW'], 'clip_metadata.html'), 'r', encoding='utf-8')
 
-    index_fh = open(os.path.join(cfg['WWW'], 'index.html'), 'wb')
+    index_fh = open(os.path.join(cfg['WWW'], 'index.html'), 'w', encoding='utf-8')
 
     for line in wrap_fh:
         if line.strip().startswith('<title>'):
-            index_fh.write('<title>' + cfg['PG_TITLE'].encode('utf-8') + '</title>')
+            index_fh.write('<title>' + cfg['PG_TITLE'] + '</title>')
         else:
             index_fh.write(line)
 
         if line.strip().startswith('<body>'):
-            index_fh.write(cfg['NAV_BAR'].encode('utf-8'))
+            index_fh.write(cfg['NAV_BAR'])
 
         if line.strip().startswith('<div class="container"'):
             index_fh.writelines(list(table_fh))
@@ -251,8 +255,6 @@ def mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, c
 
     for eaf_file, start, stop in clippables:
 
-        print
-
         wav_file = eaf_wav_files[eaf_file]
 
         if (wav_file, start, stop) in already_clipped:
@@ -264,13 +266,11 @@ def mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, c
             fname = f.partition("@")[0]
             v = tiers[f].get((eaf_file, start, stop), '')
             vdict[fname] = vdict.get(fname, '') + v
-            if v is not '':
+            if v:
                 spkr_code = f.partition("@")[2]
-                if spkr_code is not '':
+                if spkr_code:
                     speaker = spkr_code
         values = [vdict[f] for f in fnames]
-        # values = [tiers[f].get((eaf_file, start, stop),'') for f in fields] #TODO dereference the fname vs field
-        print values, speaker
 
         clip_base = os.path.splitext(wav_file)[0] + "[" + human_time(start, True) + "-" + human_time(stop, True) + "]"
         clip_base = clip_base.replace('.', '')
@@ -296,16 +296,14 @@ def mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, c
         length_human = human_time(length)
 
         # Write out the clip wav
-        print eaf_file, clip_file
         try:
             res = clip_wav(os.path.join(cfg['WAV'], wav_file),
                            os.path.join(cfg['CLIPS'], clip_file),
                            start, stop)
         except IOError:
-            print "WARNING: no WAV file named {0} found".format(wav_file)
+            logger.warning("No WAV file named '%s' found", wav_file)
             continue
 
-        print 'clipping successful:', res
         if not res:
             continue
 
@@ -313,40 +311,42 @@ def mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, c
 
         # pull up name of speaker (contributor)
         if speaker != '':
-            print "speaker value from tier name:", speaker
+            logger.info("Using speaker value from tier name: %s", speaker)
         else:
             wav_file_base = os.path.splitext(wav_file)[0]
             if wav_file_base in spkr_dict:
                 speaker = spkr_dict[wav_file_base]
-                print "speaker value from metadata:", speaker
+                logger.info("Using speaker value from metadata: %s", speaker)
             else:
-                print "WARNING: No metadata for {0} found in metadata file".format(wav_file_base)
+                logger.warning("No metadata for %s found in metadata file", wav_file_base)
                 if comment_field in fnames:  # speaker annotation in comment field
                     comment = values[fnames.index(comment_field)]
                     if comment.strip() and re.match("[A-Z, ]+", comment.split()[0]):
                         # formerly  == comment.split()[0].upper():
                         speaker = comment.split()[0]
-                        print "speaker value from comment field:", speaker
+                        logger.info("Using speaker value from comment field: %s", speaker)
 
-        clip_fh.write(values + [speaker, cite_code, length_human,
-                                start_human, stop_human,
-                                wav_file, eaf_file,
-                                clip_file,
-                                tokens[(eaf_file, start, stop)]])
+        row = {
+            **dict(zip(fnames, values)),
+            **dict(zip(
+                CITATION_COLUMNS + HIDDEN_COLUMNS,
+                [speaker, cite_code, length_human, start_human, stop_human, wav_file, eaf_file, clip_file, tokens[(eaf_file, start, stop)]]
+            ))
+        }
+        clip_fh.writerow(row)
 
-        row = u'\n'.join([u'<tr clip="{0}">'.format(clip_file)] +
-                         [u'<td>{0}</td>'.format(v) for v in values] +
-                         [u'<td>{0}</td>'.format(v) for v in (speaker, cite_code, length_human,
+        row = '\n'.join(['<tr clip="{0}">'.format(clip_file)] +
+                         ['<td>{0}</td>'.format(v) for v in values] +
+                         ['<td>{0}</td>'.format(v) for v in (speaker, cite_code, length_human,
                                                               start_human, stop_human,
                                                               wav_file, eaf_file)] +
-                         [u'<td> <a href="clips/{0}" target="_blank">{1}</a></td>'.format(clip_file, clip_file)] +
-                         [u'<td>{0}</td>'.format(tokens[(eaf_file, start, stop)])]
+                         ['<td> <a href="clips/{0}" target="_blank">{1}</a></td>'.format(clip_file, clip_file)] +
+                         ['<td>{0}</td>'.format(tokens[(eaf_file, start, stop)])]
                          )
         try:
-            table_fh.write(row.encode('utf-8'))
+            table_fh.write(row)
         except UnicodeDecodeError as err:
-            print "WARNING: Skipping annotation because it can't be decoded:", err.message
-            print repr(row)
+            logger.warning("Skipping annotation because it can't be decoded (%s): %s", err.message, repr(row))
 
 
 def find_wav_file(eaf_file):
@@ -356,11 +356,9 @@ def find_wav_file(eaf_file):
     tree.parse(eaf_file)
     media = tree.find("HEADER/MEDIA_DESCRIPTOR")
     if media is None:
-        print "WARNING: No MEDIA_DESCRIPTOR tag found."
-        print etree.tostring(tree.getroot())[:400]
+        logger.warning("No MEDIA_DESCRIPTOR tag found: %s", etree.tostring(tree.getroot())[:200])
         basename = os.path.splitext(os.path.basename(eaf_file))[0]
-        print basename, eaf_file
-        print "Trying " + basename + ".WAV"
+        logger.info("Assuming %s.WAV", basename)
         return basename + ".WAV"
     else:
         return os.path.basename(media.get("MEDIA_URL"))
@@ -370,13 +368,9 @@ def find_clippable_segments(tiers, fields):
     """Find segments that have non-empty annotations"""
 
     fieldtypes = [f.partition("@")[0] for f in fields]
-    fnames = sorted(list(set(fieldtypes)), key=lambda x: fieldtypes.index(x))[
-             :3]  # assuming one of first 3 field types is baseline
-    print "fnames", fnames
+    fnames = sorted(list(set(fieldtypes)), key=lambda x: fieldtypes.index(x))[:3]  # assume baseline is in first 3 fields
     basefields = [f for f in fields if f.partition("@")[0] in fnames]
-    print "basefields", basefields
-    allkeys = [k for f in basefields for k in tiers[f].keys()]
-    # tiers[fields[0]].keys() + tiers[fields[1]].keys() + tiers[fields[2]].keys() + tiers[fields[3]].keys()
+    allkeys = [k for f in basefields for k in list(tiers[f].keys())]
     allkeys = list(set(allkeys))  # uniq
     good_keys = []
 
@@ -385,7 +379,6 @@ def find_clippable_segments(tiers, fields):
         if any(notes):
             good_keys.append(key)
 
-    print len(allkeys), len(good_keys)
     return good_keys
 
 
@@ -421,26 +414,26 @@ def get_speakers(meta_file):
 
     fh = None
     if not os.path.exists(meta_file):
-        print "WARNING: no META data file '{0}' found".format(meta_file)
+        print("WARNING: no META data file '{0}' found".format(meta_file))
         return {}
     if os.path.splitext(meta_file)[1].lower() == '.csv':
         for encoding in ('utf-8', 'windows-1252', 'windows-1251'):
             try:
-                fh = utfcsv.UnicodeReader(open(meta_file, 'r'), fieldnames=True, encoding=encoding)
+                fh = csv.DictReader(open(meta_file, 'r', encoding=encoding, newline=''))
             except UnicodeDecodeError:
-                print "Failed to decode metadata file as {} encoding.".format(encoding)
+                print("Failed to decode metadata file as {} encoding.".format(encoding))
             else:
-                print "Opening metadata file as {} encoding.".format(encoding)
+                print("Opening metadata file as {} encoding.".format(encoding))
                 break
     elif os.path.splitext(meta_file)[1].lower() == '.xlsx':
         fh = xlsx.ExcelReader(meta_file)
     else:
-        print "Error: file type '{}' not recognized".format(os.path.splitext(meta_file)[1])
+        print("Error: file type '{}' not recognized".format(os.path.splitext(meta_file)[1]))
     if fh is None:
-        print "WARNING: Failed to read metadata file. Try saving as XLSX or UTF-8 CSV."
+        print("WARNING: Failed to read metadata file. Try saving as XLSX or UTF-8 CSV.")
         return {}
 
-    print 'Session Metadata Column Names:', fh.fieldnames
+    print('Session Metadata Column Names:', fh.fieldnames)
     name_field = [f for f in filename_fields if f in fh.fieldnames][0]
     spk_field = [f for f in speaker_fields if f in fh.fieldnames][0]
     fmt_field = [f for f in format_fields if f in fh.fieldnames]
@@ -479,7 +472,7 @@ def parse_export_file(filename, fields=()):
 
     tiers = {}
 
-    fh = utfcsv.UnicodeReader(open(filename, 'r'))
+    fh = csv.reader(open(filename, 'r', encoding='utf-8', newline=''))
 
     if fields:  # only pay attention to specified fields
         for f in fields:
@@ -490,11 +483,14 @@ def parse_export_file(filename, fields=()):
             if atype in tiers:
                 tiers[atype][key] = value
             else:
-                print 'Invalid atype:', atype
+                print('Invalid atype:', atype)
 
     else:  # collect info on all the fields found
         fields = []
         for line in fh:
+            if not line:
+                print(f'Warning: empty line in {filename}')
+                continue
             if len(line) == 5:
                 atype, start, stop, value, eaf = line
             else:
@@ -532,12 +528,11 @@ def clip_wav(wav_file, clip_file, start, stop):
     start_frame = int((start / 1000.0) * framerate)
     wout = wave.open(clip_file, 'w')
     wout.setparams(win.getparams())
-    print wav_file, clip_file, start, stop
     try:
         win.setpos(start_frame)
     except wave.Error:
-        print "Bad position"
-        print
+        print("Bad position")
+        print()
         return False
     wout.setparams(win.getparams())
     wout.writeframes(win.readframes(frames))

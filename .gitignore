@@ -2,5 +2,10 @@
 *.pyc
 *.pyo
 .idea/*
-build/lib
-dist
+dist/*
+bdist/*
+build/*
+env/*
+web/clips
+.python-version
+*.cfg
