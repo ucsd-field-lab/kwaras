@@ -9,7 +9,7 @@ from distutils.core import setup
 import os
 import sys
 
-if sys.platform == 'darwin':
+if (sys.platform == 'darwin') or (sys.platform.startswith('linux')):
     try:
         import py2app
     except:
