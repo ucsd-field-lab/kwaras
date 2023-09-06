@@ -40,7 +40,7 @@ New copy of wav clip to be copied to fileshare is created under the name:
     sleeping.wav
 
 Authors: Lucien Carroll, Russ Horton
-
+Edited by Mark Simmons 9/6/2023
 """
 
 import os
@@ -52,6 +52,8 @@ import re
 import wave
 from xml.etree import ElementTree as etree
 
+from typing import List, Tuple
+
 from kwaras.formats import xlsx
 
 logger = logging.getLogger(__file__)
@@ -60,7 +62,7 @@ CITATION_COLUMNS = ['Speaker', 'Citation', 'Length']
 HIDDEN_COLUMNS = ['Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']
 
 
-def config(lang=None):
+def config(lang: str = None) -> dict:
     if lang == "Gitonga":
         cfg_file = "gitonga.cfg`"
     elif lang == "Raramuri":
@@ -80,7 +82,10 @@ def config(lang=None):
     return cfg
 
 
-def filter_fields(fields, export_fields):
+def filter_fields(fields: List[str], export_fields: List[str]) -> Tuple[List[str], List[str]]:
+    """
+    
+    """
     fnames = set([f.partition("@")[0] for f in fields])
     if export_fields is not []:
         fields = [f for f in fields if f.partition("@")[0] in export_fields]
@@ -89,7 +94,7 @@ def filter_fields(fields, export_fields):
     return fnames, fields
 
 
-def export_elan(cfg, export_fields):
+def export_elan(cfg: dict, export_fields: List[str]) -> None:
     csvfile = csv.DictWriter(
         open(os.path.join(cfg["FILE_DIR"], "status.csv"), mode="w", encoding='utf-8', newline=''),
         fieldnames=["Filename", "Speaker"] + export_fields, 
