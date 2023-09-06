@@ -1,18 +1,23 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["kwaras"]
+
+
 [project]
-name = "kwaras_markjos"
-version = "0.0.1"
+name = "kwaras"
 authors = [
-  { name="Lucien Carol", email="author@example.com" },
+    {name = "Lucien Carroll", email = ""},
 ]
-description = "A small example package"
+description = ""
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
 ]
+version = "0.2.0"
 
-[project.urls]
-"Homepage" = "https://github.com/pypa/sampleproject"
-"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+[project.scripts]
+zugubul = "kwaras.app"
