@@ -4,9 +4,11 @@ import argparse
 import os.path
 import traceback
 import json
-import tkinter as tk
-import tkinter.messagebox
-from tkinter.constants import *
+from gooey import Gooey
+from typing import Optional, Sequence
+# import tkinter as tk
+# import tkinter.messagebox
+# from tkinter.constants import *
 
 # try:
 #     import kwaras
@@ -75,13 +77,15 @@ def export_corpus(cfg_path):
                                message=traceback.format_exc())
         raise err
 
+@Gooey
+def main(argv: Optional[Sequence[str]] = None):
+    argv = parse_args()
 
-def main(args):
-    if args.convert_lexicon:
+    if argv.convert_lexicon:
         convert_lexicon()
 
-    if args.export_corpus:
-        export_corpus(args.config)
+    if argv.export_corpus:
+        export_corpus(argv.config)
 
 
 def parse_args():
@@ -134,9 +138,9 @@ class ChoiceWindow:
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    if args.select_action:
-        ChoiceWindow(args)
-    elif not (args.convert_lexicon or args.export_corpus):
-        args.export_corpus = True
-    main(args)
+    # args = parse_args()
+    # if args.select_action:
+    #     ChoiceWindow(args)
+    # elif not (args.convert_lexicon or args.export_corpus):
+    #     args.export_corpus = True
+    main()
