@@ -5,6 +5,8 @@ Created on Jul 27, 2012
 @author: lucien
 """
 
+from typing import Union, List, Optional
+import os
 import xml.etree.ElementTree as etree
 from copy import deepcopy
 import csv
@@ -285,12 +287,13 @@ class Eaf:
 
     # def importTiers(): maybe better to use ELAN's multiple edit
 
-    def write(self, filename):
+    def write(self, filename: Union[str, os.PathLike]):
+        """Writes eaf to file at filename."""
         outstr = open(filename, 'w', encoding='utf-8')
         outstr.write(etree.tostring(self.eafile, encoding="unicode"))
         outstr.close()
 
-    def status(self, fields=None):
+    def status(self, fields: Optional[List[str]] = None) -> dict:
         """Report percent coverage of dependent tiers"""
         if fields is None:
             fnames = self.get_tier_ids()
@@ -316,7 +319,12 @@ class Eaf:
                     coverage[f] = 0
         return coverage
 
-    def export_to_csv(self, filename, dialect='excel', fields=None, mode="w"):
+    def export_to_csv(self,
+        filename: Union[str, os.PathLike],
+        dialect: str = 'excel',
+        fields: Optional[List[str]] = None,
+        mode: str= "w",
+    ):
         """Duplicate the ELAN export function, with our settings and safe csv format
         @filename: path of new csv file
         @dialect: a csv.Dialect instance or the name of a registered Dialect
