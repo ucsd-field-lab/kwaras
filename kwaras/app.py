@@ -72,9 +72,9 @@ def export_corpus(cfg_path):
     cfg = json.load(open(cfg_path))
     web.main(cfg)
 
-@Gooey
+#@Gooey
 def main(argv: Optional[Sequence[str]] = None):
-    argv = parse_args()
+    argv = parse_args(argv)
 
     if argv.convert_lexicon:
         convert_lexicon()
@@ -83,7 +83,7 @@ def main(argv: Optional[Sequence[str]] = None):
         export_corpus(argv.config)
 
 
-def parse_args():
+def parse_args(argv):
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--convert-lexicon", action="store_true",
@@ -95,7 +95,7 @@ def parse_args():
     parser.add_argument("--config",
                         help="Path of the config file to read")
 
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 # class ChoiceWindow:
