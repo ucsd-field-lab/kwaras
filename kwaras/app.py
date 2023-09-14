@@ -2,7 +2,7 @@
 
 import argparse
 import os.path
-import traceback
+# import traceback
 import json
 from gooey import Gooey
 from typing import Optional, Sequence
@@ -25,6 +25,7 @@ def convert_lexicon():
     from kwaras.formats.lift import Lift
     from kwaras.process import liftadd
 
+    # TODO: change ConfigWindow to subparser
     config.ConfigWindow("lexicon.cfg", parts=["EAFL"])
 
     cfg = json.load(open("lexicon.cfg"))
@@ -32,28 +33,28 @@ def convert_lexicon():
     inf_name = cfg["LIFT"]
 
     base, ext = os.path.splitext(inf_name)
-    if ext == ".lift":
-        print("Exposing GUID as field in", inf_name)
-        # update GUID field in lexicon
-        lift = Lift(inf_name)
-        lift = liftadd.exposeGuid(lift)
-        lift.write(os.path.join(dir_name, base + "-guid.lift"))
 
-        # add allomorphs to LIFT file
-        print("Adding allomorphs to", inf_name)
-        lift = liftadd.addRarAllomorphs(lift)
-        # dump the LIFT data to a new file
-        outf_name = os.path.join(dir_name, base + "-added.lift")
-        lift.write(outf_name)
-        print("Data written to", outf_name)
+    if ext != '.lift':
+        raise RuntimeError('LIFT file in lexicon.cfg does not have .lift extension.')
 
-        print("Converting LIFT format to EAFL format")
-        eafl_name = os.path.join(dir_name, base + "-import.eafl")
-        lift.toEAFL(eafl_name)
-        print("Data written to", eafl_name)
-    else:
-        tkinter.messagebox.showerror(title="Wrong format.",
-                               message="The selected file is not a LIFT lexicon file.")
+    print("Exposing GUID as field in", inf_name)
+    # update GUID field in lexicon
+    lift = Lift(inf_name)
+    lift = liftadd.exposeGuid(lift)
+    lift.write(os.path.join(dir_name, base + "-guid.lift"))
+
+    # add allomorphs to LIFT file
+    print("Adding allomorphs to", inf_name)
+    lift = liftadd.addRarAllomorphs(lift)
+    # dump the LIFT data to a new file
+    outf_name = os.path.join(dir_name, base + "-added.lift")
+    lift.write(outf_name)
+    print("Data written to", outf_name)
+
+    print("Converting LIFT format to EAFL format")
+    eafl_name = os.path.join(dir_name, base + "-import.eafl")
+    lift.toEAFL(eafl_name)
+    print("Data written to", eafl_name)
 
 
 def export_corpus(cfg_path):
@@ -69,13 +70,7 @@ def export_corpus(cfg_path):
     window = config.ConfigWindow(cfg_path, parts=["MAIN", "CSV", "HTML"])
 
     cfg = json.load(open(cfg_path))
-    try:
-        web.main(cfg)
-    except Exception as err:
-        print(traceback.format_exc())
-        tkinter.messagebox.showerror(title="Unexpected Error",
-                               message=traceback.format_exc())
-        raise err
+    web.main(cfg)
 
 @Gooey
 def main(argv: Optional[Sequence[str]] = None):
@@ -103,38 +98,38 @@ def parse_args():
     return parser.parse_args()
 
 
-class ChoiceWindow:
-    def __init__(self, args):
-        self.args = args
-        self.tkroot = tk.Tk()
-        self.tkroot.title("Choose Process")
+# class ChoiceWindow:
+#     def __init__(self, args):
+#         self.args = args
+#         self.tkroot = tk.Tk()
+#         self.tkroot.title("Choose Process")
 
-        # Make container frame
-        self.frame = tk.Frame(self.tkroot, relief=RIDGE, borderwidth=2)
-        self.frame.grid(column=0, row=0, sticky=(N, W, E, S))
-        self.frame.columnconfigure(0, weight=1)
-        self.frame.rowconfigure(0, weight=1)
-        self.frame.pack(fill=BOTH, expand=1)
+#         # Make container frame
+#         self.frame = tk.Frame(self.tkroot, relief=RIDGE, borderwidth=2)
+#         self.frame.grid(column=0, row=0, sticky=(N, W, E, S))
+#         self.frame.columnconfigure(0, weight=1)
+#         self.frame.rowconfigure(0, weight=1)
+#         self.frame.pack(fill=BOTH, expand=1)
 
-        label = tk.Label(self.frame, text="Process")
-        label.grid(row=10, column=1, sticky=E)
-        self.var = tk.StringVar()
-        entry = tk.OptionMenu(self.frame, self.var, "Export Corpus", "Convert Lexicon")
-        entry.grid(row=10, column=2, sticky=W)
+#         label = tk.Label(self.frame, text="Process")
+#         label.grid(row=10, column=1, sticky=E)
+#         self.var = tk.StringVar()
+#         entry = tk.OptionMenu(self.frame, self.var, "Export Corpus", "Convert Lexicon")
+#         entry.grid(row=10, column=2, sticky=W)
 
-        button = tk.Button(self.frame, text="Okay", command=self._destroy_root)
-        button.grid(row=100, column=3, sticky=E)
-        tk.mainloop()
+#         button = tk.Button(self.frame, text="Okay", command=self._destroy_root)
+#         button.grid(row=100, column=3, sticky=E)
+#         tk.mainloop()
 
-    def _destroy_root(self):
-        self.tkroot.destroy()
-        var_str = self.var.get()
-        if var_str == "Export Corpus":
-            self.args.export_corpus = True
-        elif var_str == "Convert Lexicon":
-            self.args.convert_lexicon = True
-        else:
-            tkinter.messagebox.showerror("Unrecognized process name")
+#     def _destroy_root(self):
+#         self.tkroot.destroy()
+#         var_str = self.var.get()
+#         if var_str == "Export Corpus":
+#             self.args.export_corpus = True
+#         elif var_str == "Convert Lexicon":
+#             self.args.convert_lexicon = True
+#         else:
+#             tkinter.messagebox.showerror("Unrecognized process name")
 
 
 if __name__ == "__main__":
