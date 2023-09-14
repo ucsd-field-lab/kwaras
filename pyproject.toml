@@ -20,4 +20,4 @@ classifiers = [
 version = "0.2.0"
 
 [project.scripts]
-zugubul = "kwaras.app"
+kwaras = "kwaras.app"
