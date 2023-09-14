@@ -10,3 +10,4 @@ web/clips
 .python-version
 *.cfg
 .venv/
+*.egg-info/
