@@ -52,7 +52,7 @@ import re
 import wave
 from xml.etree import ElementTree as etree
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from kwaras.formats import xlsx
 
@@ -62,7 +62,12 @@ CITATION_COLUMNS = ['Speaker', 'Citation', 'Length']
 HIDDEN_COLUMNS = ['Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']
 
 
-def config(lang: str = None) -> dict:
+def config(lang: Optional[str] = None) -> dict:
+    """
+    Looks for config file corresponding to lang in parent directory
+    and returns as json object if found,
+    if not found defaults to config.cfg.
+    """
     # TODO: add script for making config files
     cfg_file = f"{lang.lower()}.cfg"
 
@@ -79,9 +84,6 @@ def config(lang: str = None) -> dict:
 
 
 def filter_fields(fields: List[str], export_fields: List[str]) -> Tuple[List[str], List[str]]:
-    """
-    
-    """
     fnames = set([f.partition("@")[0] for f in fields])
     if export_fields is not []:
         fields = [f for f in fields if f.partition("@")[0] in export_fields]
@@ -97,6 +99,7 @@ def export_elan(cfg: dict, export_fields: List[str]) -> None:
     )
     csvfile.writeheader()
 
+    # TODO: create and import lang classes automatically
     if cfg['LANGUAGE'].lower() == "raramuri":
         from kwaras.langs import Raramuri as language
     elif cfg['LANGUAGE'].lower() == "mixtec":
