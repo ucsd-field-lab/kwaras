@@ -9,7 +9,7 @@ packages = ["kwaras"]
 [project]
 name = "kwaras"
 authors = [
-    {name = "Lucien Carroll", email = ""},
+    {name = "Lucien Carroll", email = "lucien@discurs.us"},
 ]
 description = ""
 readme = "README.md"
@@ -20,4 +20,4 @@ classifiers = [
 version = "0.2.0"
 
 [project.scripts]
-kwaras = "kwaras.app"
+kwaras = "kwaras.app:main"
