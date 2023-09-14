@@ -63,21 +63,17 @@ HIDDEN_COLUMNS = ['Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']
 
 
 def config(lang: str = None) -> dict:
-    if lang == "Gitonga":
-        cfg_file = "gitonga.cfg`"
-    elif lang == "Raramuri":
-        cfg_file = "raramuri.cfg"
-    elif lang == "Mixtec":
-        cfg_file = "mixtec.cfg"
-    elif lang == "Kumiai":
-        cfg_file = "kumiai.cfg"
-    else:  # Other
-        cfg_file = "config.cfg"
+    # TODO: add script for making config files
+    cfg_file = f"{lang.lower()}.cfg"
 
     up_dir = os.path.dirname(os.getcwd())
 
-    logger.info("Using %s in %s for configuration settings.", cfg_file, up_dir)
-    cfg = json.load(os.path.join(up_dir, cfg_file))
+    try:
+        cfg = json.load(os.path.join(up_dir, cfg_file))
+        logger.info("Using %s in %s for configuration settings.", cfg_file, up_dir)
+    except FileNotFoundError:
+        logger.info("Using config.cfg in %s for configuration settings.", up_dir)
+        cfg = json.load(os.path.join(up_dir, 'config.cfg'))
 
     return cfg
 
