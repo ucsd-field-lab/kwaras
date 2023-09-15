@@ -4,13 +4,111 @@ import os.path
 import shlex
 import subprocess
 import sys
-import tkinter as tk
-import tkinter.filedialog
-from tkinter.constants import *
+from argparse import _SubParsersAction, ArgumentParser
+from typing import Sequence
 
 CFG_FILE = "config.cfg"
-_WIDTH = 60
 
+def config_parser(
+        subparsers: _SubParsersAction[ArgumentParser],
+        parts: Sequence[str] = ("EAFL", "CSV", "HTML"),
+        cfg_file: str = CFG_FILE,
+        defaults: dict = dict(),
+    ) -> None:
+    config_parser = subparsers.add_parser('config')
+    updir = os.path.dirname(os.getcwd())
+    old_eafs = os.path.join(updir, "corpus-data-versions")
+
+    try:
+        with open(cfg_file) as f:
+            cfg = json.load(f)
+    except FileNotFoundError:
+        cfg = {}
+
+    if "MAIN" in parts:
+        config_parser.add_argument(
+            "LANGUAGE",
+            metavar="Language configuration:",
+            default=defaults.get("LANGUAGE", cfg_file.split('.')[0])
+        )
+
+    if "EAFL" in parts:
+        config_parser.add_argument(
+            "LIFT",
+            metavar="Input LIFT file:",
+            # TODO: add file picker for gooey
+            default=cfg.get("LIFT", os.path.join(updir, "FLEx.lift")),
+        )
+        config_parser.add_argument(
+            "EAFL_DIR",
+            metavar="Output EAFL Directory:",
+            # TODO: add folder picker for gooey
+            default=cfg.get("EAFL_DIR", updir),
+        )
+
+    if ("CSV" in parts) or ("HTML" in parts):
+        init_dir = cfg.get("FILE_DIR", updir)
+        config_parser.add_argument(
+            "FILE_DIR",
+            metavar="Working File Directory:",
+            # TODO: add folder picker for gooey
+            default=init_dir,
+        )
+        out_dir = os.path.join(old_eafs, "auto")
+        if not os.path.exists(out_dir):
+            out_dir = init_dir
+        # init_csv = self.cfg.get("CSV", os.path.join(out_dir, "data.csv"))
+        # self.mk_choice_row("CSV", init_csv, "Output CSV File:", issave=True)
+
+        exp_fields = cfg.get("EXP_FIELDS",  # List of fields to include
+                                    ", ".join(["Phonetic", "Spanish", "English", "Note"]))
+        config_parser.add_argument("EXP_FIELDS", exp_fields, "List of Fields to Export:")
+
+        init_eafs = cfg.get("OLD_EAFS", old_eafs)
+        config_parser.add_argument(
+            "OLD_EAFS",
+            metavar="Directory of Input EAFs:",
+            # TODO: add folder picker for gooey
+            default=init_eafs,
+        )
+        # self.mk_choice_row("NEW_EAFS", os.path.join(init_eafs, "auto"), "Directory for Output EAFs:", isdir=True)
+
+    if "HTML" in parts:
+        init_meta = cfg.get("META", os.path.join(updir, "metadata.csv"))
+        config_parser.add_argument(
+            "META",
+            metavar="WAV Session Metadata (optional):",
+            # TODO: add file picker for gooey
+            default=init_meta,
+        )
+        init_wav = cfg.get("WAV", os.path.join(updir, "wav"))
+        config_parser.add_argument(
+            "WAV",
+            metavar="WAV Input Directory:",
+            # TODO: add folder picker for gooey
+            default=init_wav,
+        )
+        init_www = cfg.get("WWW", os.path.join(updir, "www"))
+        config_parser.add_argument(
+            "WWW",
+            metavar="Web Files Output Directory:",
+            # TODO: add folder picker for gooey
+            default=init_www,
+        )
+        # init_clips = self.cfg.get("CLIPS", os.path.join(updir, "audio", "www", "clips"))
+        # self.mk_choice_row("CLIPS", init_clips, "WAV Clips Output Directory:", isdir=True)
+
+        #self.mk_text_row("PG_TITLE", "Kwaras Corpus", "HTML Page Title:")
+        nav_bar = """<div align="right">
+            <a href="index.html">Corpus</a>
+            - <a href="dict.xhtml">Dictionary</a>
+            </div>"""
+        nav_bar = cfg.get("NAV_BAR", nav_bar)
+        config_parser.add_argument(
+            "NAV_BAR",
+            metavar="HTML div for Navigation",
+            default=nav_bar,
+        )
 
 class ConfigWindow:
     def __init__(self, cfg_file=CFG_FILE, parts=("EAFL", "CSV", "HTML"), defaults=None):
