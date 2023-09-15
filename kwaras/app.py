@@ -76,22 +76,23 @@ def export_corpus(cfg_path):
 def main(argv: Optional[Sequence[str]] = None):
     argv = parse_args(argv)
 
-    if argv.convert_lexicon:
+    if argv.command == 'convert-lexicon':
         convert_lexicon()
 
-    if argv.export_corpus:
+    if argv.command == 'export-corpus':
         export_corpus(argv.config)
 
 
 def parse_args(argv):
     parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest='command')
 
-    parser.add_argument("--convert-lexicon", action="store_true",
+    lexicon_parser = subparsers.add_parser("convert-lexicon",
                         help="Convert FLEx LIFT lexicon to ELAN-Corpa EAFL lexicon")
-    parser.add_argument("--export-corpus", action="store_true",
+    corpus_parser = subparsers.add_parser("export-corpus",
                         help="Export an ELAN corpus as web interface files")
-    parser.add_argument("--select-action", action="store_true",
-                        help="Use GUI widget to choose action")
+    # parser.add_argument("--select-action", action="store_true",
+    #                     help="Use GUI widget to choose action")
     parser.add_argument("--config",
                         help="Path of the config file to read")
 
