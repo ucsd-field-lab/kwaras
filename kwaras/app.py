@@ -1,10 +1,11 @@
 #! env python3
 
 import argparse
-import os.path
+import os
 # import traceback
 import json
 from gooey_tools import HybridGooey, HybridGooeyParser
+from pathlib import Path
 from typing import Optional, Sequence, Union
 from kwaras.conf.config import init_config_parser
 # import tkinter as tk
@@ -22,12 +23,8 @@ from kwaras.conf.config import init_config_parser
 
 
 def convert_lexicon():
-    from kwaras.conf import config
     from kwaras.formats.lift import Lift
     from kwaras.process import liftadd
-
-    # TODO: change ConfigWindow to subparser
-    config.ConfigWindow("lexicon.cfg", parts=["EAFL"])
 
     cfg = json.load(open("lexicon.cfg"))
     dir_name = cfg["EAFL_DIR"]
@@ -85,7 +82,13 @@ def make_config(cfg_obj: dict, fp: Union[os.PathLike, str]) -> str:
 
 @HybridGooey
 def main(argv: Optional[Sequence[str]] = None):
-    argv = parse_args(argv)
+    cwd_files = os.listdir('.')
+    cfg = None
+    for fp in cwd_files:
+        if Path(fp).suffix == '.cfg':
+            cfg = fp
+            break
+    argv = parse_args(argv, cfg)
 
     if argv.command == 'convert-lexicon':
         convert_lexicon()
@@ -99,7 +102,10 @@ def main(argv: Optional[Sequence[str]] = None):
         make_config(args, cfg_file)
 
 
-def parse_args(argv):
+def parse_args(
+        argv: Optional[Sequence[str]] = None,
+        cfg: Union[str, os.PathLike, None] = None,
+    ) -> argparse.Namespace:
     parser = HybridGooeyParser()
     subparsers = parser.add_subparsers(dest='command')
 
@@ -109,7 +115,7 @@ def parse_args(argv):
                         help="Export an ELAN corpus as web interface files")
     config_parser = subparsers.add_parser("make-config",
                         help="Create language.cfg file for a kwaras project.")
-    init_config_parser(config_parser)
+    init_config_parser(config_parser, cfg_file=cfg)
     # parser.add_argument("--select-action", action="store_true",
     #                     help="Use GUI widget to choose action")
     parser.add_argument("--config",
