@@ -99,7 +99,7 @@ def init_eafl_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _A
         cfg = _open_cfg_safe(cfg)
     eafl = config_parser.add_argument_group(
         'EAFL',
-        'Args for making LIFT file from ELAN files.'
+        'Args for making EAFL file from LIFT file.'
         )
     eafl_cfg = cfg.get('EAFL', dict())
     add_hybrid_arg(
