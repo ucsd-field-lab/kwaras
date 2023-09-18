@@ -21,10 +21,19 @@ def init_config_parser(
     except FileNotFoundError:
         cfg = {}
 
+    lang = defaults.get("LANGUAGE", cfg_file.split('.')[0])
     config_parser.add_argument(
         "LANGUAGE",
         metavar="Language configuration:",
-        default=defaults.get("LANGUAGE", cfg_file.split('.')[0])
+        default=lang
+    )
+
+    add_hybrid_arg(
+        config_parser,
+        "CFG_PATH",
+        metavar="Path to save config to:",
+        default=cfg_file,
+        type='file'
     )
 
     eafl = config_parser.add_argument_group('eafl')
