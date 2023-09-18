@@ -124,7 +124,7 @@ def init_csv_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _Ar
         cfg = _open_cfg_safe(cfg)
     csv = config_parser.add_argument_group(
         'CSV',
-        help='Args for making datafile metadata.csv from ELAN annotations.'
+        'Args for making datafile metadata.csv from ELAN annotations.'
     )
     old_eafs = os.path.join(UPDIR, "corpus-data-versions")
     out_dir = os.path.join(old_eafs, "auto")
