@@ -1,19 +1,18 @@
 
 import json
 import os.path
-from argparse import ArgumentParser
+from argparse import ArgumentParser, _ArgumentGroup
 from typing import Sequence
 from gooey_tools import add_hybrid_arg
 
 CFG_FILE = "config.cfg"
+UPDIR = os.path.dirname(os.getcwd())
 
 def init_config_parser(
         config_parser: ArgumentParser,
         cfg_file: str = CFG_FILE,
         defaults: dict = dict(),
     ) -> None:
-    updir = os.path.dirname(os.getcwd())
-    old_eafs = os.path.join(updir, "corpus-data-versions")
 
     try:
         with open(cfg_file) as f:
@@ -36,14 +35,66 @@ def init_config_parser(
         type='filepath'
     )
 
+    init_eafl_parser(config_parser, cfg)
+    init_csv_parser(config_parser, cfg)
+    init_html_parser(config_parser, cfg)
+
+def init_html_parser(config_parser, cfg):
+    html = config_parser.add_argument_group('html')
+    html_cfg = cfg.get('html', dict())
+    init_meta = html_cfg.get("META", os.path.join(UPDIR, "metadata.csv"))
+    init_wav = html_cfg.get("WAV", os.path.join(UPDIR, "wav"))
+    init_www = html_cfg.get("WWW", os.path.join(UPDIR, "www"))
+    nav_bar = html_cfg.get("NAV_BAR", nav_bar)
+
+    add_hybrid_arg(
+        config_parser,
+        "--META",
+        group=html,
+        metavar="WAV Session Metadata (optional):",
+        type='filepath',
+        default=init_meta,
+    )
+    add_hybrid_arg(
+        config_parser,
+        "--WAV",
+        group=html,
+        metavar="WAV Input Directory:",
+        type='dirpath',
+        default=init_wav,
+    )
+    add_hybrid_arg(
+        config_parser,
+        "--WWW",
+        group=html,
+        metavar="Web Files Output Directory:",
+        type='dirpath',
+        default=init_www,
+    )
+    # init_clips = self.cfg.get("CLIPS", os.path.join(UPDIR, "audio", "www", "clips"))
+    # self.mk_choice_row("CLIPS", init_clips, "WAV Clips Output Directory:", isdir=True)
+
+    #self.mk_text_row("PG_TITLE", "Kwaras Corpus", "HTML Page Title:")
+    nav_bar = """<div align="right">
+        <a href="index.html">Corpus</a>
+        - <a href="dict.xhtml">Dictionary</a>
+        </div>"""
+    config_parser.add_argument(
+        "--NAV_BAR",
+        metavar="HTML div for Navigation",
+        default=nav_bar,
+    )
+
+def init_eafl_parser(config_parser: ArgumentParser, cfg: dict) -> _ArgumentGroup:
     eafl = config_parser.add_argument_group('eafl')
+    eafl_cfg = cfg.get('EAFL', dict())
     add_hybrid_arg(
         config_parser,
         "--LIFT",
         group=eafl,
         metavar="Input LIFT file:",
         type='filepath',
-        default=cfg.get("LIFT", os.path.join(updir, "FLEx.lift")),
+        default=eafl_cfg.get("LIFT", os.path.join(UPDIR, "FLEx.lift")),
     )
     add_hybrid_arg(
         config_parser,
@@ -51,11 +102,18 @@ def init_config_parser(
         group=eafl,
         metavar="Output EAFL Directory:",
         type='dirpath',
-        default=cfg.get("EAFL_DIR", updir),
+        default=eafl_cfg.get("EAFL_DIR", UPDIR),
     )
 
+def init_csv_parser(config_parser: ArgumentParser, cfg: dict) -> _ArgumentGroup:
     csv = config_parser.add_argument_group('csv')
-    init_dir = cfg.get("--FILE_DIR", updir)
+    old_eafs = os.path.join(UPDIR, "corpus-data-versions")
+    out_dir = os.path.join(old_eafs, "auto")
+    
+    csv_cfg = cfg.get('cfg', dict())
+    init_dir = csv_cfg.get("FILE_DIR", UPDIR)
+    init_eafs = csv_cfg.get("OLD_EAFS", old_eafs)
+
     add_hybrid_arg(
         config_parser,
         "--FILE_DIR",
@@ -64,13 +122,12 @@ def init_config_parser(
         type='dirpath',
         default=init_dir,
     )
-    out_dir = os.path.join(old_eafs, "auto")
     if not os.path.exists(out_dir):
         out_dir = init_dir
-    # init_csv = self.cfg.get("CSV", os.path.join(out_dir, "data.csv"))
+    # init_csv = self.csv_cfg.get("CSV", os.path.join(out_dir, "data.csv"))
     # self.mk_choice_row("CSV", init_csv, "Output CSV File:", issave=True)
 
-    exp_fields = cfg.get("EXP_FIELDS",  # List of fields to include
+    exp_fields = csv_cfg.get("EXP_FIELDS",  # List of fields to include
                                 ", ".join(["Phonetic", "Spanish", "English", "Note"]))
     csv.add_argument(
         "--EXP_FIELDS",
@@ -79,7 +136,6 @@ def init_config_parser(
         nargs='+'
     )
 
-    init_eafs = cfg.get("OLD_EAFS", old_eafs)
     add_hybrid_arg(
         config_parser,
         "--OLD_EAFS",
@@ -89,46 +145,4 @@ def init_config_parser(
         default=init_eafs,
     )
     # self.mk_choice_row("NEW_EAFS", os.path.join(init_eafs, "auto"), "Directory for Output EAFs:", isdir=True)
-
-    html = config_parser.add_argument_group('html')
-    init_meta = cfg.get("META", os.path.join(updir, "metadata.csv"))
-    add_hybrid_arg(
-        config_parser,
-        "--META",
-        group=html,
-        metavar="WAV Session Metadata (optional):",
-        type='filepath',
-        default=init_meta,
-    )
-    init_wav = cfg.get("WAV", os.path.join(updir, "wav"))
-    add_hybrid_arg(
-        config_parser,
-        "--WAV",
-        group=html,
-        metavar="WAV Input Directory:",
-        type='dirpath',
-        default=init_wav,
-    )
-    init_www = cfg.get("WWW", os.path.join(updir, "www"))
-    add_hybrid_arg(
-        config_parser,
-        "--WWW",
-        group=html,
-        metavar="Web Files Output Directory:",
-        type='dirpath',
-        default=init_www,
-    )
-    # init_clips = self.cfg.get("CLIPS", os.path.join(updir, "audio", "www", "clips"))
-    # self.mk_choice_row("CLIPS", init_clips, "WAV Clips Output Directory:", isdir=True)
-
-    #self.mk_text_row("PG_TITLE", "Kwaras Corpus", "HTML Page Title:")
-    nav_bar = """<div align="right">
-        <a href="index.html">Corpus</a>
-        - <a href="dict.xhtml">Dictionary</a>
-        </div>"""
-    nav_bar = cfg.get("NAV_BAR", nav_bar)
-    config_parser.add_argument(
-        "--NAV_BAR",
-        metavar="HTML div for Navigation",
-        default=nav_bar,
-    )
+    return csv
