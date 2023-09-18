@@ -5,7 +5,7 @@ import os.path
 # import traceback
 import json
 from gooey_tools import HybridGooey, HybridGooeyParser
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Union
 from kwaras.conf.config import init_config_parser
 # import tkinter as tk
 # import tkinter.messagebox
@@ -73,6 +73,16 @@ def export_corpus(cfg_path):
     cfg = json.load(open(cfg_path))
     web.main(cfg)
 
+def make_config(cfg_obj: dict, fp: Union[os.PathLike, str]) -> str:
+    """
+    JSONifies config args object
+    """
+    # TODO: validate cfg_obj
+    with open(fp, 'w') as f:
+        json.dump(cfg_obj, f)
+    return fp
+    
+
 @HybridGooey
 def main(argv: Optional[Sequence[str]] = None):
     argv = parse_args(argv)
@@ -82,6 +92,11 @@ def main(argv: Optional[Sequence[str]] = None):
 
     if argv.command == 'export-corpus':
         export_corpus(argv.config)
+
+    if argv.command == 'make-config':
+        args = vars(argv)
+        cfg_file = args.pop('CFG_FILE')
+        make_config(args, cfg_file)
 
 
 def parse_args(argv):
