@@ -6,6 +6,7 @@ import os.path
 import json
 from gooey_tools import HybridGooey, HybridGooeyParser
 from typing import Optional, Sequence
+from kwaras.conf.config import init_config_parser
 # import tkinter as tk
 # import tkinter.messagebox
 # from tkinter.constants import *
@@ -91,6 +92,9 @@ def parse_args(argv):
                         help="Convert FLEx LIFT lexicon to ELAN-Corpa EAFL lexicon")
     corpus_parser = subparsers.add_parser("export-corpus",
                         help="Export an ELAN corpus as web interface files")
+    config_parser = subparsers.add_parser("make-config",
+                        help="Create language.cfg file for a kwaras project.")
+    init_config_parser(config_parser)
     # parser.add_argument("--select-action", action="store_true",
     #                     help="Use GUI widget to choose action")
     parser.add_argument("--config",
