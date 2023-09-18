@@ -124,44 +124,6 @@ def parse_args(
     return parser.parse_args(argv)
 
 
-# class ChoiceWindow:
-#     def __init__(self, args):
-#         self.args = args
-#         self.tkroot = tk.Tk()
-#         self.tkroot.title("Choose Process")
-
-#         # Make container frame
-#         self.frame = tk.Frame(self.tkroot, relief=RIDGE, borderwidth=2)
-#         self.frame.grid(column=0, row=0, sticky=(N, W, E, S))
-#         self.frame.columnconfigure(0, weight=1)
-#         self.frame.rowconfigure(0, weight=1)
-#         self.frame.pack(fill=BOTH, expand=1)
-
-#         label = tk.Label(self.frame, text="Process")
-#         label.grid(row=10, column=1, sticky=E)
-#         self.var = tk.StringVar()
-#         entry = tk.OptionMenu(self.frame, self.var, "Export Corpus", "Convert Lexicon")
-#         entry.grid(row=10, column=2, sticky=W)
-
-#         button = tk.Button(self.frame, text="Okay", command=self._destroy_root)
-#         button.grid(row=100, column=3, sticky=E)
-#         tk.mainloop()
-
-#     def _destroy_root(self):
-#         self.tkroot.destroy()
-#         var_str = self.var.get()
-#         if var_str == "Export Corpus":
-#             self.args.export_corpus = True
-#         elif var_str == "Convert Lexicon":
-#             self.args.convert_lexicon = True
-#         else:
-#             tkinter.messagebox.showerror("Unrecognized process name")
-
 
 if __name__ == "__main__":
-    # args = parse_args()
-    # if args.select_action:
-    #     ChoiceWindow(args)
-    # elif not (args.convert_lexicon or args.export_corpus):
-    #     args.export_corpus = True
     main()
