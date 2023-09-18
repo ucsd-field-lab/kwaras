@@ -4,7 +4,7 @@ import argparse
 import os.path
 # import traceback
 import json
-from gooey import Gooey
+from gooey_tools import HybridGooey, HybridGooeyParser
 from typing import Optional, Sequence
 # import tkinter as tk
 # import tkinter.messagebox
@@ -72,7 +72,7 @@ def export_corpus(cfg_path):
     cfg = json.load(open(cfg_path))
     web.main(cfg)
 
-#@Gooey
+@HybridGooey
 def main(argv: Optional[Sequence[str]] = None):
     argv = parse_args(argv)
 
@@ -84,7 +84,7 @@ def main(argv: Optional[Sequence[str]] = None):
 
 
 def parse_args(argv):
-    parser = argparse.ArgumentParser()
+    parser = HybridGooeyParser()
     subparsers = parser.add_subparsers(dest='command')
 
     lexicon_parser = subparsers.add_parser("convert-lexicon",
