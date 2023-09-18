@@ -7,7 +7,7 @@ import json
 from gooey_tools import HybridGooey, HybridGooeyParser
 from pathlib import Path
 from typing import Optional, Sequence, Union
-from kwaras.conf.config import init_config_parser
+from kwaras.conf.config import init_config_parser, init_eafl_parser, init_csv_parser, init_html_parser
 # import tkinter as tk
 # import tkinter.messagebox
 # from tkinter.constants import *
@@ -111,8 +111,11 @@ def parse_args(
 
     lexicon_parser = subparsers.add_parser("convert-lexicon",
                         help="Convert FLEx LIFT lexicon to ELAN-Corpa EAFL lexicon")
+    init_eafl_parser(lexicon_parser, cfg)
     corpus_parser = subparsers.add_parser("export-corpus",
                         help="Export an ELAN corpus as web interface files")
+    init_csv_parser(corpus_parser, cfg)
+    init_html_parser(corpus_parser, cfg)
     config_parser = subparsers.add_parser("make-config",
                         help="Create language.cfg file for a kwaras project.")
     init_config_parser(config_parser, cfg_file=cfg)
