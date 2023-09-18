@@ -2,11 +2,18 @@
 import json
 import os.path
 from argparse import ArgumentParser, _ArgumentGroup
-from typing import Sequence
+from typing import Sequence, Union
 from gooey_tools import add_hybrid_arg
 
 CFG_FILE = "config.cfg"
 UPDIR = os.path.dirname(os.getcwd())
+
+def _open_cfg_safe(cfg_file):
+    try:
+        with open(cfg_file) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
 
 def init_config_parser(
         config_parser: ArgumentParser,
@@ -14,11 +21,7 @@ def init_config_parser(
         defaults: dict = dict(),
     ) -> None:
 
-    try:
-        with open(cfg_file) as f:
-            cfg = json.load(f)
-    except FileNotFoundError:
-        cfg = {}
+    cfg = _open_cfg_safe(cfg_file)
 
     lang = defaults.get("LANGUAGE", cfg_file.split('.')[0])
     config_parser.add_argument(
@@ -40,11 +43,18 @@ def init_config_parser(
     init_html_parser(config_parser, cfg)
 
 def init_html_parser(config_parser, cfg):
+    if type(cfg) is str:
+        cfg = _open_cfg_safe(cfg)
     html = config_parser.add_argument_group('html')
     html_cfg = cfg.get('html', dict())
     init_meta = html_cfg.get("META", os.path.join(UPDIR, "metadata.csv"))
     init_wav = html_cfg.get("WAV", os.path.join(UPDIR, "wav"))
     init_www = html_cfg.get("WWW", os.path.join(UPDIR, "www"))
+
+    nav_bar = """<div align="right">
+        <a href="index.html">Corpus</a>
+        - <a href="dict.xhtml">Dictionary</a>
+        </div>"""
     nav_bar = html_cfg.get("NAV_BAR", nav_bar)
 
     add_hybrid_arg(
@@ -75,17 +85,15 @@ def init_html_parser(config_parser, cfg):
     # self.mk_choice_row("CLIPS", init_clips, "WAV Clips Output Directory:", isdir=True)
 
     #self.mk_text_row("PG_TITLE", "Kwaras Corpus", "HTML Page Title:")
-    nav_bar = """<div align="right">
-        <a href="index.html">Corpus</a>
-        - <a href="dict.xhtml">Dictionary</a>
-        </div>"""
-    config_parser.add_argument(
+    html.add_argument(
         "--NAV_BAR",
         metavar="HTML div for Navigation",
         default=nav_bar,
     )
 
-def init_eafl_parser(config_parser: ArgumentParser, cfg: dict) -> _ArgumentGroup:
+def init_eafl_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _ArgumentGroup:
+    if type(cfg) is str:
+        cfg = _open_cfg_safe(cfg)
     eafl = config_parser.add_argument_group('eafl')
     eafl_cfg = cfg.get('EAFL', dict())
     add_hybrid_arg(
@@ -105,7 +113,9 @@ def init_eafl_parser(config_parser: ArgumentParser, cfg: dict) -> _ArgumentGroup
         default=eafl_cfg.get("EAFL_DIR", UPDIR),
     )
 
-def init_csv_parser(config_parser: ArgumentParser, cfg: dict) -> _ArgumentGroup:
+def init_csv_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _ArgumentGroup:
+    if type(cfg) is str:
+        cfg = _open_cfg_safe(cfg)
     csv = config_parser.add_argument_group('csv')
     old_eafs = os.path.join(UPDIR, "corpus-data-versions")
     out_dir = os.path.join(old_eafs, "auto")
