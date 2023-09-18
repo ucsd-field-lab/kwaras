@@ -45,7 +45,10 @@ def init_config_parser(
 def init_html_parser(config_parser, cfg):
     if type(cfg) is str:
         cfg = _open_cfg_safe(cfg)
-    html = config_parser.add_argument_group('html')
+    html = config_parser.add_argument_group(
+        'HTML',
+        'Args for building HTML file for website.'
+    )
     html_cfg = cfg.get('html', dict())
     init_meta = html_cfg.get("META", os.path.join(UPDIR, "metadata.csv"))
     init_wav = html_cfg.get("WAV", os.path.join(UPDIR, "wav"))
@@ -94,7 +97,10 @@ def init_html_parser(config_parser, cfg):
 def init_eafl_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _ArgumentGroup:
     if type(cfg) is str:
         cfg = _open_cfg_safe(cfg)
-    eafl = config_parser.add_argument_group('eafl')
+    eafl = config_parser.add_argument_group(
+        'EAFL',
+        'Args for making LIFT file from ELAN files.'
+        )
     eafl_cfg = cfg.get('EAFL', dict())
     add_hybrid_arg(
         config_parser,
@@ -116,7 +122,10 @@ def init_eafl_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _A
 def init_csv_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _ArgumentGroup:
     if type(cfg) is str:
         cfg = _open_cfg_safe(cfg)
-    csv = config_parser.add_argument_group('csv')
+    csv = config_parser.add_argument_group(
+        'CSV',
+        help='Args for making datafile metadata.csv from ELAN annotations.'
+    )
     old_eafs = os.path.join(UPDIR, "corpus-data-versions")
     out_dir = os.path.join(old_eafs, "auto")
     
