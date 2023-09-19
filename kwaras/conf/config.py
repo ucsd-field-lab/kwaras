@@ -1,7 +1,7 @@
 
 import json
 import os.path
-from argparse import ArgumentParser, _ArgumentGroup
+from argparse import ArgumentParser, _ArgumentGroup, Action
 from typing import Sequence, Union
 from gooey_tools import add_hybrid_arg
 
@@ -24,11 +24,7 @@ def init_config_parser(
     cfg = _open_cfg_safe(cfg_file)
 
     lang = defaults.get("LANGUAGE", cfg_file.split('.')[0])
-    config_parser.add_argument(
-        "--LANGUAGE",
-        metavar="Language configuration:",
-        default=lang
-    )
+    add_language_arg(config_parser, lang)
 
     add_hybrid_arg(
         config_parser,
@@ -42,7 +38,14 @@ def init_config_parser(
     init_csv_parser(config_parser, cfg)
     init_html_parser(config_parser, cfg)
 
-def init_html_parser(config_parser, cfg):
+def add_language_arg(parser: ArgumentParser, lang: str = '') -> Action:
+    return parser.add_argument(
+        "--LANGUAGE",
+        metavar="Language configuration:",
+        default=lang
+    )
+
+def init_html_parser(config_parser, cfg) -> _ArgumentGroup:
     if type(cfg) is str:
         cfg = _open_cfg_safe(cfg)
     html = config_parser.add_argument_group(
@@ -86,12 +89,17 @@ def init_html_parser(config_parser, cfg):
     # init_clips = self.cfg.get("CLIPS", os.path.join(UPDIR, "audio", "www", "clips"))
     # self.mk_choice_row("CLIPS", init_clips, "WAV Clips Output Directory:", isdir=True)
 
-    #self.mk_text_row("PG_TITLE", "Kwaras Corpus", "HTML Page Title:")
+    html.add_argument(
+        "--PG_TITLE",
+        default="Kwaras Corpus",
+        metavar="HTML Page Title:"
+    )
     html.add_argument(
         "--NAV_BAR",
         metavar="HTML div for Navigation",
         default=nav_bar,
     )
+    return html
 
 def init_eafl_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _ArgumentGroup:
     if type(cfg) is str:
@@ -116,6 +124,7 @@ def init_eafl_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _A
         type='dirpath',
         default=cfg.get("EAFL_DIR", UPDIR),
     )
+    return eafl
 
 def init_csv_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _ArgumentGroup:
     if type(cfg) is str:
