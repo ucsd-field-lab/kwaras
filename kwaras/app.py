@@ -22,13 +22,13 @@ from kwaras.conf.config import init_config_parser, init_eafl_parser, init_csv_pa
 #     raise e
 
 
-def convert_lexicon():
+def convert_lexicon(eafl_cfg):
     from kwaras.formats.lift import Lift
     from kwaras.process import liftadd
 
-    cfg = json.load(open("lexicon.cfg"))
-    dir_name = cfg["EAFL_DIR"]
-    inf_name = cfg["LIFT"]
+
+    dir_name = eafl_cfg["EAFL_DIR"]
+    inf_name = eafl_cfg["LIFT"]
 
     base, ext = os.path.splitext(inf_name)
 
@@ -55,36 +55,32 @@ def convert_lexicon():
     print("Data written to", eafl_name)
 
 
-def export_corpus(cfg_path):
+def export_corpus(web_cfg):
     from kwaras.conf import config
     from kwaras.process import web
 
-    cfg = json.load(open(cfg_path))
-    web.main(cfg)
+    web.main(web_cfg)
 
 def unflatten_config(cfg_obj: dict) -> dict:
     """
-    Organizes config object keys into subgroups EAFl, CSV and HTML.
+    Organizes config object keys into subgroups EAFl and WEB.
     """
     cfg_obj = cfg_obj.copy()
     eafl_obj = {
         'LIFT': cfg_obj.pop('LIFT', None),
         'EAFL_DIR': cfg_obj.pop('EAFL_DIR', None)
     }
-    csv_obj = {
+    web_obj = {
         'FILE_DIR': cfg_obj.pop('FILE_DIR', None),
         'EXP_FIELDS': cfg_obj.pop('EXP_FIELDS', None),
         'OLD_EAFS': cfg_obj.pop('OLD_EAFS', None),
-    }
-    html_obj = {
         'META': cfg_obj.pop('META', None),
         'WAV': cfg_obj.pop('WAV', None),
         'WWW': cfg_obj.pop('WWW', None),
         'NAV_BAR': cfg_obj.pop('NAV_BAR', None),
     }
     cfg_obj['EAFL'] = eafl_obj
-    cfg_obj['CSV'] = csv_obj
-    cfg_obj['HTML'] = html_obj
+    cfg_obj['WEB'] = web_obj
 
     return cfg_obj
 
@@ -112,11 +108,14 @@ def main(argv: Optional[Sequence[str]] = None):
     if argv.config:
         cfg = argv.config
 
+    with open(cfg) as f:
+        cfg = json.load(f)
+
     if argv.command == 'convert-lexicon':
-        convert_lexicon()
+        convert_lexicon(cfg['EAFL'])
 
     if argv.command == 'export-corpus':
-        export_corpus(cfg)
+        export_corpus(cfg['WEB'])
 
     if argv.command == 'make-config':
         args = vars(argv)
