@@ -59,24 +59,44 @@ def export_corpus(cfg_path):
     from kwaras.conf import config
     from kwaras.process import web
 
-    if not cfg_path:
-        window = config.ConfigWindow("corpus.cfg", parts=["MAIN"])
-
-        main_cfg = json.load(open("corpus.cfg"))
-        cfg_path = "{0}.cfg".format(main_cfg["LANGUAGE"])
-
-    window = config.ConfigWindow(cfg_path, parts=["MAIN", "CSV", "HTML"])
-
     cfg = json.load(open(cfg_path))
     web.main(cfg)
+
+def unflatten_config(cfg_obj: dict) -> dict:
+    """
+    Organizes config object keys into subgroups EAFl, CSV and HTML.
+    """
+    cfg_obj = cfg_obj.copy()
+    eafl_obj = {
+        'LIFT': cfg_obj.pop('LIFT', None),
+        'EAFL_DIR': cfg_obj.pop('EAFL_DIR', None)
+    }
+    csv_obj = {
+        'FILE_DIR': cfg_obj.pop('FILE_DIR', None),
+        'EXP_FIELDS': cfg_obj.pop('EXP_FIELDS', None),
+        'OLD_EAFS': cfg_obj.pop('OLD_EAFS', None),
+    }
+    html_obj = {
+        'META': cfg_obj.pop('META', None),
+        'WAV': cfg_obj.pop('WAV', None),
+        'WWW': cfg_obj.pop('WWW', None),
+        'NAV_BAR': cfg_obj.pop('NAV_BAR', None),
+    }
+    cfg_obj['EAFL'] = eafl_obj
+    cfg_obj['CSV'] = csv_obj
+    cfg_obj['HTML'] = html_obj
+
+    return cfg_obj
 
 def make_config(cfg_obj: dict, fp: Union[os.PathLike, str]) -> str:
     """
     JSONifies config args object
     """
     # TODO: validate cfg_obj
+    cfg_obj = unflatten_config(cfg_obj)
+
     with open(fp, 'w') as f:
-        json.dump(cfg_obj, f)
+        json.dump(cfg_obj, f, indent=4)
     return fp
     
 
@@ -89,16 +109,20 @@ def main(argv: Optional[Sequence[str]] = None):
             cfg = fp
             break
     argv = parse_args(argv, cfg)
+    if argv.config:
+        cfg = argv.config
 
     if argv.command == 'convert-lexicon':
         convert_lexicon()
 
     if argv.command == 'export-corpus':
-        export_corpus(argv.config)
+        export_corpus(cfg)
 
     if argv.command == 'make-config':
         args = vars(argv)
         cfg_file = args.pop('CFG_FILE')
+        args.pop('command')
+        args.pop('config')
         make_config(args, cfg_file)
 
 

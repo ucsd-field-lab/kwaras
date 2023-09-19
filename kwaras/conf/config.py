@@ -49,7 +49,7 @@ def init_html_parser(config_parser, cfg):
         'HTML',
         'Args for building HTML file for website.'
     )
-    html_cfg = cfg.get('html', dict())
+    html_cfg = cfg.get('HTML', dict())
     init_meta = html_cfg.get("META", os.path.join(UPDIR, "metadata.csv"))
     init_wav = html_cfg.get("WAV", os.path.join(UPDIR, "wav"))
     init_www = html_cfg.get("WWW", os.path.join(UPDIR, "www"))
@@ -129,7 +129,7 @@ def init_csv_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _Ar
     old_eafs = os.path.join(UPDIR, "corpus-data-versions")
     out_dir = os.path.join(old_eafs, "auto")
     
-    csv_cfg = cfg.get('cfg', dict())
+    csv_cfg = cfg.get('CSV', dict())
     init_dir = csv_cfg.get("FILE_DIR", UPDIR)
     init_eafs = csv_cfg.get("OLD_EAFS", old_eafs)
 
