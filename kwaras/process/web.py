@@ -62,7 +62,7 @@ CITATION_COLUMNS = ['Speaker', 'Citation', 'Length']
 HIDDEN_COLUMNS = ['Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']
 
 
-def config(lang: Optional[str] = None) -> dict:
+def config(lang: str = 'config') -> dict:
     """
     Looks for config file corresponding to lang in parent directory
     and returns as json object if found,
@@ -145,7 +145,7 @@ def export_elan(cfg: dict, export_fields: List[str]) -> None:
 def main(cfg):
     """Perform the metadata extraction and file renaming."""
 
-    export_fields = [f.strip() for f in cfg["CSV"]["EXP_FIELDS"]]
+    export_fields = [f.strip() for f in cfg["EXP_FIELDS"]]
     logger.info("Exporting fields: %s".format(export_fields))
     export_elan(cfg, export_fields)
     logger.info("ELAN data exported.")
@@ -546,7 +546,7 @@ def clip_wav(wav_file, clip_file, start, stop):
     return True
 
 
-def human_time(milliseconds, padded=False):
+def human_time(milliseconds: int, padded: bool = False) -> str:
     """Take a timsetamp in milliseconds and convert it into the familiar
     minutes:seconds format.
 
