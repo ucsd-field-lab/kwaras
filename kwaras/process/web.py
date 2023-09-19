@@ -145,7 +145,7 @@ def export_elan(cfg: dict, export_fields: List[str]) -> None:
 def main(cfg):
     """Perform the metadata extraction and file renaming."""
 
-    export_fields = [f.strip() for f in cfg["EXP_FIELDS"].split(',')]
+    export_fields = [f.strip() for f in cfg["CSV"]["EXP_FIELDS"]]
     logger.info("Exporting fields: %s".format(export_fields))
     export_elan(cfg, export_fields)
     logger.info("ELAN data exported.")
