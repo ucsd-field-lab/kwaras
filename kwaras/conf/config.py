@@ -49,16 +49,15 @@ def init_html_parser(config_parser, cfg):
         'HTML',
         'Args for building HTML file for website.'
     )
-    html_cfg = cfg.get('WEB', dict())
-    init_meta = html_cfg.get("META", os.path.join(UPDIR, "metadata.csv"))
-    init_wav = html_cfg.get("WAV", os.path.join(UPDIR, "wav"))
-    init_www = html_cfg.get("WWW", os.path.join(UPDIR, "www"))
+    init_meta = cfg.get("META", os.path.join(UPDIR, "metadata.csv"))
+    init_wav = cfg.get("WAV", os.path.join(UPDIR, "wav"))
+    init_www = cfg.get("WWW", os.path.join(UPDIR, "www"))
 
     nav_bar = """<div align="right">
         <a href="index.html">Corpus</a>
         - <a href="dict.xhtml">Dictionary</a>
         </div>"""
-    nav_bar = html_cfg.get("NAV_BAR", nav_bar)
+    nav_bar = cfg.get("NAV_BAR", nav_bar)
 
     add_hybrid_arg(
         config_parser,
@@ -101,14 +100,13 @@ def init_eafl_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _A
         'EAFL',
         'Args for making EAFL file from LIFT file.'
         )
-    eafl_cfg = cfg.get('EAFL', dict())
     add_hybrid_arg(
         config_parser,
         "--LIFT",
         group=eafl,
         metavar="Input LIFT file:",
         type='filepath',
-        default=eafl_cfg.get("LIFT", os.path.join(UPDIR, "FLEx.lift")),
+        default=cfg.get("LIFT", os.path.join(UPDIR, "FLEx.lift")),
     )
     add_hybrid_arg(
         config_parser,
@@ -116,7 +114,7 @@ def init_eafl_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _A
         group=eafl,
         metavar="Output EAFL Directory:",
         type='dirpath',
-        default=eafl_cfg.get("EAFL_DIR", UPDIR),
+        default=cfg.get("EAFL_DIR", UPDIR),
     )
 
 def init_csv_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _ArgumentGroup:
@@ -129,9 +127,8 @@ def init_csv_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _Ar
     old_eafs = os.path.join(UPDIR, "corpus-data-versions")
     out_dir = os.path.join(old_eafs, "auto")
     
-    csv_cfg = cfg.get('WEB', dict())
-    init_dir = csv_cfg.get("FILE_DIR", UPDIR)
-    init_eafs = csv_cfg.get("OLD_EAFS", old_eafs)
+    init_dir = cfg.get("FILE_DIR", UPDIR)
+    init_eafs = cfg.get("OLD_EAFS", old_eafs)
 
     add_hybrid_arg(
         config_parser,
@@ -146,7 +143,7 @@ def init_csv_parser(config_parser: ArgumentParser, cfg: Union[dict, str]) -> _Ar
     # init_csv = self.csv_cfg.get("CSV", os.path.join(out_dir, "data.csv"))
     # self.mk_choice_row("CSV", init_csv, "Output CSV File:", issave=True)
 
-    exp_fields = csv_cfg.get("EXP_FIELDS",  # List of fields to include
+    exp_fields = cfg.get("EXP_FIELDS",  # List of fields to include
                                 ", ".join(["Phonetic", "Spanish", "English", "Note"]))
     csv.add_argument(
         "--EXP_FIELDS",

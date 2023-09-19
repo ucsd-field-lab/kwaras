@@ -61,36 +61,12 @@ def export_corpus(web_cfg):
 
     web.main(web_cfg)
 
-def unflatten_config(cfg_obj: dict) -> dict:
-    """
-    Organizes config object keys into subgroups EAFl and WEB.
-    """
-    cfg_obj = cfg_obj.copy()
-    eafl_obj = {
-        'LIFT': cfg_obj.pop('LIFT', None),
-        'EAFL_DIR': cfg_obj.pop('EAFL_DIR', None)
-    }
-    web_obj = {
-        'FILE_DIR': cfg_obj.pop('FILE_DIR', None),
-        'EXP_FIELDS': cfg_obj.pop('EXP_FIELDS', None),
-        'OLD_EAFS': cfg_obj.pop('OLD_EAFS', None),
-        'META': cfg_obj.pop('META', None),
-        'WAV': cfg_obj.pop('WAV', None),
-        'WWW': cfg_obj.pop('WWW', None),
-        'NAV_BAR': cfg_obj.pop('NAV_BAR', None),
-    }
-    cfg_obj['EAFL'] = eafl_obj
-    cfg_obj['WEB'] = web_obj
-
-    return cfg_obj
 
 def make_config(cfg_obj: dict, fp: Union[os.PathLike, str]) -> str:
     """
     JSONifies config args object
     """
     # TODO: validate cfg_obj
-    cfg_obj = unflatten_config(cfg_obj)
-
     with open(fp, 'w') as f:
         json.dump(cfg_obj, f, indent=4)
     return fp
@@ -105,17 +81,25 @@ def main(argv: Optional[Sequence[str]] = None):
             cfg = fp
             break
     argv = parse_args(argv, cfg)
+
+    # reset cfg to None
+    # check if config arg was passed
+    # if not, use arg values passed by user
+    cfg = None
     if argv.config:
         cfg = argv.config
-
-    with open(cfg) as f:
-        cfg = json.load(f)
+        with open(cfg) as f:
+            cfg = json.load(f)
 
     if argv.command == 'convert-lexicon':
-        convert_lexicon(cfg['EAFL'])
+        if not cfg:
+            cfg = vars(argv)
+        convert_lexicon(cfg)
 
     if argv.command == 'export-corpus':
-        export_corpus(cfg['WEB'])
+        if not cfg:
+            cfg = vars(argv)
+        export_corpus(cfg)
 
     if argv.command == 'make-config':
         args = vars(argv)
