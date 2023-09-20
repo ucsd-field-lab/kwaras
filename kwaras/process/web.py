@@ -46,13 +46,14 @@ Edited by Mark Simmons 9/6/2023
 import os
 import csv
 import json
+import shutil
 import logging
 import random
 import re
 import wave
 from xml.etree import ElementTree as etree
 
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Union
 
 from kwaras.formats import xlsx
 
@@ -227,6 +228,7 @@ def main(cfg):
     table_fh.close()
 
     wrap_html(cfg, 'web/index_wrapper.html')
+    copy_web_files(cfg['WWW'])
 
     logger.info("Finished.")
 
@@ -352,6 +354,10 @@ def mk_table_rows(clippables, eaf_wav_files, spkr_dict, tiers, fields, fnames, c
         except UnicodeDecodeError as err:
             logger.warning("Skipping annotation because it can't be decoded (%s): %s", err.message, repr(row))
 
+def copy_web_files(www_dir):
+    shutil.copy('web/index_wrapper.html', os.path.join(www_dir, 'index_wrapper.html'))
+    shutil.copytree('web/css', os.path.join(www_dir, 'css'))
+    shutil.copytree('web/js', os.path.join(www_dir, 'js'))
 
 def find_wav_file(eaf_file):
     """Look through an EAF file to find the wav file it corresponds to."""
