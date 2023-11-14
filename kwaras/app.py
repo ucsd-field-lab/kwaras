@@ -4,10 +4,11 @@ import argparse
 import os
 # import traceback
 import json
-from gooey_tools import HybridGooey, HybridGooeyParser
 from pathlib import Path
 from typing import Optional, Sequence, Union
 from kwaras.conf.config import init_config_parser, init_eafl_parser, init_csv_parser, init_html_parser, add_language_arg, _open_cfg_safe
+
+import importlib
 # import tkinter as tk
 # import tkinter.messagebox
 # from tkinter.constants import *
@@ -21,6 +22,25 @@ from kwaras.conf.config import init_config_parser, init_eafl_parser, init_csv_pa
 #                                    "Run installer before running this.")
 #     raise e
 
+GOOEY = importlib.util.find_spec('gooey_tools') is not None
+
+if not GOOEY:
+    # hacky way of avoiding calling gooey_tools
+    # TODO: clean this up
+    def innocent_wrapper(f=None, **_):
+        if not callable(f):
+            return lambda f: innocent_wrapper(f)
+        return f
+    HybridGooey = innocent_wrapper
+    HybridGooeyParser = argparse.ArgumentParser
+    def add_arg_nogui(parser, *args, **kwargs):
+        kwargs.pop('widget', None)
+        if kwargs.get('action', None) in ('store_true', 'store_false'):
+            kwargs.pop('metavar', None)
+        return parser.add_argument(*args, **kwargs)
+    add_hybrid_arg = add_arg_nogui
+else:
+    from gooey_tools import HybridGooey, HybridGooeyParser, add_hybrid_arg
 
 def convert_lexicon(eafl_cfg):
     from kwaras.formats.lift import Lift
