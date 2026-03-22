@@ -54,7 +54,7 @@
 		}
 		var clip = nTr.getAttribute('clip');
 
-		sOut += '<tr><td><audio control autoplay><source src="clips/' + clip + '" type="audio/wav"> </audio> </td>';
+		sOut += '<tr><td><audio controls autoplay><source src="clips/' + clip + '" type="audio/wav"> </audio> </td>';
 		sOut += '<td><a href="clips/' + clip + '">&lt; ';
 		for (idx = 0; idx < aData.length; ++idx) {
 			if ( colHeads[idx].className.indexOf("Citation") >= 0 ) {

@@ -62,7 +62,7 @@ HIDDEN_COLUMNS = ['Start', 'Stop', 'WAV', 'EAF', 'File', 'Token']
 
 def config(lang=None):
     if lang == "Gitonga":
-        cfg_file = "gitonga.cfg`"
+        cfg_file = "gitonga.cfg"
     elif lang == "Raramuri":
         cfg_file = "raramuri.cfg"
     elif lang == "Mixtec":

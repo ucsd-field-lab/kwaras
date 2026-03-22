@@ -1,6 +1,8 @@
 *.class
 *.pyc
 *.pyo
+*.pyd
+*.cfg
 .idea/*
 dist/*
 bdist/*
@@ -8,3 +10,4 @@ build/*
 env/*
 web/clips
 .python-version
+.vscode/

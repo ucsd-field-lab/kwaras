@@ -109,8 +109,6 @@ class ConfigWindow:
         self.tkroot.destroy()
         for varname in self.variables:
             self.cfg[varname] = self.variables[varname].get()
-            # print "Setting", varname, self.variables[varname].get()
-        # print "Writing settings to", self.cfg_file
         with open(self.cfg_file, "w") as cfg_fs:
             json.dump(self.cfg, cfg_fs, indent=3, separators=(',', ': '))
 

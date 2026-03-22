@@ -30,6 +30,7 @@ images_dir = 'web/css/smoothness/images'
 image_files = [os.path.join(images_dir, f)
                for f in os.listdir(images_dir) if os.path.splitext(f)[1] == '.png']
 
+VERSION = '3.0.0rc2'
 APP = ['gui.py']
 DATA_FILES = [('', ['install-macos.COMMAND', 'export-corpus.COMMAND']),
                 ('web', ['web/index_wrapper.html']),
@@ -37,11 +38,12 @@ DATA_FILES = [('', ['install-macos.COMMAND', 'export-corpus.COMMAND']),
                 (js_dir, js_files),
                 (smoothness_dir, smoothness_files),
                 (images_dir, image_files)]
-OPTIONS = {"argv_emulation": True}
+PY2APP_OPTIONS = {"argv_emulation": True}
+PY2EXE_OPTIONS = {"dist_dir": f"dist\kwaras-win-{VERSION.replace('.', '_')}", "packages": ["openpyxl"]}
 
 setup(
     name='kwaras',
-    version='3.0.0rc1',
+    version=VERSION,
     install_requires=['openpyxl'],
     setup_requires=[PY2EXE],
     packages=['kwaras', 'kwaras.langs', 'kwaras.conf', 'kwaras.formats', 'kwaras.process'],
@@ -53,8 +55,11 @@ setup(
     author='Lucien Carroll',
     author_email='lucien@discurs.us',
     description='Tools for managing ELAN corpus files',
-    console=['gui.py'],
-    app=APP,
+    console=APP, # for py2exe
+    app=APP, # for py2app
     data_files=DATA_FILES,
-    options={'py2app': OPTIONS},
+    options={
+        'py2app': PY2APP_OPTIONS, 
+        'py2exe': PY2EXE_OPTIONS
+    },
 )
