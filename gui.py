@@ -25,7 +25,8 @@ def convert_lexicon():
 
     config.ConfigWindow("lexicon.cfg", parts=["EAFL"])
 
-    cfg = json.load(open("lexicon.cfg"))
+    with open("lexicon.cfg", 'r', encoding='utf-8') as f:
+        cfg = json.load(f)
     dir_name = cfg["EAFL_DIR"]
     inf_name = cfg["LIFT"]
 
@@ -61,12 +62,14 @@ def export_corpus(cfg_path):
     if not cfg_path:
         window = config.ConfigWindow("corpus.cfg", parts=["MAIN"])
 
-        main_cfg = json.load(open("corpus.cfg"))
+        with open("corpus.cfg", 'r', encoding='utf-8') as f:
+            main_cfg = json.load(f)
         cfg_path = "{0}.cfg".format(main_cfg["LANGUAGE"])
 
     window = config.ConfigWindow(cfg_path, parts=["MAIN", "CSV", "HTML"])
 
-    cfg = json.load(open(cfg_path))
+    with open(cfg_path, 'r', encoding='utf-8') as f:
+        cfg = json.load(f)
     try:
         web.main(cfg)
     except Exception as err:

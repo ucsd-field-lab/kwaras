@@ -1,0 +1,19 @@
+# Development dependencies for Kwaras
+# Install with: pip install -r requirements-dev.txt
+
+# Include production dependencies
+-r requirements.txt
+
+# Testing
+pytest>=7.0
+pytest-cov>=3.0
+
+# Build tools
+pyinstaller>=5.0,<7.0
+setuptools>=65.0
+wheel>=0.38
+
+# Code quality (optional)
+# black>=22.0
+# pylint>=2.13
+# mypy>=0.950

@@ -32,7 +32,8 @@ class ConfigWindow:
 
         # Load previous configuration settings
         if os.path.exists(cfg_file):
-            cfgstr = ''.join(list(open(cfg_file)))
+            with open(cfg_file, 'r', encoding='utf-8') as f:
+                cfgstr = f.read()
             if cfgstr:
                 self.cfg = json.loads(cfgstr)
             else:

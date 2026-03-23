@@ -1,1 +1,7 @@
-py2exe
+# Production dependencies for Kwaras
+# Install with: pip install -r requirements.txt
+
+openpyxl>=3.0,<4.0
+
+# Build dependencies (uncomment if needed):
+# pyinstaller>=5.0,<7.0
