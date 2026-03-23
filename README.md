@@ -42,11 +42,11 @@ uv venv -p 3.11
 source .venv/bin/activate
 
 # Install dependencies and package
-pip install -r requirements.txt
-pip install -e .
+uv pip install -r requirements.txt
+uv pip install -e .
 
 # Verify installation
-python -m kwaras.cli check-install
+kwaras check-install
 ```
 
 ### CLI Usage
@@ -54,17 +54,17 @@ python -m kwaras.cli check-install
 ```bash
 
 # Export ELAN corpus to web interface
-python -m kwaras.cli export-corpus --config MyLanguage.cfg
+kwaras export-corpus --config MyLanguage.cfg
 
 # Convert LIFT lexicon to EAFL format
-python -m kwaras.cli convert-lexicon --config lexicon.cfg
+kwaras convert-lexicon --config lexicon.cfg
 
 # Check installation
-python -m kwaras.cli check-install
+kwaras check-install
 
 # Get help
-python -m kwaras.cli --help
-python -m kwaras.cli convert-lexicon --help
+kwaras --help
+kwaras convert-lexicon --help
 ```
 
 ### GUI Usage (Legacy)
@@ -72,7 +72,8 @@ python -m kwaras.cli convert-lexicon --help
 The Tkinter GUI is still available:
 
 ```bash
-python gui.py  # export corpus
+uv run gui.py  # export corpus
+python gui.py  # equivalent, if venv is set up correctly
 python gui.py --select-action
 python gui.py --convert-lexicon
 python gui.py --export-corpus

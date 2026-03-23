@@ -49,6 +49,7 @@ import json
 import logging
 import random
 import re
+import shutil
 import wave
 from xml.etree import ElementTree as etree
 
@@ -223,6 +224,11 @@ def main(cfg):
     table_fh.close()
 
     wrap_html(cfg, 'web/index_wrapper.html')
+
+    if not os.path.exists(os.path.join(cfg['WWW'], 'css')):
+        shutil.copytree('web/css', os.path.join(cfg['WWW'], 'css'))
+    if not os.path.exists(os.path.join(cfg['WWW'], 'js')):
+        shutil.copytree('web/js', os.path.join(cfg['WWW'], 'js'))
 
     logger.info("Finished.")
 
