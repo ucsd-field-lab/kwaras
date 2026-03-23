@@ -22,13 +22,13 @@ def update(eafile, tiers, eafl):
             aval = x.findtext("ANNOTATION_VALUE")
             # print aval
             if aval is '':
-                print "Blank X annotation:", eaf.etree.tostring(x)
+                print("Blank X annotation:", etree.tostring(x))
                 e = None
             else:
                 gidm = re.search("\(([^.]*)\)", x.findtext("ANNOTATION_VALUE"))
                 if gidm is None:
-                    print "WARNING!"
-                    print "Flaw in annotation:", aval, "at time", timept, "\n"
+                    print("WARNING!")
+                    print("Flaw in annotation:", aval, "at time", timept, "\n")
                     e = None
                 else:
                     gid = gidm.group(1)
@@ -44,18 +44,18 @@ def update(eafile, tiers, eafl):
 
             if g is None:
                 gloss = eafile.get_annotation_on(tiers['g'], m)
-                print "WARNING!"
-                print "No gloss found for", gid, gloss.find("ANNOTATION_VALUE").text,
-                print "at time", timept, '\n'
+                print("WARNING!")
+                print("No gloss found for", gid, gloss.find("ANNOTATION_VALUE").text, end=' ')
+                print("at time", timept, '\n')
                 # gloss.find("ANNOTATION_VALUE").text = ""
             else:
                 newg = g.text
                 gloss = eafile.get_annotation_on(tiers['g'], m)
                 if gloss is None:
-                    print "WARNING!"
-                    print "No existing gloss found for", gid, newg
+                    print("WARNING!")
+                    print("No existing gloss found for", gid, newg)
                 elif newg != gloss.find("ANNOTATION_VALUE").text:
-                    print gloss.find("ANNOTATION_VALUE").text, "=>", newg
+                    print(gloss.find("ANNOTATION_VALUE").text, "=>", newg)
                     gloss.find("ANNOTATION_VALUE").text = newg
 
     return eafile

@@ -53,11 +53,11 @@ _SPELLING = [  # steps required to prevent transitive ʃ → x → j → y
         "ɔ": "o",  # open O
         "ə": "ɨ",  # schwa
         "ɑ": "a",  # A
-        u"\xe1": "a",  # accented a
-        u"\xf3": "o",  # accented o
-        u"\xe9": "e",  # accented e
-        u"\xfa": "u",  # accented u
-        u"\xed": "i",  # accented i
+        "\xe1": "a",  # accented a
+        "\xf3": "o",  # accented o
+        "\xe9": "e",  # accented e
+        "\xfa": "u",  # accented u
+        "\xed": "i",  # accented i
         "¹": "",  # sup 1
         "²": "",  # sup 2
         "³": "",  # sup 3
@@ -90,31 +90,31 @@ _TO_IPA = [
 
 def convert_to_ipa(text):
     text = text.decode("utf-8").strip()
-    print text, ":", repr(text)
+    print(text, ":", repr(text))
     for step in _TO_IPA:
         for key in step:
             text = text.replace(key, step[key])
 
     text = re.sub("n(-| |$)", r"N\1", text)
-    print repr(text), "> ",
-    text = re.sub(u"([aeiouɨ])([mnɲ][aeiouɨ])(-| |$)", r"\1N\2N\3", text)  # spread from mid C
-    text = re.sub(u"([aeiɨou])(ʔ[mnɲ][aeiouɨ])(-| |$)", r"\1N\2N\3", text)  # spread from mid C
-    print text, "> ",
-    text = re.sub(u"([aeiɨou])([aeiɨou]N)", r"\1N\2", text)  # spread L from final vowel
-    text = re.sub(u"([aeiɨou])(ʔ[aeiɨou]N)", r"\1N\2", text)  # spread L from final vowel
-    print text, "> ",
-    text = re.sub(u"([mnɲ][aeiɨou])", r"\1N", text)  # spread R from onset
-    text = re.sub(u"(N(ʔ)?[aeiɨou])", r"\1N", text)  # spread R from initial vowel
+    print(repr(text), "> ", end=' ')
+    text = re.sub("([aeiouɨ])([mnɲ][aeiouɨ])(-| |$)", r"\1N\2N\3", text)  # spread from mid C
+    text = re.sub("([aeiɨou])(ʔ[mnɲ][aeiouɨ])(-| |$)", r"\1N\2N\3", text)  # spread from mid C
+    print(text, "> ", end=' ')
+    text = re.sub("([aeiɨou])([aeiɨou]N)", r"\1N\2", text)  # spread L from final vowel
+    text = re.sub("([aeiɨou])(ʔ[aeiɨou]N)", r"\1N\2", text)  # spread L from final vowel
+    print(text, "> ", end=' ')
+    text = re.sub("([mnɲ][aeiɨou])", r"\1N", text)  # spread R from onset
+    text = re.sub("(N(ʔ)?[aeiɨou])", r"\1N", text)  # spread R from initial vowel
     text = re.sub("N+", r"̃", text)
 
     text += " *"  # mark automated transcriptions
-    print text
+    print(text)
     return text
 
 
 def convert_to_ortho(text):
     text = text.decode("utf-8").strip()
-    print text, ":", repr(text)
+    print(text, ":", repr(text))
     for step in _SPELLING:
         for key in step:
             text = text.replace(key, step[key])
@@ -126,19 +126,19 @@ def convert_to_ortho(text):
     text = re.sub("([aeiɨou]):", r"\1\1", text)
 
     text = re.sub("N+", "N", text)
-    text = re.sub(u"N('?[aeiɨou]N)", r"\1", text)  # vowel to vowel nasalization
-    text = re.sub(u"N('?[mnñ])", r"\1", text)  # C to V leftward
-    text = re.sub(u"([mnñ][aeiɨou])N", r"\1", text)  # C to V rightward
-    text = re.sub(u"([aeiɨou])N([aeiɨou])", r"\1\2", text)  # vowel to vowel
+    text = re.sub("N('?[aeiɨou]N)", r"\1", text)  # vowel to vowel nasalization
+    text = re.sub("N('?[mnñ])", r"\1", text)  # C to V leftward
+    text = re.sub("([mnñ][aeiɨou])N", r"\1", text)  # C to V rightward
+    text = re.sub("([aeiɨou])N([aeiɨou])", r"\1\2", text)  # vowel to vowel
     text = re.sub("N( |$)", r"n\1", text)  # nasalization at word end
     text = re.sub("N", "n-", text)  # nasalization mid-word
     text += " *"  # mark automated transcriptions
-    print ">", text
+    print(">", text)
     return text
 
 
-def clean_eaf(eafile, template=None):
-
+def clean_eaf(fname, template=None):
+    eafile = eaf.Eaf(fname)
     tiers = eafile.get_tier_ids()
     has_ortho = ("Orthographic" in tiers and
                  len([eafile.get_tier_by_id("Orthographic").iter("ANNOTATION_VALUE")]) > 0)
@@ -167,7 +167,7 @@ def clean_eaf(eafile, template=None):
 
         if has_phon:
             phonnotes = eafile.get_tier_by_id("Phonetic").iter("ANNOTATION_VALUE")
-            print phonnotes[:5]
+            print(phonnotes[:5])
             raise Exception
         if "Orthographic" in eafile.get_tier_ids():
             eafile.rename_tier(eafile.get_tier_by_id("Orthographic"), "Orthographic-bk")  # should be blank tiers only
@@ -210,7 +210,7 @@ def clean_eaf(eafile, template=None):
     if "Traslation (English)" in eafile.get_tier_ids():
         eafile.rename_tier(eafile.get_tier_by_id("Traslation (English)"), "Translation (English)")
     else:
-        print "Tier name spelling is previously fixed."
+        print("Tier name spelling is previously fixed.")
 
     if "Translation (English)" in eafile.get_tier_ids():
         eafile.rename_tier(eafile.get_tier_by_id("Translation (English)"), "English")
@@ -239,9 +239,9 @@ if __name__ == "__main__":
     _EXPORT_FIELDS = ["Orthographic", "Phonetic", "Spanish", "English", "Semantic domain", "Note", "Tone"]
 
     for filename in os.listdir(os.path.join(_FILE_DIR, _OLD_EAFS))[:]:
-        print filename
+        print(filename)
         if os.path.splitext(filename)[1].lower() != ".eaf":
-            print "Not an EAF:", filename, os.path.splitext(filename)
+            print("Not an EAF:", filename, os.path.splitext(filename))
         else:
             eafile = eaf.Eaf(os.path.join(_FILE_DIR, _OLD_EAFS, filename))
             eafile.import_types(os.path.join(_FILE_DIR, _TEMPLATE))

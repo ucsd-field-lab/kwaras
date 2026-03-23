@@ -18,5 +18,9 @@ body {
     min-height: 500px;
 }
 
+#audio {
+    height:25px;
+}
+
 #inhead {
 }
