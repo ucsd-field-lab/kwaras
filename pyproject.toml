@@ -1,7 +1,3 @@
-[project]
-name = "kwaras"
-version = "3.0.0rc3"
-requires-python = ">=3.8,<3.13"
 
 [tool.ruff]
 line-length = 100
