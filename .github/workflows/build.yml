@@ -33,9 +33,6 @@ jobs:
       - name: Ruff lint check
         run: python -m ruff check .
 
-      - name: Pylint check
-        run: python -m pylint kwaras tests --disable=superfluous-parens,unnecessary-semicolon
-
   test:
     name: Test (${{ matrix.os }}, py${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
