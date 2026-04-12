@@ -1,12 +1,10 @@
 # -*- mode: python -*-
 
-from pathlib import Path
-
 block_cipher = None
-project_root = str(Path(__file__).resolve().parent)
+project_root = '.'
 
 
-a = Analysis(['kwaras\\cli.py'],
+a = Analysis(['kwaras/cli.py'],
              pathex=[project_root],
              binaries=[],
              datas=[('web', 'web'), ('kwaras', 'kwaras')],
