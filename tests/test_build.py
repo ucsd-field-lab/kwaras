@@ -1,8 +1,6 @@
 """Tests for build configuration and scripts."""
 
 import os
-import subprocess
-import sys
 from pathlib import Path
 
 import pytest
@@ -78,6 +76,11 @@ class TestSpecFiles:
 class TestBuildScripts:
     """Tests for build scripts."""
 
+    def test_github_workflow_exists(self):
+        """Test that GitHub Actions build workflow exists."""
+        workflow_path = PROJECT_ROOT / ".github" / "workflows" / "build.yml"
+        assert workflow_path.exists(), "build workflow should exist"
+
     def test_build_ps1_exists(self):
         """Test that build.ps1 exists (Windows)."""
         build_script = PROJECT_ROOT / "build.ps1"
@@ -96,6 +99,19 @@ class TestBuildScripts:
 
             st = os.stat(build_script)
             assert st.st_mode & stat.S_IXUSR, "build.sh should be executable"
+
+
+class TestWorkflow:
+    """Tests for GitHub Actions workflow."""
+
+    def test_workflow_has_build_jobs(self):
+        """Test workflow defines test and build jobs."""
+        workflow_path = PROJECT_ROOT / ".github" / "workflows" / "build.yml"
+        with open(workflow_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        assert "test:" in content
+        assert "build-windows:" in content
+        assert "build-unix:" in content
 
 
 class TestRequirements:

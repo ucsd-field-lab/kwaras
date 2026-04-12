@@ -5,7 +5,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+PROJECT_ROOT="$SCRIPT_DIR"
+cd "$PROJECT_ROOT"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -86,7 +87,7 @@ exe = EXE(pyz,
           runtime_tmpdir=None,
           console=False )
 SPECEOF
-sed -i "s|REPLACE|$PROJECT_ROOT|" gui.spec.tmp
+sed -i "s|REPLACEPATH|$PROJECT_ROOT|" gui.spec.tmp
 
 # Create kwaras-unix.spec
 cat > kwaras.spec.tmp << 'SPECEOF'
@@ -120,7 +121,7 @@ exe = EXE(pyz,
           runtime_tmpdir=None,
           console=True )
 SPECEOF
-sed -i "s|REPLACE|$$PROJECT_ROOT|" kwaras.spec.tmp
+sed -i "s|REPLACEPATH|$PROJECT_ROOT|" kwaras.spec.tmp
 
 # Clean previous builds if requested
 if [ "$CLEAN" = true ]; then

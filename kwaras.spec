@@ -1,10 +1,13 @@
 # -*- mode: python -*-
 
+from pathlib import Path
+
 block_cipher = None
+project_root = str(Path(__file__).resolve().parent)
 
 
 a = Analysis(['kwaras\\cli.py'],
-             pathex=['C:\\Users\\serap\\Documents\\kwaras'],
+             pathex=[project_root],
              binaries=[],
              datas=[('web', 'web'), ('kwaras', 'kwaras')],
              hiddenimports=['openpyxl', 'kwaras', 'kwaras.formats', 'kwaras.process', 'kwaras.formats.lift', 'kwaras.formats.xlsx', 'kwaras.formats.eaf', 'kwaras.formats.utfcsv', 'kwaras.formats.textgrid', 'kwaras.process.liftadd', 'kwaras.process.web', 'kwaras.process.timealign', 'kwaras.process.reparse', 'kwaras.langs', 'kwaras.langs.Raramuri', 'kwaras.langs.Mixtec', 'kwaras.langs.Kumiai', 'kwaras.langs.Gitonga', 'kwaras.langs.Other'],
