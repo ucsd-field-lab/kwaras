@@ -66,10 +66,10 @@ a = Analysis(['gui.py'],
              pathex=['REPLACEPATH'],
              binaries=[],
              datas=[('web', 'web'), ('kwaras', 'kwaras')],
-             hiddenimports=['openpyxl', 'kwaras', 'kwaras.formats', 'kwaras.process', 'kwaras.formats.lift', 'kwaras.formats.xlsx', 'kwaras.formats.eaf', 'kwaras.formats.utfcsv', 'kwaras.formats.textgrid', 'kwaras.process.liftadd', 'kwaras.process.web', 'kwaras.process.timealign', 'kwaras.process.reparse', 'kwaras.langs', 'kwaras.langs.Raramuri', 'kwaras.langs.Mixtec', 'kwaras.langs.Kumiai', 'kwaras.langs.Gitonga', 'kwaras.langs.Other'],
+             hiddenimports=['tkinter', 'tkinter.ttk', 'tkinter.filedialog', 'tkinter.messagebox', 'tkinter.simpledialog', 'openpyxl', 'kwaras', 'kwaras.formats', 'kwaras.process', 'kwaras.formats.lift', 'kwaras.formats.xlsx', 'kwaras.formats.eaf', 'kwaras.formats.utfcsv', 'kwaras.formats.textgrid', 'kwaras.process.liftadd', 'kwaras.process.web', 'kwaras.process.timealign', 'kwaras.process.reparse', 'kwaras.langs', 'kwaras.langs.Raramuri', 'kwaras.langs.Mixtec', 'kwaras.langs.Kumiai', 'kwaras.langs.Gitonga', 'kwaras.langs.Other'],
              hookspath=[],
              runtime_hooks=[],
-             excludes=['tkinter'],
+             excludes=[],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher)
@@ -103,7 +103,7 @@ a = Analysis(['kwaras/cli.py'],
              hiddenimports=['openpyxl', 'kwaras', 'kwaras.formats', 'kwaras.process', 'kwaras.formats.lift', 'kwaras.formats.xlsx', 'kwaras.formats.eaf', 'kwaras.formats.utfcsv', 'kwaras.formats.textgrid', 'kwaras.process.liftadd', 'kwaras.process.web', 'kwaras.process.timealign', 'kwaras.process.reparse', 'kwaras.langs', 'kwaras.langs.Raramuri', 'kwaras.langs.Mixtec', 'kwaras.langs.Kumiai', 'kwaras.langs.Gitonga', 'kwaras.langs.Other'],
              hookspath=[],
              runtime_hooks=[],
-             excludes=['tkinter'],
+             excludes=[],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher)
@@ -143,7 +143,7 @@ fi
 # Build GUI executable
 if [ "$TARGET" = "gui" ] || [ "$TARGET" = "both" ]; then
     log_step "Building GUI executable..."
-    pyinstaller --noconfirm --clean gui.spec.tmp $ONEFILE`
+    pyinstaller --noconfirm --clean gui.spec.tmp $ONEFILE
     log_step "Checking GUI build output..."
     ls -l dist
     if [ -d "dist/gui" ] && [ "$(ls -A dist/gui)" ]; then
