@@ -285,7 +285,4 @@ class TestConfigValidationErrors:
         with pytest.raises(ValueError) as exc_info:
             load_config_safely(str(temp_invalid_json_config))
 
-        assert (
-            "invalid" in str(exc_info.value).lower()
-            or "json" in str(exc_info.value).lower()
-        )
+        assert "invalid" in str(exc_info.value).lower() or "json" in str(exc_info.value).lower()

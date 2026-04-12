@@ -10,18 +10,21 @@ from ..formats import eaf
 
 # orthographic correspondences
 _SPELLING = [  # steps required to prevent transitive ʃ → x → j → y
-    {"ʒ": "y",  # ʒ
-     "j": "y",  # j
-     "ʲ": "y",  # sup j → y
-     "ʑ": "y",
-     "ʤ": "dy",
-     "ʧ": "ty",
-     }, {
+    {
+        "ʒ": "y",  # ʒ
+        "j": "y",  # j
+        "ʲ": "y",  # sup j → y
+        "ʑ": "y",
+        "ʤ": "dy",
+        "ʧ": "ty",
+    },
+    {
         "ʰ": "",  # sup h
         "x": "j",  # x
         "χ": "j",
         "h": "j",  # h
-    }, {
+    },
+    {
         "ɲ": "ñ",  # ñ
         "ny": "ñ",
         "ñ": "ñ",
@@ -34,7 +37,8 @@ _SPELLING = [  # steps required to prevent transitive ʃ → x → j → y
         "ɽ": "r",  # retroflex flap
         "ⁿ": "n",  # sup n
         "ŋ": "n",  # engma → n
-    }, {
+    },
+    {
         "tx": "ch",
         "̃": "N",  # nasalization
         "᷈": "N",
@@ -71,18 +75,8 @@ _SPELLING = [  # steps required to prevent transitive ʃ → x → j → y
 ]
 
 _TO_IPA = [
-    {"dy": "dʲ",
-     "ty": "tʲ",
-     "ch": "tʃ",
-     "nd": "ⁿd"},
-    {"y": "ʒ",
-     "j": "h",
-     "ñ": "ɲ",
-     "ñ": "ɲ",
-     "'": "ʔ",
-     "x": "ʃ",
-     "w": "ʷ",
-     "r": "ɾ"},
+    {"dy": "dʲ", "ty": "tʲ", "ch": "tʃ", "nd": "ⁿd"},
+    {"y": "ʒ", "j": "h", "ñ": "ɲ", "ñ": "ɲ", "'": "ʔ", "x": "ʃ", "w": "ʷ", "r": "ɾ"},
 ]
 
 
@@ -138,20 +132,29 @@ def convert_to_ortho(text):
 def clean_eaf(fname, template=None):
     eafile = eaf.Eaf(fname)
     tiers = eafile.get_tier_ids()
-    has_ortho = ("Orthographic" in tiers and
-                 len([eafile.get_tier_by_id("Orthographic").iter("ANNOTATION_VALUE")]) > 0)
-    has_ipa = ("IPA Transcription" in tiers and
-               len([eafile.get_tier_by_id("IPA Transcription").iter("ANNOTATION_VALUE")]) > 0)
-    has_phon = ("Phonetic" in tiers and
-                len([eafile.get_tier_by_id("Phonetic").iter("ANNOTATION_VALUE")]) > 0)
+    has_ortho = (
+        "Orthographic" in tiers
+        and len([eafile.get_tier_by_id("Orthographic").iter("ANNOTATION_VALUE")]) > 0
+    )
+    has_ipa = (
+        "IPA Transcription" in tiers
+        and len([eafile.get_tier_by_id("IPA Transcription").iter("ANNOTATION_VALUE")]) > 0
+    )
+    has_phon = (
+        "Phonetic" in tiers
+        and len([eafile.get_tier_by_id("Phonetic").iter("ANNOTATION_VALUE")]) > 0
+    )
 
     if has_ortho and not has_phon:
         # generate phonetic transcription from orthographic transcription
         if "Phonetic" in eafile.get_tier_ids():
-            eafile.rename_tier(eafile.get_tier_by_id("Phonetic"), "Phonetic-bk")  # should be blank tiers only
+            eafile.rename_tier(
+                eafile.get_tier_by_id("Phonetic"), "Phonetic-bk"
+            )  # should be blank tiers only
 
-        phontier = eafile.copy_tier("Orthographic", "Phonetic",
-                                    parent="Orthographic", ltype="Alternate transcription")
+        phontier = eafile.copy_tier(
+            "Orthographic", "Phonetic", parent="Orthographic", ltype="Alternate transcription"
+        )
         eafile.insert_tier(phontier, after="Orthographic")
 
         # use IPA
@@ -168,13 +171,16 @@ def clean_eaf(fname, template=None):
             print(phonnotes[:5])
             raise Exception
         if "Orthographic" in eafile.get_tier_ids():
-            eafile.rename_tier(eafile.get_tier_by_id("Orthographic"), "Orthographic-bk")  # should be blank tiers only
+            eafile.rename_tier(
+                eafile.get_tier_by_id("Orthographic"), "Orthographic-bk"
+            )  # should be blank tiers only
 
         eafile.rename_tier(eafile.get_tier_by_id("IPA Transcription"), "Orthographic")
 
         # copy old IPA transcription to new dependent tier
-        phontier = eafile.copy_tier("Orthographic", "Phonetic",
-                                    parent="Orthographic", ltype="Alternate transcription")
+        phontier = eafile.copy_tier(
+            "Orthographic", "Phonetic", parent="Orthographic", ltype="Alternate transcription"
+        )
         eafile.insert_tier(phontier, after="Orthographic")
 
         # use new orthography
@@ -184,15 +190,17 @@ def clean_eaf(fname, template=None):
                 note.text = convert_to_ortho(note.text)
 
     elif has_phon and not has_ortho:  # i.e. "Phonetic" is baseline transcription
-
         if "Orthographic" in eafile.get_tier_ids():
-            eafile.rename_tier(eafile.get_tier_by_id("Orthographic"), "Orthographic-bk")  # should be blank tiers only
+            eafile.rename_tier(
+                eafile.get_tier_by_id("Orthographic"), "Orthographic-bk"
+            )  # should be blank tiers only
 
         eafile.rename_tier(eafile.get_tier_by_id("Phonetic"), "Orthographic")
 
         # copy old IPA transcription to new dependent tier
-        phontier = eafile.copy_tier("Orthographic", "Phonetic",
-                                    parent="Orthographic", ltype="Alternate transcription")
+        phontier = eafile.copy_tier(
+            "Orthographic", "Phonetic", parent="Orthographic", ltype="Alternate transcription"
+        )
         eafile.insert_tier(phontier, after="Orthographic")
 
         # use new orthography
@@ -234,7 +242,15 @@ if __name__ == "__main__":
     _OLD_EAFS = "originals"
     _NEW_EAFS = "test"
     _CSV = "min-new.csv"
-    _EXPORT_FIELDS = ["Orthographic", "Phonetic", "Spanish", "English", "Semantic domain", "Note", "Tone"]
+    _EXPORT_FIELDS = [
+        "Orthographic",
+        "Phonetic",
+        "Spanish",
+        "English",
+        "Semantic domain",
+        "Note",
+        "Tone",
+    ]
 
     for filename in os.listdir(os.path.join(_FILE_DIR, _OLD_EAFS))[:]:
         print(filename)

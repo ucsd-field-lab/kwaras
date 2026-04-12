@@ -8,9 +8,17 @@ OLD_EAFS = ("", "in", "co", "el", "tx")[0]  # apply a filter within working dire
 NEW_EAFS = "new/"  # subdirectory as destination
 CSV = "rar-new.csv"  # destination exported CSV file
 
-EXPORT_FIELDS = ["Broad", "Ortho", "NewOrtho", "Phonetic",  # List of fields to include
-                 "UttWGloss", "UttMGloss",
-                 "Spanish", "English", "Note"]
+EXPORT_FIELDS = [  # List of fields to include
+    "Broad",
+    "Ortho",
+    "NewOrtho",
+    "Phonetic",
+    "UttWGloss",
+    "UttMGloss",
+    "Spanish",
+    "English",
+    "Note",
+]
 
 # Set variables for exporting to HTML
 META = "F://ELAN Corpus/metadata_raramuri_2011.txt"  # From Google doc

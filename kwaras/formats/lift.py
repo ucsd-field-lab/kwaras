@@ -90,10 +90,7 @@ class Lift:
             if primary is not None:
                 ps = primary.find("sense/grammatical-info")
 
-        if ps is None:
-            psv = ""
-        else:
-            psv = ps.get("value")
+        psv = "" if ps is None else ps.get("value")
         return psv
 
     def getSenses(self, guid):
@@ -107,22 +104,21 @@ class Lift:
 
     def getVarForms(self, guid):
         """Get a list of variant forms (allomorphs + pronunciations)"""
-        frame = {"stem": "{}",
-                 "prefix": "{}-",
-                 "suffix": "-{}",
-                 "proclitic": "{}=",
-                 "enclitic": "={}",
-                 "phrase": "{}"}
+        frame = {
+            "stem": "{}",
+            "prefix": "{}-",
+            "suffix": "-{}",
+            "proclitic": "{}=",
+            "enclitic": "={}",
+            "phrase": "{}",
+        }
         entry = self.getEntry(guid)
         mtype = entry.find("trait[@name='morph-type']").get("value")
 
-        forms = [va.find("form/text")
-                 for va in entry.findall("variant")]
+        forms = [va.find("form/text") for va in entry.findall("variant")]
         vtexts = [f.text for f in forms if f is not None]
-        forms = [va.find("form/text")
-                 for va in entry.findall("pronunciation")]
-        ptexts = [frame[mtype].format(f.text)
-                  for f in forms if f is not None]
+        forms = [va.find("form/text") for va in entry.findall("pronunciation")]
+        ptexts = [frame[mtype].format(f.text) for f in forms if f is not None]
 
         return vtexts + ptexts
 

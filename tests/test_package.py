@@ -1,7 +1,6 @@
 """Tests for package structure and module imports."""
 
 
-
 class TestPackageImports:
     """Test that all package modules can be imported."""
 

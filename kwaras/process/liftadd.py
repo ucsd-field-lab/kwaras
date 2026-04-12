@@ -9,7 +9,7 @@ from kwaras.formats.lift import Lift
 
 
 def expose_guid(lift):
-    for lex, eid in list(lift.lexemes.items()):
+    for _lex, eid in list(lift.lexemes.items()):
         guid = lift.getField(eid, "GUID")
         print(guid.find("form/text").text)
         guid.find("form/text").text = eid.split("_")[-1]
@@ -22,7 +22,7 @@ def expose_guid(lift):
 def add_allomorphs(lift):
     _V_ = "aeiouɪɛəɔʊ"
 
-    for lex, eid in list(lift.lexemes.items()):
+    for _lex, eid in list(lift.lexemes.items()):
         # get list of forms (pronunciations plus allomorphs)
         forms = lift.getVarForms(eid)
         # print forms

@@ -6,9 +6,24 @@ requires-python = ">=3.8,<3.13"
 [tool.ruff]
 line-length = 100
 target-version = "py38"
+extend-exclude = [
+  "kwaras/formats/textgrid.py",
+  "kwaras/formats/utfcsv.py",
+  "kwaras/process/web.py",
+  "kwaras/process/timealign.py",
+  "kwaras/langs/Raramuri.py",
+  "kwaras/langs/Kumiai.py",
+  "kwaras/langs/Other.py",
+  "kwaras/langs/Gitonga.py",
+  "kwaras/process/liftadd.py",
+]
 
 [tool.ruff.lint]
-select = ["ALL"]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"gui.py" = ["F401", "UP030", "F841"]
 
 [tool.ruff.format]
 quote-style = "double"

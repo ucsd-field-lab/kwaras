@@ -1,9 +1,8 @@
-
 import json
 import os.path
 import tkinter as tk
 import tkinter.filedialog
-from tkinter.constants import *
+from tkinter.constants import BOTH, END, RIDGE, E, N, S, W
 
 CFG_FILE = "config.cfg"
 _WIDTH = 60
@@ -48,7 +47,9 @@ class ConfigWindow:
         old_eafs = os.path.join(updir, "corpus-data-versions")
 
         if "MAIN" in parts:
-            self.mk_menu_row("LANGUAGE", defaults.get("LANGUAGE", cfg_file.split(".")[0]), "Language template:")
+            self.mk_menu_row(
+                "LANGUAGE", defaults.get("LANGUAGE", cfg_file.split(".")[0]), "Language template:"
+            )
 
         if "EAFL" in parts:
             self.mk_label_row("Variables used in creating EAFL file")
@@ -67,8 +68,10 @@ class ConfigWindow:
             # init_csv = self.cfg.get("CSV", os.path.join(out_dir, "data.csv"))
             # self.mk_choice_row("CSV", init_csv, "Output CSV File:", issave=True)
 
-            exp_fields = self.cfg.get("EXP_FIELDS",  # List of fields to include
-                                      ", ".join(["Phonetic", "Spanish", "English", "Note"]))
+            exp_fields = self.cfg.get(
+                "EXP_FIELDS",  # List of fields to include
+                ", ".join(["Phonetic", "Spanish", "English", "Note"]),
+            )
             self.mk_text_row("EXP_FIELDS", exp_fields, "List of Fields to Export:")
 
             init_eafs = self.cfg.get("OLD_EAFS", old_eafs)
@@ -121,8 +124,9 @@ class ConfigWindow:
         """Make Subheading Labels"""
         idx = idx if idx > 0 and idx not in self.indices else max(self.indices + [0]) + 1
         self._insert_index(idx)
-        tk.Label(self.frame, text=text,
-                 font=("Helvetica", 12)).grid(row=idx, column=1, columnspan=3, sticky=(E, W))
+        tk.Label(self.frame, text=text, font=("Helvetica", 12)).grid(
+            row=idx, column=1, columnspan=3, sticky=(E, W)
+        )
 
     def mk_text_row(self, var, default, text, idx=-1):
         """Make single-line Entry row"""
@@ -141,8 +145,9 @@ class ConfigWindow:
         self.labels[var] = tk.Label(self.frame, text=text)
         self.labels[var].grid(row=idx, column=1, sticky=E)
         self.variables[var] = tk.StringVar(value=self.cfg.get(var, default))
-        self.entries[var] = MyText(self.frame, self.variables[var], width=_WIDTH, height=rowspan,
-                                   font=("Helvetica", 12))
+        self.entries[var] = MyText(
+            self.frame, self.variables[var], width=_WIDTH, height=rowspan, font=("Helvetica", 12)
+        )
         self.entries[var].grid(row=idx, column=2, columnspan=1, sticky=W)
 
     def mk_menu_row(self, var, default, text, idx=-1):
@@ -152,7 +157,9 @@ class ConfigWindow:
         self.labels[var] = tk.Label(self.frame, text=text)
         self.labels[var].grid(row=idx, column=1, sticky=E)
         self.variables[var] = tk.StringVar(value=self.cfg.get(var, default))
-        self.entries[var] = tk.OptionMenu(self.frame, self.variables[var], "Raramuri", "Kumiai", "Mixtec", "Other")
+        self.entries[var] = tk.OptionMenu(
+            self.frame, self.variables[var], "Raramuri", "Kumiai", "Mixtec", "Other"
+        )
         self.entries[var].grid(row=idx, column=2, sticky=W)
 
     def mk_choice_row(self, var, default, text, isdir=False, issave=False, idx=-1):

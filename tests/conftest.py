@@ -29,7 +29,10 @@ def valid_corpus_config() -> Dict[str, str]:
 def temp_config_file(valid_lexicon_config):
     """Create a temporary config file with valid lexicon config."""
     with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".cfg", delete=False, encoding="utf-8",
+        mode="w",
+        suffix=".cfg",
+        delete=False,
+        encoding="utf-8",
     ) as f:
         json.dump(valid_lexicon_config, f)
         return Path(f.name)
@@ -39,7 +42,10 @@ def temp_config_file(valid_lexicon_config):
 def temp_corpus_config_file(valid_corpus_config):
     """Create a temporary config file with valid corpus config."""
     with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".cfg", delete=False, encoding="utf-8",
+        mode="w",
+        suffix=".cfg",
+        delete=False,
+        encoding="utf-8",
     ) as f:
         json.dump(valid_corpus_config, f)
         return Path(f.name)
@@ -49,7 +55,10 @@ def temp_corpus_config_file(valid_corpus_config):
 def temp_invalid_json_config():
     """Create a temporary config file with invalid JSON."""
     with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".cfg", delete=False, encoding="utf-8",
+        mode="w",
+        suffix=".cfg",
+        delete=False,
+        encoding="utf-8",
     ) as f:
         f.write("{ invalid json }")
         return Path(f.name)
@@ -59,7 +68,10 @@ def temp_invalid_json_config():
 def temp_empty_config():
     """Create a temporary empty config file."""
     with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".cfg", delete=False, encoding="utf-8",
+        mode="w",
+        suffix=".cfg",
+        delete=False,
+        encoding="utf-8",
     ) as f:
         f.write("")
         return Path(f.name)

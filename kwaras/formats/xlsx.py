@@ -2,7 +2,6 @@ from openpyxl import load_workbook
 
 
 class ExcelReader:
-
     def __init__(self, filename):
 
         wb = load_workbook(filename)

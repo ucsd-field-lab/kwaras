@@ -55,7 +55,7 @@ def load_config_safely(config_path: str) -> dict:
                 return {}
             return json.loads(content)
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON in config file {config_path}: {e}")
+        raise ValueError(f"Invalid JSON in config file {config_path}: {e}") from e
 
 
 def validate_config(config: dict, required_keys: list) -> None:
@@ -256,9 +256,7 @@ def is_headless() -> bool:
     if os.name != "nt" and not os.environ.get("DISPLAY"):
         return True
     # Check if stdout is not a tty (piped/redirected)
-    if not sys.stdout.isatty():
-        return True
-    return False
+    return bool(not sys.stdout.isatty())
 
 
 def parse_args() -> argparse.Namespace:
@@ -272,14 +270,18 @@ def parse_args() -> argparse.Namespace:
         description="Kwaras - Tools for managing ELAN corpus files",
     )
     parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose output",
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Enable verbose output",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # convert-lexicon command
     lex_parser = subparsers.add_parser(
-        "convert-lexicon", help="Convert FLEx LIFT lexicon to EAFL format",
+        "convert-lexicon",
+        help="Convert FLEx LIFT lexicon to EAFL format",
     )
     lex_parser.add_argument(
         "--config",
@@ -290,7 +292,8 @@ def parse_args() -> argparse.Namespace:
 
     # export-corpus command
     exp_parser = subparsers.add_parser(
-        "export-corpus", help="Export ELAN corpus as web interface files",
+        "export-corpus",
+        help="Export ELAN corpus as web interface files",
     )
     exp_parser.add_argument(
         "--config",
@@ -301,12 +304,15 @@ def parse_args() -> argparse.Namespace:
 
     # check-install command
     subparsers.add_parser(
-        "check-install", help="Check if kwaras is installed correctly",
+        "check-install",
+        help="Check if kwaras is installed correctly",
     )
 
     # Legacy compatibility: direct flags (hidden)
     parser.add_argument(
-        "--convert-lexicon", action="store_true", help=argparse.SUPPRESS,
+        "--convert-lexicon",
+        action="store_true",
+        help=argparse.SUPPRESS,
     )
     parser.add_argument("--export-corpus", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--select-action", action="store_true", help=argparse.SUPPRESS)

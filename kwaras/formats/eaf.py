@@ -29,7 +29,10 @@ class Eaf:
         aanodes = self.eafile.findall(".//ALIGNABLE_ANNOTATION")
         self.times = {}
         for aa in aanodes:
-            self.times[aa.get("ANNOTATION_ID")] = [stimes[aa.get("TIME_SLOT_REF1")], stimes[aa.get("TIME_SLOT_REF2")]]
+            self.times[aa.get("ANNOTATION_ID")] = [
+                stimes[aa.get("TIME_SLOT_REF1")],
+                stimes[aa.get("TIME_SLOT_REF2")],
+            ]
         self.times["ALL"] = (0, prev)
 
         ranodes = self.eafile.findall(".//REF_ANNOTATION")
@@ -39,7 +42,7 @@ class Eaf:
         for ra in ranodes:
             ra_id = ref = ra.get("ANNOTATION_ID")
             times = None
-            for iter in range(5):
+            for _iter in range(5):
                 ref = links.get(ref)
                 if ref:
                     times = self.times.get(ref)
@@ -117,7 +120,7 @@ class Eaf:
             child = annot.findall("*")[0]
             return self.get_time(child)
         raise Exception("I can't find the time of a " + annot.tag)
-            # need to create annotations for blank tiers
+        # need to create annotations for blank tiers
 
     def get_tier_ids(self):
         tiers = self.eafile.findall("TIER")
@@ -133,8 +136,9 @@ class Eaf:
             tierids = [t.get("TIER_ID") for t in tiers]
             sizes = [len(list(t)) for t in matchlist]
             targ = matchlist[sizes.index(max(sizes))]  # the largest tier
-            print(f"WARNING: TIER_ID {tid} matched {len(matchlist)} nodes with lengths {sizes}.\n{tierids}",
-                  )
+            print(
+                f"WARNING: TIER_ID {tid} matched {len(matchlist)} nodes with lengths {sizes}.\n{tierids}",
+            )
         else:
             tierids = [t.get("TIER_ID") for t in tiers]
             raise NameError(f"TIER_ID {tid} matched {len(matchlist)} nodes.\n{tierids}")
@@ -149,8 +153,11 @@ class Eaf:
             raise NameError(f"TIER_ID {tid} already used.")
 
         # renumber the annotation ids appropriately
-        lastIdElem = [prop for prop in self.eafile.findall("HEADER/PROPERTY")
-                      if prop.get("NAME") == "lastUsedAnnotationId"][0]
+        lastIdElem = [
+            prop
+            for prop in self.eafile.findall("HEADER/PROPERTY")
+            if prop.get("NAME") == "lastUsedAnnotationId"
+        ][0]
         nextIdInt = int(lastIdElem.text) + 1
 
         annotes = list(tier.iter("ALIGNABLE_ANNOTATION")) + list(tier.iter("REF_ANNOTATION"))
@@ -166,7 +173,9 @@ class Eaf:
             at_idx = [k.get("TIER_ID", "") for k in self.eafile].index(after)
         else:
             # last tier
-            at_idx = len(list(self.eafile.iter())) - list(reversed([k.tag for k in self.eafile.iter()])).index("TIER")
+            at_idx = len(list(self.eafile.iter())) - list(
+                reversed([k.tag for k in self.eafile.iter()])
+            ).index("TIER")
 
         self.eafile.insert(at_idx, tier)
 
@@ -212,7 +221,11 @@ class Eaf:
         if ltype is not None:
             if ltype not in self.get_valid_types():
                 raise RuntimeWarning(
-                    "Type " + ltype + " is not recognized as a valid tier type:" + str(self.get_valid_types()))
+                    "Type "
+                    + ltype
+                    + " is not recognized as a valid tier type:"
+                    + str(self.get_valid_types())
+                )
             tier.set("LINGUISTIC_TYPE_REF", ltype)
         self.rectify_type(tier)
 
@@ -278,9 +291,8 @@ class Eaf:
     # def importTiers(): maybe better to use ELAN's multiple edit
 
     def write(self, filename):
-        outstr = open(filename, "w", encoding="utf-8")
-        outstr.write(etree.tostring(self.eafile, encoding="unicode"))
-        outstr.close()
+        with open(filename, "w", encoding="utf-8") as outstr:
+            outstr.write(etree.tostring(self.eafile, encoding="unicode"))
 
     def status(self, fields=None):
         """Report percent coverage of dependent tiers"""
@@ -299,8 +311,11 @@ class Eaf:
                 if len(basenotes) > 0:
                     for bn in basenotes:
                         start, stop = self.get_time(bn)
-                        fn = [n for n in self.get_annotations_in(f, start, stop)
-                              if n.findtext("ANNOTATION_VALUE").strip() != ""]
+                        fn = [
+                            n
+                            for n in self.get_annotations_in(f, start, stop)
+                            if n.findtext("ANNOTATION_VALUE").strip() != ""
+                        ]
                         if len(fn) > 0:
                             count += 1
                     coverage[f] = round(float(count) / len(basenotes), 2)
@@ -322,28 +337,28 @@ class Eaf:
 
         print("From", filename, "printing", fnames, "out of", self.get_tier_ids())
         columns = ("fieldname", "start", "end", "value", "filename")
-        csvfile = csv.DictWriter(
-            open(filename, mode, encoding="utf-8", newline=""),
-            dialect=dialect,
-            fieldnames=columns,
-        )
-        if "w" in mode:
-            csvfile.writeheader()
+        with open(filename, mode, encoding="utf-8", newline="") as csv_stream:
+            csvfile = csv.DictWriter(
+                csv_stream,
+                dialect=dialect,
+                fieldnames=columns,
+            )
+            if "w" in mode:
+                csvfile.writeheader()
 
-        for f in fnames:
-            annots = self.get_annotations_in(f)
-            for a in annots:
-                value = a.findtext("ANNOTATION_VALUE").strip()
-                start, end = [str(t) for t in self.get_time(a)]
-                row = {
-                    "fieldname": f,
-                    "start": start,
-                    "end": end,
-                    "value": value,
-                    "filename": self.filename,
-                }
-                csvfile.writerow(row)
-
+            for f in fnames:
+                annots = self.get_annotations_in(f)
+                for a in annots:
+                    value = a.findtext("ANNOTATION_VALUE").strip()
+                    start, end = [str(t) for t in self.get_time(a)]
+                    row = {
+                        "fieldname": f,
+                        "start": start,
+                        "end": end,
+                        "value": value,
+                        "filename": self.filename,
+                    }
+                    csvfile.writerow(row)
 
 
 if __name__ == "__main__":

@@ -29,18 +29,14 @@ setup(
     long_description_content_type="text/markdown",
     url="http://github.com/ucsd-field-lab/kwaras",
     license="MIT",
-
     # Modern package discovery using find_packages
     packages=find_packages(include=["kwaras", "kwaras.*"]),
-
     # Python version support
     python_requires=">=3.8,<3.13",
-
     # Production dependencies with version constraints
     install_requires=[
         "openpyxl>=3.0,<4.0",
     ],
-
     # Optional dependencies
     extras_require={
         "dev": [
@@ -51,7 +47,6 @@ setup(
             "pyinstaller>=5.0,<7.0",
         ],
     },
-
     # CLI entry points using console_scripts
     entry_points={
         "console_scripts": [
@@ -61,14 +56,12 @@ setup(
             "kwaras-check-install=kwaras.cli:check_install_cmd",
         ],
     },
-
     # Include package data (web static files)
     package_data={
         "kwaras": [
             "web/**/*",
         ],
     },
-
     # Classifiers for PyPI
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -82,7 +75,6 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Topic :: Scientific/Engineering :: Linguistics",
     ],
-
     project_urls={
         "Source": "http://github.com/ucsd-field-lab/kwaras",
         "Tracker": "http://github.com/ucsd-field-lab/kwaras/issues",

@@ -121,6 +121,4 @@ class TestRequirements:
         req_path = PROJECT_ROOT / "requirements.txt"
         with open(req_path, encoding="utf-8") as f:
             content = f.read()
-        assert "pyinstaller" in content.lower(), (
-            "requirements.txt should include pyinstaller"
-        )
+        assert "pyinstaller" in content.lower(), "requirements.txt should include pyinstaller"
