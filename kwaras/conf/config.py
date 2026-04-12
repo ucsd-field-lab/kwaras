@@ -32,7 +32,7 @@ class ConfigWindow:
 
         # Load previous configuration settings
         if os.path.exists(cfg_file):
-            with open(cfg_file, 'r', encoding='utf-8') as f:
+            with open(cfg_file, encoding="utf-8") as f:
                 cfgstr = f.read()
             if cfgstr:
                 self.cfg = json.loads(cfgstr)
@@ -48,7 +48,7 @@ class ConfigWindow:
         old_eafs = os.path.join(updir, "corpus-data-versions")
 
         if "MAIN" in parts:
-            self.mk_menu_row("LANGUAGE", defaults.get("LANGUAGE", cfg_file.split('.')[0]), "Language template:")
+            self.mk_menu_row("LANGUAGE", defaults.get("LANGUAGE", cfg_file.split(".")[0]), "Language template:")
 
         if "EAFL" in parts:
             self.mk_label_row("Variables used in creating EAFL file")
@@ -111,7 +111,7 @@ class ConfigWindow:
         for varname in self.variables:
             self.cfg[varname] = self.variables[varname].get()
         with open(self.cfg_file, "w") as cfg_fs:
-            json.dump(self.cfg, cfg_fs, indent=3, separators=(',', ': '))
+            json.dump(self.cfg, cfg_fs, indent=3, separators=(",", ": "))
 
     def _insert_index(self, idx):
         self.indices += [idx]
@@ -167,12 +167,12 @@ class ConfigWindow:
 
         def callback():
             options = {
-                'initialdir': self.variables[var].get(),
-                'parent': self.tkroot,
-                'title': "Choose " + text
+                "initialdir": self.variables[var].get(),
+                "parent": self.tkroot,
+                "title": "Choose " + text,
             }
-            if not os.path.exists(options['initialdir']):
-                options['initialdir'] = ''
+            if not os.path.exists(options["initialdir"]):
+                options["initialdir"] = ""
             if isdir:
                 dvar = tkinter.filedialog.askdirectory(**options)
             elif issave:

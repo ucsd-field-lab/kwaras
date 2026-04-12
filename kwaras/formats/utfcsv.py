@@ -1,23 +1,21 @@
-# -*- coding: utf-8 -*-
 """Unicode csv stream
 
 based on code from python csv module documentation
 """
 
-import io
 import codecs
 import csv
+import io
 
 # these are the defaults for *writing* csv files only
-csv.excel.lineterminator = '\n'
-csv.excel.delimiter = ','
+csv.excel.lineterminator = "\n"
+csv.excel.delimiter = ","
 
 csv.excel_tab.quoting = csv.QUOTE_ALL
 
 
 class CsvRow(list):
-    """
-    A named list, indexed by both position and by dict-type string keys,
+    """A named list, indexed by both position and by dict-type string keys,
     like named tuples, but overloading row[key] rather than using row.key notation
     """
 
@@ -37,8 +35,7 @@ class CsvRow(list):
 
 
 class UTF8Recoder:
-    """
-    Iterator that reads an encoded stream and reencodes the input to UTF-8
+    """Iterator that reads an encoded stream and reencodes the input to UTF-8
     """
 
     def __init__(self, f, encoding):
@@ -58,8 +55,7 @@ class UTF8Recoder:
 
 
 class UnicodeReader:
-    """
-    A CSV reader which will iterate over lines in the CSV file @f,
+    """A CSV reader which will iterate over lines in the CSV file @f,
     which is either a filename or an open filestream encoded in the given encoding.
 
     If @dialect or @fieldnames is not provided, we will try to guess them.
@@ -75,7 +71,7 @@ class UnicodeReader:
             fstream = f
 
         r = UTF8Recoder(fstream, encoding)
-        sniffdata = '\n'.join(r.readlines(500))
+        sniffdata = "\n".join(r.readlines(500))
         r.seek(0)
 
         if dialect is None:
@@ -96,7 +92,7 @@ class UnicodeReader:
             print(header)
             fieldnames = [str(s, "utf-8") for s in header]
         elif not fieldnames:
-            cols = len(sniffdata.split('\n')[0].split(dialect.delimiter))
+            cols = len(sniffdata.split("\n")[0].split(dialect.delimiter))
             fieldnames = ["V" + str(i) for i in range(cols)]
         self.fieldnames = tuple([str(n) for n in fieldnames])
 
@@ -109,8 +105,7 @@ class UnicodeReader:
 
 
 class UnicodeWriter:
-    """
-    A CSV writer which will write rows to CSV file @f,
+    """A CSV writer which will write rows to CSV file @f,
     which is either a filename or an open filestream encoded in the given encoding.
     """
 
@@ -134,7 +129,7 @@ class UnicodeWriter:
         # # ... and reencode it into the target encoding
         # data = self.encoder.encode(data)
         # write to the target stream
-        self.stream.write(bytes(data, 'utf-8'))
+        self.stream.write(bytes(data, "utf-8"))
         # empty queue
         self.queue.truncate(0)
 
@@ -146,11 +141,11 @@ class UnicodeWriter:
         self.stream.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    import unittest
-    import tempfile
     import random
+    import tempfile
+    import unittest
 
 
     class TestUtfCsv(unittest.TestCase):
@@ -173,9 +168,9 @@ if __name__ == '__main__':
             print()
             print("A utf-8 file with special characters")
             ur = UnicodeReader(self.file)
-            print(' | '.join(ur.fieldnames))
+            print(" | ".join(ur.fieldnames))
             print(next(ur))
-            print('\t'.join(next(ur)))
+            print("\t".join(next(ur)))
 
         def test_headed_csv(self):
 
@@ -192,8 +187,8 @@ if __name__ == '__main__':
             print()
             print("A utf-8 file with headers")
             ur = UnicodeReader(self.file)
-            print(' | '.join(header))
-            print(' | '.join(ur.fieldnames))
+            print(" | ".join(header))
+            print(" | ".join(ur.fieldnames))
             print(next(ur))
 
             self.assertTrue(ur.fieldnames == tuple(header))
@@ -212,8 +207,8 @@ if __name__ == '__main__':
             print()
             print("A utf-8 file with unclear headers")
             ur = UnicodeReader(self.file)
-            print(' | '.join(header))
-            print(' | '.join(ur.fieldnames))
+            print(" | ".join(header))
+            print(" | ".join(ur.fieldnames))
             print(next(ur))
 
             self.assertFalse(ur.fieldnames == tuple(header))
@@ -222,8 +217,8 @@ if __name__ == '__main__':
             print()
             print("Believe that the top line is headers")
             ur = UnicodeReader(self.file, fieldnames=True)
-            print(' | '.join(header))
-            print(' | '.join(ur.fieldnames))
+            print(" | ".join(header))
+            print(" | ".join(ur.fieldnames))
             print(next(ur))
 
             self.assertTrue(ur.fieldnames == tuple(header))

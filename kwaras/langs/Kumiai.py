@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Feb 3, 2016
+"""Created on Feb 3, 2016
 
 @author: lucien
 """
 
 import csv
-import os
 import json
+import os
 
 from ..formats import eaf
 
@@ -41,7 +39,7 @@ def clean_eaf(fname, template=None):
         eafile.import_types(template)
 
     tids = eafile.get_tier_ids()
-    spkrs = set([s.partition('@')[2] for s in tids])
+    spkrs = set([s.partition("@")[2] for s in tids])
 
     for s in spkrs:
         clean_eaf_block(eafile, s)
@@ -49,7 +47,7 @@ def clean_eaf(fname, template=None):
     return eafile
 
 
-def clean_eaf_block(eafile, spkr=''):
+def clean_eaf_block(eafile, spkr=""):
     pass
 
 

@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
@@ -25,7 +24,7 @@ class TestSpecFiles:
     def test_gui_spec_valid_python(self):
         """Test that gui.spec is valid Python syntax."""
         spec_path = PROJECT_ROOT / "gui.spec"
-        with open(spec_path, "r", encoding="utf-8") as f:
+        with open(spec_path, encoding="utf-8") as f:
             content = f.read()
         try:
             compile(content, str(spec_path), "exec")
@@ -35,7 +34,7 @@ class TestSpecFiles:
     def test_cli_spec_valid_python(self):
         """Test that kwaras.spec is valid Python syntax."""
         spec_path = PROJECT_ROOT / "kwaras.spec"
-        with open(spec_path, "r", encoding="utf-8") as f:
+        with open(spec_path, encoding="utf-8") as f:
             content = f.read()
         try:
             compile(content, str(spec_path), "exec")
@@ -45,14 +44,14 @@ class TestSpecFiles:
     def test_gui_spec_has_kwaras_package(self):
         """Test that gui.spec includes kwaras package."""
         spec_path = PROJECT_ROOT / "gui.spec"
-        with open(spec_path, "r", encoding="utf-8") as f:
+        with open(spec_path, encoding="utf-8") as f:
             content = f.read()
         assert "kwaras" in content, "gui.spec should include kwaras package"
 
     def test_cli_spec_has_kwaras_package(self):
         """Test that kwaras.spec includes kwaras package."""
         spec_path = PROJECT_ROOT / "kwaras.spec"
-        with open(spec_path, "r", encoding="utf-8") as f:
+        with open(spec_path, encoding="utf-8") as f:
             content = f.read()
         assert "kwaras" in content, "kwaras.spec should include kwaras package"
 
@@ -60,7 +59,7 @@ class TestSpecFiles:
         """Test that spec files exclude tkinter for headless environments."""
         for spec_name in ["gui.spec", "kwaras.spec"]:
             spec_path = PROJECT_ROOT / spec_name
-            with open(spec_path, "r", encoding="utf-8") as f:
+            with open(spec_path, encoding="utf-8") as f:
                 content = f.read()
             assert "tkinter" in content, f"{spec_name} should handle tkinter"
 
@@ -68,7 +67,7 @@ class TestSpecFiles:
         """Test that spec files include openpyxl as hidden import."""
         for spec_name in ["gui.spec", "kwaras.spec"]:
             spec_path = PROJECT_ROOT / spec_name
-            with open(spec_path, "r", encoding="utf-8") as f:
+            with open(spec_path, encoding="utf-8") as f:
                 content = f.read()
             assert "openpyxl" in content, f"{spec_name} should include openpyxl"
 
@@ -107,7 +106,7 @@ class TestWorkflow:
     def test_workflow_has_build_jobs(self):
         """Test workflow defines test and build jobs."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "build.yml"
-        with open(workflow_path, "r", encoding="utf-8") as f:
+        with open(workflow_path, encoding="utf-8") as f:
             content = f.read()
         assert "test:" in content
         assert "build-windows:" in content
@@ -120,7 +119,7 @@ class TestRequirements:
     def test_pyinstaller_in_requirements(self):
         """Test that pyinstaller is in requirements.txt."""
         req_path = PROJECT_ROOT / "requirements.txt"
-        with open(req_path, "r", encoding="utf-8") as f:
+        with open(req_path, encoding="utf-8") as f:
             content = f.read()
         assert "pyinstaller" in content.lower(), (
             "requirements.txt should include pyinstaller"

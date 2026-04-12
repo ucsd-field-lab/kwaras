@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Jul 27, 2012
+"""Created on Jul 27, 2012
 
 @author: lucien
 """
 
+import csv
 import xml.etree.ElementTree as etree
 from copy import deepcopy
-import csv
 
 
 class Eaf:
@@ -15,10 +13,9 @@ class Eaf:
 
         if not filename.endswith(".eaf"):
             raise Exception("Not an EAF:" + filename)
-        else:
-            self.filename = filename
-            self.eafile = etree.parse(filename).getroot()
-            self._init_times()
+        self.filename = filename
+        self.eafile = etree.parse(filename).getroot()
+        self._init_times()
 
     def _init_times(self):
         timenodes = self.eafile.findall("TIME_ORDER/TIME_SLOT")
@@ -52,7 +49,7 @@ class Eaf:
 
     def get_annotation(self, aref):
         """Get the annotation with the given ANNOTATION_ID"""
-        anode = self.eafile.find("[@ANNOTATION_ID='{}']".format(aref))
+        anode = self.eafile.find(f"[@ANNOTATION_ID='{aref}']")
         return anode
 
     def get_annotation_on(self, tid, node):
@@ -111,16 +108,15 @@ class Eaf:
             if ai not in self.times:
                 print(ai)
             return self.times[ai]
-        elif annot.tag == "REF_ANNOTATION":
+        if annot.tag == "REF_ANNOTATION":
             ar = annot.get("ANNOTATION_REF")
             if ar not in self.times:
                 print(ar)
             return self.times[ar]
-        elif annot.tag == "ANNOTATION":
+        if annot.tag == "ANNOTATION":
             child = annot.findall("*")[0]
             return self.get_time(child)
-        else:
-            raise Exception("I can't find the time of a " + annot.tag)
+        raise Exception("I can't find the time of a " + annot.tag)
             # need to create annotations for blank tiers
 
     def get_tier_ids(self):
@@ -137,11 +133,11 @@ class Eaf:
             tierids = [t.get("TIER_ID") for t in tiers]
             sizes = [len(list(t)) for t in matchlist]
             targ = matchlist[sizes.index(max(sizes))]  # the largest tier
-            print(("WARNING: TIER_ID {} matched {} nodes with lengths {}.\n{}"
-                  .format(tid, len(matchlist), sizes, tierids)))
+            print(f"WARNING: TIER_ID {tid} matched {len(matchlist)} nodes with lengths {sizes}.\n{tierids}",
+                  )
         else:
             tierids = [t.get("TIER_ID") for t in tiers]
-            raise NameError("TIER_ID {} matched {} nodes.\n{}".format(tid, len(matchlist), tierids))
+            raise NameError(f"TIER_ID {tid} matched {len(matchlist)} nodes.\n{tierids}")
         return targ
 
     def insert_tier(self, tier, after=None):
@@ -150,7 +146,7 @@ class Eaf:
         tierids = self.get_tier_ids()
         tid = tier.get("TIER_ID")
         if tid in tierids:
-            raise NameError("TIER_ID {} already used.".format(tid))
+            raise NameError(f"TIER_ID {tid} already used.")
 
         # renumber the annotation ids appropriately
         lastIdElem = [prop for prop in self.eafile.findall("HEADER/PROPERTY")
@@ -205,27 +201,26 @@ class Eaf:
             dep.set("PARENT_REF", new_id)
 
     def change_parent(self, tier, new_ref, ltype=None):
-        """Changes the parent and/or type of a tier. 
+        """Changes the parent and/or type of a tier.
         @warning: changing the parentage or type can create an invalid eaf
-        @todo: check that the parent and type are compatible"""
+        @todo: check that the parent and type are compatible
+        """
         if new_ref:
             tier.set("PARENT_REF", new_ref)
-        else:
-            if "PARENT_REF" in tier.attrib:
-                del tier.attrib["PARENT_REF"]
+        elif "PARENT_REF" in tier.attrib:
+            del tier.attrib["PARENT_REF"]
         if ltype is not None:
             if ltype not in self.get_valid_types():
                 raise RuntimeWarning(
                     "Type " + ltype + " is not recognized as a valid tier type:" + str(self.get_valid_types()))
-            else:
-                tier.set("LINGUISTIC_TYPE_REF", ltype)
+            tier.set("LINGUISTIC_TYPE_REF", ltype)
         self.rectify_type(tier)
 
     def rectify_type(self, tier):
         """Ensure that the parentage, atype and time refs are appropriate to the tier's ltype"""
         parent = tier.get("PARENT_REF")
         ltype = tier.get("LINGUISTIC_TYPE_REF")
-        ltype_node = self.eafile.find("LINGUISTIC_TYPE[@LINGUISTIC_TYPE_ID='{}']".format(ltype))
+        ltype_node = self.eafile.find(f"LINGUISTIC_TYPE[@LINGUISTIC_TYPE_ID='{ltype}']")
         if ltype_node.get("TIME_ALIGNABLE") == "true":
             refnotes = tier.findall("ANNOTATION/REF_ANNOTATION")
             if len(refnotes) > 0:
@@ -283,7 +278,7 @@ class Eaf:
     # def importTiers(): maybe better to use ELAN's multiple edit
 
     def write(self, filename):
-        outstr = open(filename, 'w', encoding='utf-8')
+        outstr = open(filename, "w", encoding="utf-8")
         outstr.write(etree.tostring(self.eafile, encoding="unicode"))
         outstr.close()
 
@@ -305,7 +300,7 @@ class Eaf:
                     for bn in basenotes:
                         start, stop = self.get_time(bn)
                         fn = [n for n in self.get_annotations_in(f, start, stop)
-                              if n.findtext("ANNOTATION_VALUE").strip() != '']
+                              if n.findtext("ANNOTATION_VALUE").strip() != ""]
                         if len(fn) > 0:
                             count += 1
                     coverage[f] = round(float(count) / len(basenotes), 2)
@@ -313,13 +308,13 @@ class Eaf:
                     coverage[f] = 0
         return coverage
 
-    def export_to_csv(self, filename, dialect='excel', fields=None, mode="w"):
+    def export_to_csv(self, filename, dialect="excel", fields=None, mode="w"):
         """Duplicate the ELAN export function, with our settings and safe csv format
         @filename: path of new csv file
         @dialect: a csv.Dialect instance or the name of a registered Dialect
         @fields: list of fields to export (default exports all)
-        @mode: fopen mode code ('w' to overwrite, 'a' to append)"""
-
+        @mode: fopen mode code ('w' to overwrite, 'a' to append)
+        """
         if fields is None:
             fnames = self.get_tier_ids()
         else:
@@ -328,11 +323,11 @@ class Eaf:
         print("From", filename, "printing", fnames, "out of", self.get_tier_ids())
         columns = ("fieldname", "start", "end", "value", "filename")
         csvfile = csv.DictWriter(
-            open(filename, mode, encoding='utf-8', newline=''), 
-            dialect=dialect, 
-            fieldnames=columns
+            open(filename, mode, encoding="utf-8", newline=""),
+            dialect=dialect,
+            fieldnames=columns,
         )
-        if 'w' in mode:
+        if "w" in mode:
             csvfile.writeheader()
 
         for f in fnames:
@@ -345,13 +340,13 @@ class Eaf:
                     "start": start,
                     "end": end,
                     "value": value,
-                    "filename": self.filename
+                    "filename": self.filename,
                 }
                 csvfile.writerow(row)
 
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     eaf = Eaf("/Users/lucien/Data/Raramuri/ELAN corpus/tx/tx1.eaf")
 
     eaf.export_to_csv("/Users/lucien/Data/Raramuri/ELAN corpus/tx1.csv")

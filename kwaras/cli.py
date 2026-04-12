@@ -41,6 +41,7 @@ def load_config_safely(config_path: str) -> dict:
     Raises:
         FileNotFoundError: If config file doesn't exist
         ValueError: If config file contains invalid JSON
+
     """
     path = Path(config_path)
 
@@ -48,7 +49,7 @@ def load_config_safely(config_path: str) -> dict:
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             content = f.read()
             if not content.strip():
                 return {}
@@ -66,6 +67,7 @@ def validate_config(config: dict, required_keys: list) -> None:
 
     Raises:
         ValueError: If any required keys are missing
+
     """
     missing = [key for key in required_keys if key not in config]
     if missing:
@@ -77,6 +79,7 @@ def validate_dependencies() -> list:
 
     Returns:
         List of missing dependencies (empty if all present)
+
     """
     required_deps = ["openpyxl"]
     missing = []
@@ -97,6 +100,7 @@ def convert_lexicon_cli(config_path: str = "lexicon.cfg", use_gui: bool = False)
 
     Returns:
         0 on success, 1 on failure
+
     """
     # Check dependencies first
     missing = validate_dependencies()
@@ -170,6 +174,7 @@ def export_corpus_cli(config_path: Optional[str] = None, use_gui: bool = False) 
 
     Returns:
         0 on success, 1 on failure
+
     """
     # Check dependencies first
     missing = validate_dependencies()
@@ -209,6 +214,7 @@ def check_install_cli() -> int:
 
     Returns:
         0 if installed, 1 if not installed
+
     """
     try:
         import kwaras
@@ -244,6 +250,7 @@ def is_headless() -> bool:
 
     Returns:
         True if running without a display/tty
+
     """
     # Check for no display on Unix
     if os.name != "nt" and not os.environ.get("DISPLAY"):
@@ -259,19 +266,20 @@ def parse_args() -> argparse.Namespace:
 
     Returns:
         Parsed arguments namespace
+
     """
     parser = argparse.ArgumentParser(
-        description="Kwaras - Tools for managing ELAN corpus files"
+        description="Kwaras - Tools for managing ELAN corpus files",
     )
     parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose output"
+        "--verbose", "-v", action="store_true", help="Enable verbose output",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # convert-lexicon command
     lex_parser = subparsers.add_parser(
-        "convert-lexicon", help="Convert FLEx LIFT lexicon to EAFL format"
+        "convert-lexicon", help="Convert FLEx LIFT lexicon to EAFL format",
     )
     lex_parser.add_argument(
         "--config",
@@ -282,7 +290,7 @@ def parse_args() -> argparse.Namespace:
 
     # export-corpus command
     exp_parser = subparsers.add_parser(
-        "export-corpus", help="Export ELAN corpus as web interface files"
+        "export-corpus", help="Export ELAN corpus as web interface files",
     )
     exp_parser.add_argument(
         "--config",
@@ -293,12 +301,12 @@ def parse_args() -> argparse.Namespace:
 
     # check-install command
     subparsers.add_parser(
-        "check-install", help="Check if kwaras is installed correctly"
+        "check-install", help="Check if kwaras is installed correctly",
     )
 
     # Legacy compatibility: direct flags (hidden)
     parser.add_argument(
-        "--convert-lexicon", action="store_true", help=argparse.SUPPRESS
+        "--convert-lexicon", action="store_true", help=argparse.SUPPRESS,
     )
     parser.add_argument("--export-corpus", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--select-action", action="store_true", help=argparse.SUPPRESS)
@@ -312,6 +320,7 @@ def main() -> int:
 
     Returns:
         Exit code (0 for success, non-zero for failure)
+
     """
     args = parse_args()
     setup_logging(args.verbose)
@@ -319,14 +328,14 @@ def main() -> int:
     # Handle subcommand style
     if args.command == "convert-lexicon":
         return convert_lexicon_cli(args.config)
-    elif args.command == "export-corpus":
+    if args.command == "export-corpus":
         return export_corpus_cli(args.config)
-    elif args.command == "check-install":
+    if args.command == "check-install":
         return check_install_cli()
 
     # Handle legacy flag style (backward compatibility)
     if args.convert_lexicon:
-        config = args.config if args.config else "lexicon.cfg"
+        config = args.config or "lexicon.cfg"
         return convert_lexicon_cli(config)
     if args.export_corpus:
         return export_corpus_cli(args.config)

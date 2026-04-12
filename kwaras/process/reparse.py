@@ -1,13 +1,12 @@
-"""
-Created on Nov 3, 2013
+"""Created on Nov 3, 2013
 
 @author: lscarrol
 """
 import re
 from xml.etree import ElementTree as etree
 
-from ..formats.lift import Lift
 from ..formats.eaf import Eaf
+from ..formats.lift import Lift
 
 _LANG = 1
 _LANG_CODE = ("en", "es")[_LANG]
@@ -21,11 +20,11 @@ def update(eafile, tiers, eafl):
         if x is not None:
             aval = x.findtext("ANNOTATION_VALUE")
             # print aval
-            if aval is '':
+            if aval == "":
                 print("Blank X annotation:", etree.tostring(x))
                 e = None
             else:
-                gidm = re.search("\(([^.]*)\)", x.findtext("ANNOTATION_VALUE"))
+                gidm = re.search(r"\(([^.]*)\)", x.findtext("ANNOTATION_VALUE"))
                 if gidm is None:
                     print("WARNING!")
                     print("Flaw in annotation:", aval, "at time", timept, "\n")
@@ -40,17 +39,17 @@ def update(eafile, tiers, eafl):
             else:
                 sns = eafl.getSenses(gid)
                 sense = sns[0]
-                g = sense.find("gloss[@lang='{}']/text".format(_LANG_CODE))
+                g = sense.find(f"gloss[@lang='{_LANG_CODE}']/text")
 
             if g is None:
-                gloss = eafile.get_annotation_on(tiers['g'], m)
+                gloss = eafile.get_annotation_on(tiers["g"], m)
                 print("WARNING!")
-                print("No gloss found for", gid, gloss.find("ANNOTATION_VALUE").text, end=' ')
-                print("at time", timept, '\n')
+                print("No gloss found for", gid, gloss.find("ANNOTATION_VALUE").text, end=" ")
+                print("at time", timept, "\n")
                 # gloss.find("ANNOTATION_VALUE").text = ""
             else:
                 newg = g.text
-                gloss = eafile.get_annotation_on(tiers['g'], m)
+                gloss = eafile.get_annotation_on(tiers["g"], m)
                 if gloss is None:
                     print("WARNING!")
                     print("No existing gloss found for", gid, newg)
@@ -72,19 +71,20 @@ def human_time(milliseconds):
         str, time in the minutes:seconds format
 
     For example:
+
     """
     milliseconds = int(milliseconds)
 
     seconds = milliseconds / 1000.0
     minutes = seconds / 60
 
-    seconds = "{0:0>4.1f}".format(seconds % 60)
+    seconds = f"{seconds % 60:0>4.1f}"
     minutes = str(int(minutes))
 
-    return minutes + ':' + seconds
+    return minutes + ":" + seconds
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     testfile = r"C:\Users\Public\Documents\ELAN\texts\tx_maiwaachi.eaf"
     outfile = r"C:\Users\Public\Documents\ELAN\texts\temp\tx_maiwaachi.eaf"
     lexicon = r"C:\Users\Public\Documents\ELAN\ELAN.lift"

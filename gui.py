@@ -1,11 +1,11 @@
 #! env python3
 
 import argparse
-import os.path
-import traceback
 import json
+import os.path
 import tkinter as tk
 import tkinter.messagebox
+import traceback
 from tkinter.constants import *
 
 try:
@@ -25,7 +25,7 @@ def convert_lexicon():
 
     config.ConfigWindow("lexicon.cfg", parts=["EAFL"])
 
-    with open("lexicon.cfg", 'r', encoding='utf-8') as f:
+    with open("lexicon.cfg", encoding="utf-8") as f:
         cfg = json.load(f)
     dir_name = cfg["EAFL_DIR"]
     inf_name = cfg["LIFT"]
@@ -62,13 +62,13 @@ def export_corpus(cfg_path):
     if not cfg_path:
         window = config.ConfigWindow("corpus.cfg", parts=["MAIN"])
 
-        with open("corpus.cfg", 'r', encoding='utf-8') as f:
+        with open("corpus.cfg", encoding="utf-8") as f:
             main_cfg = json.load(f)
         cfg_path = "{0}.cfg".format(main_cfg["LANGUAGE"])
 
     window = config.ConfigWindow(cfg_path, parts=["MAIN", "CSV", "HTML"])
 
-    with open(cfg_path, 'r', encoding='utf-8') as f:
+    with open(cfg_path, encoding="utf-8") as f:
         cfg = json.load(f)
     try:
         web.main(cfg)

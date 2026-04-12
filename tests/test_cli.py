@@ -1,9 +1,5 @@
 """Tests for CLI configuration and validation functions."""
 
-import json
-import os
-import tempfile
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -262,7 +258,6 @@ class TestConfigValidationErrors:
 
     def test_missing_required_key_error_message(self):
         """Test that missing required key produces clear error."""
-        import logging
         from kwaras.cli import validate_config
 
         config = {"EAFL_DIR": "some/path"}

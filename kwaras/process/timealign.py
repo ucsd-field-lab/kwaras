@@ -55,12 +55,11 @@ def getFrames(clipname, longname):
                 frames = (init, init + cliplen, clip.getframerate())
                 print("MATCH!", idx, frames, float(init) / clip.getframerate())
                 return frames
-            else:
-                print("Missed match", idx, m.start() / framelen, m.end() / framelen)
-                print(longsound.getsampwidth(), clip.getsampwidth(), framelen)
-                print(len(longbytes), repr([longbytes[:30], longbytes[-10:]]))
-                print(len(clipbytes), repr([clipbytes[:30], clipbytes[-10:]]))
-                print(len(m.group()), repr([m.group()[:30], m.group()[-10:]]))
+            print("Missed match", idx, m.start() / framelen, m.end() / framelen)
+            print(longsound.getsampwidth(), clip.getsampwidth(), framelen)
+            print(len(longbytes), repr([longbytes[:30], longbytes[-10:]]))
+            print(len(clipbytes), repr([clipbytes[:30], clipbytes[-10:]]))
+            print(len(m.group()), repr([m.group()[:30], m.group()[-10:]]))
     return frames
 
 

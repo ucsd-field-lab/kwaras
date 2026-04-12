@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Jul 27, 2012
+"""Created on Jul 27, 2012
 
 @author: lucien
 """
@@ -17,12 +15,12 @@ _SPELLING = [  # steps required to prevent transitive ʃ → x → j → y
      "ʲ": "y",  # sup j → y
      "ʑ": "y",
      "ʤ": "dy",
-     "ʧ": "ty"
+     "ʧ": "ty",
      }, {
         "ʰ": "",  # sup h
         "x": "j",  # x
         "χ": "j",
-        "h": "j"  # h
+        "h": "j",  # h
     }, {
         "ɲ": "ñ",  # ñ
         "ny": "ñ",
@@ -35,7 +33,7 @@ _SPELLING = [  # steps required to prevent transitive ʃ → x → j → y
         "ɾ": "r",  # flap
         "ɽ": "r",  # retroflex flap
         "ⁿ": "n",  # sup n
-        "ŋ": "n"  # engma → n
+        "ŋ": "n",  # engma → n
     }, {
         "tx": "ch",
         "̃": "N",  # nasalization
@@ -68,8 +66,8 @@ _SPELLING = [  # steps required to prevent transitive ʃ → x → j → y
         "͡": "",  # overbrace
         "̪": "",  # dental sign
         "̽": "",  # combining X ??
-        "̤": ""  # breathy voice
-    }
+        "̤": "",  # breathy voice
+    },
 ]
 
 _TO_IPA = [
@@ -84,7 +82,7 @@ _TO_IPA = [
      "'": "ʔ",
      "x": "ʃ",
      "w": "ʷ",
-     "r": "ɾ"}
+     "r": "ɾ"},
 ]
 
 
@@ -96,13 +94,13 @@ def convert_to_ipa(text):
             text = text.replace(key, step[key])
 
     text = re.sub("n(-| |$)", r"N\1", text)
-    print(repr(text), "> ", end=' ')
+    print(repr(text), "> ", end=" ")
     text = re.sub("([aeiouɨ])([mnɲ][aeiouɨ])(-| |$)", r"\1N\2N\3", text)  # spread from mid C
     text = re.sub("([aeiɨou])(ʔ[mnɲ][aeiouɨ])(-| |$)", r"\1N\2N\3", text)  # spread from mid C
-    print(text, "> ", end=' ')
+    print(text, "> ", end=" ")
     text = re.sub("([aeiɨou])([aeiɨou]N)", r"\1N\2", text)  # spread L from final vowel
     text = re.sub("([aeiɨou])(ʔ[aeiɨou]N)", r"\1N\2", text)  # spread L from final vowel
-    print(text, "> ", end=' ')
+    print(text, "> ", end=" ")
     text = re.sub("([mnɲ][aeiɨou])", r"\1N", text)  # spread R from onset
     text = re.sub("(N(ʔ)?[aeiɨou])", r"\1N", text)  # spread R from initial vowel
     text = re.sub("N+", r"̃", text)

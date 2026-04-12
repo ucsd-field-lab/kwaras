@@ -10,7 +10,7 @@ class ExcelReader:
         self.fieldnames = next(self.worksheet.rows)
 
     def __next__(self):
-        values = ['' if cell.value is None else cell.value for cell in next(self.worksheet.rows)]
+        values = ["" if cell.value is None else cell.value for cell in next(self.worksheet.rows)]
         row = dict(list(zip(self.fieldnames, values)))
         return row
 

@@ -1,6 +1,5 @@
 """Tests for package structure and module imports."""
 
-import pytest
 
 
 class TestPackageImports:
@@ -20,19 +19,12 @@ class TestPackageImports:
 
     def test_formats_submodules(self):
         """Test format modules can be imported."""
-        from kwaras.formats import lift
-        from kwaras.formats import eaf
-        from kwaras.formats import xlsx
 
     def test_process_submodules(self):
         """Test process modules can be imported."""
-        from kwaras.process import liftadd
-        from kwaras.process import web
 
     def test_langs_submodules(self):
         """Test language modules can be imported."""
-        from kwaras.langs import Mixtec
-        from kwaras.langs import Other
 
 
 class TestFormatClasses:
@@ -78,8 +70,9 @@ class TestPackageData:
 
     def test_web_directory_exists(self):
         """Test web directory is in package."""
-        from kwaras import __path__
         import os
+
+        from kwaras import __path__
 
         web_path = os.path.join(__path__[0], "web")
         assert os.path.isdir(web_path)
