@@ -244,6 +244,31 @@ The GUI provides interactive windows to configure each section.
 
 Kwaras can be built as standalone executables using PyInstaller.
 
+### Executables
+
+Kwaras provides two pre-built executables:
+
+| Executable | Purpose | Usage |
+|------------|---------|-------|
+| `gui` / `gui.exe` | GUI application | Launch for interactive corpus management |
+| `kwaras` / `kwaras.exe` | CLI application | Run `kwaras --help` for available commands |
+
+#### CLI Commands
+
+```bash
+# Export ELAN corpus to web interface
+kwaras export-corpus --config MyLanguage.cfg
+
+# Convert LIFT lexicon to EAFL format
+kwaras convert-lexicon --config lexicon.cfg
+
+# Check installation
+kwaras check-install
+
+# Get help
+kwaras --help
+```
+
 ### Prerequisites
 
 - Python 3.8-3.12
