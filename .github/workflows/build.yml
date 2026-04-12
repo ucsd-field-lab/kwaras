@@ -68,6 +68,18 @@ jobs:
     name: Build Windows executables
     runs-on: windows-latest
     needs: [lint, test]
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && (
+        contains(github.event.pull_request.changed_files, 'gui.spec') ||
+        contains(github.event.pull_request.changed_files, 'kwaras.spec') ||
+        contains(github.event.pull_request.changed_files, 'requirements.txt') ||
+        contains(github.event.pull_request.changed_files, 'requirements-dev.txt') ||
+        contains(github.event.pull_request.changed_files, 'build.ps1') ||
+        contains(github.event.pull_request.changed_files, 'build.sh') ||
+        contains(github.event.pull_request.changed_files, 'pyproject.toml') ||
+        contains(github.event.pull_request.changed_files, '.github/workflows/build.yml')
+      ))
 
     steps:
       - name: Checkout repository
@@ -104,6 +116,18 @@ jobs:
     name: Build Linux executables
     runs-on: ubuntu-latest
     needs: [lint, test]
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && (
+        contains(github.event.pull_request.changed_files, 'gui.spec') ||
+        contains(github.event.pull_request.changed_files, 'kwaras.spec') ||
+        contains(github.event.pull_request.changed_files, 'requirements.txt') ||
+        contains(github.event.pull_request.changed_files, 'requirements-dev.txt') ||
+        contains(github.event.pull_request.changed_files, 'build.ps1') ||
+        contains(github.event.pull_request.changed_files, 'build.sh') ||
+        contains(github.event.pull_request.changed_files, 'pyproject.toml') ||
+        contains(github.event.pull_request.changed_files, '.github/workflows/build.yml')
+      ))
 
     steps:
       - name: Checkout repository
