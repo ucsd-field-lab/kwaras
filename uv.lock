@@ -1,0 +1,8 @@
+version = 1
+revision = 3
+requires-python = ">=3.8, <3.13"
+
+[[package]]
+name = "kwaras"
+version = "3.0.0rc3"
+source = { virtual = "." }

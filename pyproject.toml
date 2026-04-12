@@ -1,0 +1,31 @@
+[project]
+name = "kwaras"
+version = "3.0.0rc3"
+requires-python = ">=3.8,<3.13"
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.pylint.main]
+py-version = "3.8"
+ignore = ["build", "dist", "kwaras.egg-info", ".venv"]
+
+[tool.pylint.messages_control]
+disable = [
+  "line-too-long",
+  "trailing-whitespace",
+  "missing-final-newline",
+  "mixed-line-endings",
+  "bad-indentation",
+  "superfluous-parens",
+  "unnecessary-semicolon",
+]

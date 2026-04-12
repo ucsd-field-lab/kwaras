@@ -13,7 +13,7 @@ pyinstaller>=5.0,<7.0
 setuptools>=65.0
 wheel>=0.38
 
-# Code quality (optional)
-# black>=22.0
-# pylint>=2.13
+# Code quality
+ruff>=0.6.0
+pylint>=3.2.0
 # mypy>=0.950
