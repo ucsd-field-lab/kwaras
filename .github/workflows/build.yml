@@ -116,8 +116,12 @@ jobs:
       - name: Smoke test CLI executable
         shell: pwsh
         run: |
+          Write-Host "PWD: $(Get-Location)"
+          Write-Host "Contents of dist:"
+          Get-ChildItem -Path dist -Recurse | Format-Table FullName, Length -AutoSize
           $exe = Get-ChildItem -Path dist -Recurse -Filter "kwaras.exe" | Select-Object -First 1
           if ($exe) {
+            Write-Host "Found: $($exe.FullName)"
             & $exe.FullName --help
           } else {
             Write-Host "kwaras.exe not found"
@@ -126,12 +130,20 @@ jobs:
 
       - name: Upload Windows artifacts
         if: success()
+        shell: pwsh
+        run: |
+          $distPath = Join-Path (Get-Location) "dist"
+          Write-Host "Uploading from: $distPath"
+          Get-ChildItem -Path $distPath -Recurse | ForEach-Object { Write-Host "  $($_.FullName)" }
+          Compress-Archive -Path "$distPath\*" -DestinationPath "kwaras-windows.zip" -Force
+          Get-ChildItem -Path "kwaras-windows.zip"
+
+      - name: Upload artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: kwaras-windows
-          path: |
-            dist/gui
-            dist/kwaras
+          path: kwaras-windows.zip
 
   build-unix:
     name: Build Linux executables
@@ -175,9 +187,15 @@ jobs:
 
       - name: Upload Linux artifacts
         if: success()
+        run: |
+          echo "Contents of dist:"
+          find dist -type f
+          zip -r kwaras-linux.zip dist/gui dist/kwaras
+          ls -la kwaras-linux.zip
+
+      - name: Upload artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: kwaras-linux
-          path: |
-            dist/gui
-            dist/kwaras
+          path: kwaras-linux.zip
