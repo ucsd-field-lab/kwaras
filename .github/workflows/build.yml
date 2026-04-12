@@ -125,12 +125,13 @@ jobs:
           }
 
       - name: Upload Windows artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: kwaras-windows
           path: |
-            dist/gui/**
-            dist/kwaras/**
+            dist/gui
+            dist/kwaras
 
   build-unix:
     name: Build Linux executables
@@ -173,9 +174,10 @@ jobs:
           fi
 
       - name: Upload Linux artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: kwaras-linux
           path: |
-            dist/gui/**
-            dist/kwaras/**
+            dist/gui
+            dist/kwaras

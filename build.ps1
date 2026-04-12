@@ -9,6 +9,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Workaround for Python 3.12 platform.win32_ver() hang on some Windows systems
+$env:PYTHONWINVER = "10"
+
 function Write-Step($message) {
     Write-Host "[BUILD] $message" -ForegroundColor Cyan
 }
@@ -45,6 +48,7 @@ if ($Clean) {
 
 # Check and install pyinstaller
 Write-Step "Checking pyinstaller..."
+$env:PYTHONWINVER = "10"  # Workaround for platform.win32_ver() hang
 try {
     $pyinstallerVersion = pyinstaller --version 2>$null
     if ($LASTEXITCODE -eq 0) {
