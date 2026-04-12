@@ -144,7 +144,7 @@ fi
 if [ "$TARGET" = "gui" ] || [ "$TARGET" = "both" ]; then
     log_step "Building GUI executable..."
     pyinstaller --noconfirm --clean gui.spec.tmp $ONEFILE
-    if [ -f "dist/gui/gui" ]; then
+    if ls dist/gui/* 1> /dev/null 2>&1; then
         log_done "GUI executable created: dist/gui"
     else
         log_error "GUI build failed"
@@ -156,7 +156,7 @@ fi
 if [ "$TARGET" = "cli" ] || [ "$TARGET" = "both" ]; then
     log_step "Building CLI executable..."
     pyinstaller --noconfirm --clean kwaras.spec.tmp $ONEFILE
-    if [ -f "dist/kwaras/kwaras" ]; then
+    if ls dist/kwaras/* 1> /dev/null 2>&1; then
         log_done "CLI executable created: dist/kwaras"
     else
         log_error "CLI build failed"

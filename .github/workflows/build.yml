@@ -61,23 +61,38 @@ jobs:
       - name: Run tests
         run: python -m pytest -v
 
+  check-changes:
+    name: Check for build-related file changes
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.filter.outputs.should_build }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            should_build:
+              - 'gui.spec'
+              - 'kwaras.spec'
+              - 'requirements.txt'
+              - 'requirements-dev.txt'
+              - 'build.ps1'
+              - 'build.sh'
+              - 'pyproject.toml'
+              - '.github/workflows/build.yml'
+
   build-windows:
     name: Build Windows executables
     runs-on: windows-latest
-    needs: [lint, test]
+    needs: [lint, test, check-changes]
     if: |
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'push' ||
-      (github.event_name == 'pull_request' && (
-        contains(github.event.pull_request.changed_files, 'gui.spec') ||
-        contains(github.event.pull_request.changed_files, 'kwaras.spec') ||
-        contains(github.event.pull_request.changed_files, 'requirements.txt') ||
-        contains(github.event.pull_request.changed_files, 'requirements-dev.txt') ||
-        contains(github.event.pull_request.changed_files, 'build.ps1') ||
-        contains(github.event.pull_request.changed_files, 'build.sh') ||
-        contains(github.event.pull_request.changed_files, 'pyproject.toml') ||
-        contains(github.event.pull_request.changed_files, '.github/workflows/build.yml')
-      ))
+      needs.check-changes.outputs.should_build == 'true'
 
     steps:
       - name: Checkout repository
@@ -100,7 +115,14 @@ jobs:
 
       - name: Smoke test CLI executable
         shell: pwsh
-        run: .\dist\kwaras\kwaras.exe --help
+        run: |
+          $exe = Get-ChildItem -Path dist -Recurse -Filter "kwaras.exe" | Select-Object -First 1
+          if ($exe) {
+            & $exe.FullName --help
+          } else {
+            Write-Host "kwaras.exe not found"
+            exit 1
+          }
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
@@ -113,20 +135,11 @@ jobs:
   build-unix:
     name: Build Linux executables
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [lint, test, check-changes]
     if: |
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'push' ||
-      (github.event_name == 'pull_request' && (
-        contains(github.event.pull_request.changed_files, 'gui.spec') ||
-        contains(github.event.pull_request.changed_files, 'kwaras.spec') ||
-        contains(github.event.pull_request.changed_files, 'requirements.txt') ||
-        contains(github.event.pull_request.changed_files, 'requirements-dev.txt') ||
-        contains(github.event.pull_request.changed_files, 'build.ps1') ||
-        contains(github.event.pull_request.changed_files, 'build.sh') ||
-        contains(github.event.pull_request.changed_files, 'pyproject.toml') ||
-        contains(github.event.pull_request.changed_files, '.github/workflows/build.yml')
-      ))
+      needs.check-changes.outputs.should_build == 'true'
 
     steps:
       - name: Checkout repository
@@ -150,7 +163,14 @@ jobs:
         run: ./build.sh both --clean
 
       - name: Smoke test CLI executable
-        run: ./dist/kwaras/kwaras --help
+        run: |
+          EXE=$(find dist -name "kwaras" -type f -executable | head -1)
+          if [ -n "$EXE" ]; then
+            "$EXE" --help
+          else
+            echo "kwaras executable not found"
+            exit 1
+          fi
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4

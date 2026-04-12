@@ -71,10 +71,12 @@ if ($Target -eq "gui" -or $Target -eq "both") {
     Write-Step "Building GUI executable..."
     pyinstaller --noconfirm --clean gui.spec $onefileArg
     if ($LASTEXITCODE -eq 0) {
-        if (Test-Path "dist\gui.exe") {
-            Write-StepDone "GUI executable created: dist\gui.exe"
+        $guiExe = Get-ChildItem -Path "dist" -Recurse -Filter "gui.exe" -ErrorAction SilentlyContinue
+        if ($guiExe) {
+            Write-StepDone "GUI executable created: $($guiExe.FullName)"
         } else {
             Write-StepError "GUI executable not found in dist/"
+            exit 1
         }
     } else {
         Write-StepError "GUI build failed"
@@ -87,10 +89,12 @@ if ($Target -eq "cli" -or $Target -eq "both") {
     Write-Step "Building CLI executable..."
     pyinstaller --noconfirm --clean kwaras.spec $onefileArg
     if ($LASTEXITCODE -eq 0) {
-        if (Test-Path "dist\kwaras.exe") {
-            Write-StepDone "CLI executable created: dist\kwaras.exe"
+        $kwarasExe = Get-ChildItem -Path "dist" -Recurse -Filter "kwaras.exe" -ErrorAction SilentlyContinue
+        if ($kwarasExe) {
+            Write-StepDone "CLI executable created: $($kwarasExe.FullName)"
         } else {
             Write-StepError "CLI executable not found in dist/"
+            exit 1
         }
     } else {
         Write-StepError "CLI build failed"
