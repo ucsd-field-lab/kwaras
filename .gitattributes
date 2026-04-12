@@ -10,6 +10,8 @@
 *.json text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
+*.spec text eol=lf
+*.sh text eol=lf
 
 # Binary files
 *.png binary

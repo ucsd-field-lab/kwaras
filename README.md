@@ -240,4 +240,73 @@ The GUI provides interactive windows to configure each section.
 - Verify `OLD_EAFS` directory contains ELAN export files
 - Check that filenames match between ELAN exports and WAV files
 
+## Building from Source
+
+Kwaras can be built as standalone executables using PyInstaller.
+
+### Prerequisites
+
+- Python 3.8-3.12
+- pyinstaller: `pip install pyinstaller`
+
+### Building
+
+#### Windows
+
+```powershell
+# Build both GUI and CLI executables
+.\build.ps1
+
+# Build specific target
+.\build.ps1 -Target gui    # GUI only
+.\build.ps1 -Target cli   # CLI only
+
+# Clean and rebuild
+.\build.ps1 -Clean
+```
+
+#### macOS/Linux
+
+```bash
+# Make script executable
+chmod +x build.sh
+
+# Build both GUI and CLI executables
+./build.sh
+
+# Build specific target
+./build.sh gui    # GUI only
+./build.sh cli   # CLI only
+
+# Clean and rebuild
+./build.sh --clean
+```
+
+### Build Output
+
+Executables are created in the `dist/` directory:
+
+- `dist/gui` — GUI application (Windows: `gui.exe`)
+- `dist/kwaras` — CLI application (Windows: `kwaras.exe`)
+
+### Spec Files
+
+The build uses PyInstaller spec files:
+
+| File | Purpose |
+|------|---------|
+| `gui.spec` | GUI executable build configuration (Windows) |
+| `kwaras.spec` | CLI executable build configuration (Windows) |
+| `build.sh` | Unix build script (generates spec files dynamically) |
+
+### Testing Build
+
+```bash
+# Verify GUI executable
+./dist/gui.exe --help
+
+# Verify CLI executable
+./dist/kwaras.exe --help
+```
+
 

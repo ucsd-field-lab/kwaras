@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['gui.py'],
+a = Analysis(['kwaras\\cli.py'],
              pathex=['C:\\Users\\serap\\Documents\\kwaras'],
              binaries=[],
              datas=[('web', 'web'), ('kwaras', 'kwaras')],
@@ -21,9 +21,9 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='gui',
+          name='kwaras',
           debug=False,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=False )
+          console=True )
