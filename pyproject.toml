@@ -1,0 +1,42 @@
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+extend-exclude = [
+  "kwaras/formats/textgrid.py",
+  "kwaras/formats/utfcsv.py",
+  "kwaras/process/web.py",
+  "kwaras/process/timealign.py",
+  "kwaras/langs/Raramuri.py",
+  "kwaras/langs/Kumiai.py",
+  "kwaras/langs/Other.py",
+  "kwaras/langs/Gitonga.py",
+  "kwaras/process/liftadd.py",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"gui.py" = ["F401", "UP030", "F841"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.pylint.main]
+py-version = "3.8"
+ignore = ["build", "dist", "kwaras.egg-info", ".venv"]
+
+[tool.pylint.messages_control]
+disable = [
+  "line-too-long",
+  "trailing-whitespace",
+  "missing-final-newline",
+  "mixed-line-endings",
+  "bad-indentation",
+  "superfluous-parens",
+  "unnecessary-semicolon",
+]

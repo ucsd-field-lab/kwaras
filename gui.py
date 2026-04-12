@@ -1,20 +1,21 @@
 #! env python3
 
 import argparse
-import os.path
-import traceback
 import json
+import os.path
 import tkinter as tk
 import tkinter.messagebox
-from tkinter.constants import *
+import traceback
+from tkinter.constants import BOTH, RIDGE, E, N, S, W
 
 try:
     import kwaras
 except ImportError as e:
-
-    tkinter.messagebox.showerror(title="Package not installed.",
-                           message="The 'kwaras' package has not been installed correctly yet. "
-                                   "Run installer before running this.")
+    tkinter.messagebox.showerror(
+        title="Package not installed.",
+        message="The 'kwaras' package has not been installed correctly yet. "
+        "Run installer before running this.",
+    )
     raise e
 
 
@@ -25,7 +26,7 @@ def convert_lexicon():
 
     config.ConfigWindow("lexicon.cfg", parts=["EAFL"])
 
-    with open("lexicon.cfg", 'r', encoding='utf-8') as f:
+    with open("lexicon.cfg", encoding="utf-8") as f:
         cfg = json.load(f)
     dir_name = cfg["EAFL_DIR"]
     inf_name = cfg["LIFT"]
@@ -35,12 +36,12 @@ def convert_lexicon():
         print("Exposing GUID as field in", inf_name)
         # update GUID field in lexicon
         lift = Lift(inf_name)
-        lift = liftadd.exposeGuid(lift)
+        lift = liftadd.expose_guid(lift)
         lift.write(os.path.join(dir_name, base + "-guid.lift"))
 
         # add allomorphs to LIFT file
         print("Adding allomorphs to", inf_name)
-        lift = liftadd.addRarAllomorphs(lift)
+        lift = liftadd.add_allomorphs(lift)
         # dump the LIFT data to a new file
         outf_name = os.path.join(dir_name, base + "-added.lift")
         lift.write(outf_name)
@@ -51,8 +52,9 @@ def convert_lexicon():
         lift.toEAFL(eafl_name)
         print("Data written to", eafl_name)
     else:
-        tkinter.messagebox.showerror(title="Wrong format.",
-                               message="The selected file is not a LIFT lexicon file.")
+        tkinter.messagebox.showerror(
+            title="Wrong format.", message="The selected file is not a LIFT lexicon file."
+        )
 
 
 def export_corpus(cfg_path):
@@ -62,20 +64,19 @@ def export_corpus(cfg_path):
     if not cfg_path:
         window = config.ConfigWindow("corpus.cfg", parts=["MAIN"])
 
-        with open("corpus.cfg", 'r', encoding='utf-8') as f:
+        with open("corpus.cfg", encoding="utf-8") as f:
             main_cfg = json.load(f)
         cfg_path = "{0}.cfg".format(main_cfg["LANGUAGE"])
 
     window = config.ConfigWindow(cfg_path, parts=["MAIN", "CSV", "HTML"])
 
-    with open(cfg_path, 'r', encoding='utf-8') as f:
+    with open(cfg_path, encoding="utf-8") as f:
         cfg = json.load(f)
     try:
         web.main(cfg)
     except Exception as err:
         print(traceback.format_exc())
-        tkinter.messagebox.showerror(title="Unexpected Error",
-                               message=traceback.format_exc())
+        tkinter.messagebox.showerror(title="Unexpected Error", message=traceback.format_exc())
         raise err
 
 
@@ -90,14 +91,18 @@ def main(args):
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--convert-lexicon", action="store_true",
-                        help="Convert FLEx LIFT lexicon to ELAN-Corpa EAFL lexicon")
-    parser.add_argument("--export-corpus", action="store_true",
-                        help="Export an ELAN corpus as web interface files")
-    parser.add_argument("--select-action", action="store_true",
-                        help="Use GUI widget to choose action")
-    parser.add_argument("--config",
-                        help="Path of the config file to read")
+    parser.add_argument(
+        "--convert-lexicon",
+        action="store_true",
+        help="Convert FLEx LIFT lexicon to ELAN-Corpa EAFL lexicon",
+    )
+    parser.add_argument(
+        "--export-corpus", action="store_true", help="Export an ELAN corpus as web interface files"
+    )
+    parser.add_argument(
+        "--select-action", action="store_true", help="Use GUI widget to choose action"
+    )
+    parser.add_argument("--config", help="Path of the config file to read")
 
     return parser.parse_args()
 

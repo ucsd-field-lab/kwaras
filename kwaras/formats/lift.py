@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Apr 16, 2013
+"""Created on Apr 16, 2013
 
 @author: lucien
 """
 
 import xml.etree.ElementTree as eTree
-from datetime import datetime
 from copy import deepcopy
+from datetime import datetime
 
 _LANG_CODE = ("en", "es")[0]
 
@@ -19,7 +17,7 @@ _SFM_TAGS_ = {
     "variant": "va",
     "pronunciation": "",
     "gloss": "g",
-    "example": "x"
+    "example": "x",
 }
 
 _EAFL_TAGS_ = {
@@ -51,9 +49,10 @@ class Lift:
 
     def getEntry(self, guid):
         """Look up a lexical entry by guid/eid.
-        Given either the guid or eid, the lookup is based on guid."""
+        Given either the guid or eid, the lookup is based on guid.
+        """
         guid = guid.split("_")[-1]
-        entry = self.root.find("entry[@guid='{}']".format(guid))
+        entry = self.root.find(f"entry[@guid='{guid}']")
         return entry
 
     def getPrimary(self, guid):
@@ -70,7 +69,7 @@ class Lift:
         """Get attribute @attr node (XPATH) of entry that has unique id @guid"""
         entry = self.getEntry(guid)
         attrs = entry.findall(field)
-        attrs += entry.findall("field[@type='{}']".format(field))
+        attrs += entry.findall(f"field[@type='{field}']")
         if len(attrs) < 1:
             attr_node = None
         elif len(attrs) > 1:
@@ -82,7 +81,8 @@ class Lift:
 
     def getPOS(self, guid):
         """Get the POS value, from the entry itself if available,
-        otherwise from the primary entry for a variant entry."""
+        otherwise from the primary entry for a variant entry.
+        """
         entry = self.getEntry(guid)
         ps = entry.find("sense/grammatical-info")
         if ps is None:
@@ -90,10 +90,7 @@ class Lift:
             if primary is not None:
                 ps = primary.find("sense/grammatical-info")
 
-        if ps is None:
-            psv = ""
-        else:
-            psv = ps.get("value")
+        psv = "" if ps is None else ps.get("value")
         return psv
 
     def getSenses(self, guid):
@@ -107,22 +104,21 @@ class Lift:
 
     def getVarForms(self, guid):
         """Get a list of variant forms (allomorphs + pronunciations)"""
-        frame = {"stem": "{}",
-                 "prefix": "{}-",
-                 "suffix": "-{}",
-                 "proclitic": "{}=",
-                 "enclitic": "={}",
-                 "phrase": "{}"}
+        frame = {
+            "stem": "{}",
+            "prefix": "{}-",
+            "suffix": "-{}",
+            "proclitic": "{}=",
+            "enclitic": "={}",
+            "phrase": "{}",
+        }
         entry = self.getEntry(guid)
         mtype = entry.find("trait[@name='morph-type']").get("value")
 
-        forms = [va.find("form/text")
-                 for va in entry.findall("variant")]
+        forms = [va.find("form/text") for va in entry.findall("variant")]
         vtexts = [f.text for f in forms if f is not None]
-        forms = [va.find("form/text")
-                 for va in entry.findall("pronunciation")]
-        ptexts = [frame[mtype].format(f.text)
-                  for f in forms if f is not None]
+        forms = [va.find("form/text") for va in entry.findall("pronunciation")]
+        ptexts = [frame[mtype].format(f.text) for f in forms if f is not None]
 
         return vtexts + ptexts
 
@@ -153,7 +149,7 @@ class Lift:
         entry.set("dateModified", date)
 
     def write(self, filename):
-        self.tree.write(filename, 'utf-8', True)
+        self.tree.write(filename, "utf-8", True)
 
     def toEAFL(self, filename, lang=_LANG_CODE):
         xml_wrapper = """
@@ -196,7 +192,7 @@ class Lift:
                 "dt": entry.get("dateModified"),
                 "mt": entry.find("trait[@name='morph-type']").get("value"),
                 "lx": lx,
-                "ps": psv
+                "ps": psv,
             }
             q = le_xml.format(**args)
             le = eTree.XML(q.encode("utf-8"))
@@ -223,14 +219,14 @@ class Lift:
                 else:
                     x = "NA"
                 x = x + " (" + eid.split("_")[-1] + ")"
-                if sense.find("gloss[@lang='{}']/text".format(lang)) is not None:
-                    g = sense.find("gloss[@lang='{}']/text".format(lang)).text
+                if sense.find(f"gloss[@lang='{lang}']/text") is not None:
+                    g = sense.find(f"gloss[@lang='{lang}']/text").text
                 else:
                     g = ""
                 args = {
                     "lg": lang,
                     "x": x,
-                    "g": g
+                    "g": g,
                 }
                 sn = eTree.XML(sn_xml.format(**args).encode("utf-8"))
                 # TODO: add <stuff>
@@ -238,12 +234,12 @@ class Lift:
             lid += 1
             # print etree.tostring(le)
             lexicon.append(le)
-        eafl.write(filename, 'utf-8', True)
+        eafl.write(filename, "utf-8", True)
 
 
 if __name__ == "__main__":
-    import sys
     import os
+    import sys
 
     dirname = os.path.dirname(sys.argv[-1])
     for fname in os.listdir(dirname):

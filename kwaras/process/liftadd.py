@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Apr 16, 2013
+"""Created on Apr 16, 2013
 
 @author: lucien
 """
@@ -11,7 +9,7 @@ from kwaras.formats.lift import Lift
 
 
 def expose_guid(lift):
-    for lex, eid in list(lift.lexemes.items()):
+    for _lex, eid in list(lift.lexemes.items()):
         guid = lift.getField(eid, "GUID")
         print(guid.find("form/text").text)
         guid.find("form/text").text = eid.split("_")[-1]
@@ -24,7 +22,7 @@ def expose_guid(lift):
 def add_allomorphs(lift):
     _V_ = "aeiouɪɛəɔʊ"
 
-    for lex, eid in list(lift.lexemes.items()):
+    for _lex, eid in list(lift.lexemes.items()):
         # get list of forms (pronunciations plus allomorphs)
         forms = lift.getVarForms(eid)
         # print forms
@@ -87,7 +85,7 @@ def add_allomorphs(lift):
         newforms = []
         # for any forms that have final stress, suggest forms with long vowels
         for f in forms:
-            m = re.search("ˈ[^{V}]*([{V}])$".format(V=_V_), f)
+            m = re.search(f"ˈ[^{_V_}]*([{_V_}])$", f)
             if m:
                 # print f, m.group()
                 newforms += [f + m.group(1)]
@@ -95,7 +93,7 @@ def add_allomorphs(lift):
                 # print f, "no match"
         # for any forms that have penultimate stress, suggest deleted vowels
         for f in forms:
-            m = re.search("ˈ[^{V}]*[{V}][^{V}][ʃ]?([{V}])$".format(V=_V_), f)
+            m = re.search(f"ˈ[^{_V_}]*[{_V_}][^{_V_}][ʃ]?([{_V_}])$", f)
             if m:
                 # print f, m.group()
                 newforms += [f[:-1]]
@@ -112,8 +110,8 @@ def add_allomorphs(lift):
 
 
 if __name__ == "__main__":
-    import sys
     import os
+    import sys
 
     dirname = os.path.dirname(sys.argv[-1])
 

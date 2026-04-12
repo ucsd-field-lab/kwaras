@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on August 4, 2012
+"""Created on August 4, 2012
 
 @author: lucien
 """
@@ -22,21 +20,21 @@ _SPELLING = [{
     "N": "ɲ",
     "V": "v",
     "B": "β",
-    "ɽ": "l"
+    "ɽ": "l",
 },
     {
-        "ʝi": "ɣi"
+        "ʝi": "ɣi",
     },
     {
         "ʝ": "ɣj",
-        "ɣwu": "ɣu"
+        "ɣwu": "ɣu",
     },
     {
         "xxx": "",
-        "̪": ""
+        "̪": "",
     }]
 
-_COMMENT = re.compile(" ?(\[[a-z]+\])")
+_COMMENT = re.compile(r" ?(\[[a-z]+\])")
 
 
 def clean_eaf(eaf):
@@ -76,7 +74,7 @@ if __name__ == "__main__":
             print("Not an eaf:", filename, os.path.splitext(filename))
         else:
             fstr = open(os.path.join(_FILE_DIR, _OLD_EAFS, filename))
-            eaf = etree.fromstring('\n'.join(fstr))
+            eaf = etree.fromstring("\n".join(fstr))
             eaf = clean_eaf(eaf)
 
             outstr = open(os.path.join(_FILE_DIR, _NEW_EAFS, filename), "w")

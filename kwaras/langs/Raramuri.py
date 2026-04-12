@@ -1,19 +1,17 @@
-# -*- coding: utf-8 -*-
-"""
-Created on March 22, 2013
+"""Created on March 22, 2013
 
 @author: lucien
 """
 
 import csv
+import json
 import os
 import re
-import json
 
 from ..formats import eaf
 
 _V_ = "aeiouɪɛəɔʊ"  # Vowels
-_P_ = ",;?\.\)\(”“…"  # Punctuation NOTE: alternatively tokenize with:  .()”“…,?;
+_P_ = r",;?\.\)\(”“…"  # Punctuation NOTE: alternatively tokenize with:  .()”“…,?;
 _C_ = "[^ " + _V_ + _P_ + "]"
 
 
@@ -82,20 +80,20 @@ def orth2IPA(u):
          "ù": "ˈXu",
          "ú": "ˈXu",  # combining
          "û": "ˈXu",
-         "ù": "ˈXu"}
+         "ù": "ˈXu"},
 
     ]
     for oset in _orth_:
         for okey in oset:
             u = re.sub(okey, oset[okey], u)
-    u = re.sub("[=\-\[\]]", "", u)
+    u = re.sub(r"[=\-\[\]]", "", u)
     # u = re.sub(u"(["+_V_+"])[:ː]",u"\g<1>\g<1>",u) # recode length with double vowel
-    u = re.sub("([" + _V_ + "])ː", "\g<1>\g<1>", u)  # recode length with double vowel
-    u = re.sub("(" + _C_ + ")ˈX", "ˈX\g<1>", u)  # move the stress mark before C
+    u = re.sub("([" + _V_ + "])ː", r"\g<1>\g<1>", u)  # recode length with double vowel
+    u = re.sub("(" + _C_ + ")ˈX", r"ˈX\g<1>", u)  # move the stress mark before C
     u = re.sub("tˈX", "ˈXt", u)  # move it again in the case of tʃ
     u = re.sub("X", "", u)  # take out the marker of a new stress mark
     u = re.sub("/", " ", u)
-    u = re.sub("((^| )ˈ?)ɾ", "\g<1>r", u)  # initial r are all /r/
+    u = re.sub("((^| )ˈ?)ɾ", r"\g<1>r", u)  # initial r are all /r/
     return u
 
 
@@ -112,7 +110,7 @@ def orth2NewOrth(u):
          "¢": "ch"},
         {"rr": "r"},
         {"-": "",
-         "=": " "}
+         "=": " "},
     ]
     # if "j" in u:
     #    print "Warning: I don't know which <j> this is"
@@ -124,7 +122,7 @@ def orth2NewOrth(u):
         for okey in oset:
             u = re.sub(okey, oset[okey], u)
     # u = re.sub(u"(["+_V_+"])[:ː]",u"\g<1>\g<1>",u) # recode length with double vowel
-    u = re.sub("([" + _V_ + "])ː", "\g<1>\g<1>", u)  # recode length with double vowel
+    u = re.sub("([" + _V_ + "])ː", r"\g<1>\g<1>", u)  # recode length with double vowel
     return u
 
 
@@ -135,7 +133,7 @@ def clean_eaf(fname, template=None):
         eafile.import_types(template)
 
     tids = eafile.get_tier_ids()
-    spkrs = set([s.partition('@')[2] for s in tids])
+    spkrs = set([s.partition("@")[2] for s in tids])
 
     for s in spkrs:
         clean_eaf_block(eafile, s)
@@ -143,9 +141,9 @@ def clean_eaf(fname, template=None):
     return eafile
 
 
-def clean_eaf_block(eafile, spkr=''):
-    if spkr != '':
-        spkr = '@' + spkr
+def clean_eaf_block(eafile, spkr=""):
+    if spkr != "":
+        spkr = "@" + spkr
 
     _basetier = "Broad" + spkr
     _orthtier = "Ortho" + spkr
@@ -157,13 +155,13 @@ def clean_eaf_block(eafile, spkr=''):
     _uttwgltier = "UttWGloss" + spkr
     _uttmgltier = "UttMGloss" + spkr
     _uttgltier = "UttGloss" + spkr
-    _transtiers = [tn + spkr for tn in ['English', 'Spanish']]
-    _mglosstiers = [tn + spkr for tn in ['MGloss', 'MGloss-ES']]
+    _transtiers = [tn + spkr for tn in ["English", "Spanish"]]
+    _mglosstiers = [tn + spkr for tn in ["MGloss", "MGloss-ES"]]
     _notetier = "Note" + spkr
 
     if _basetier in eafile.get_tier_ids():
         # back up the baseline tier into @_orthtier, unless it already exists
-        if _orthtier in eafile.get_tier_ids() and eafile.get_annotations_in(_orthtier) is []:
+        if _orthtier in eafile.get_tier_ids() and eafile.get_annotations_in(_orthtier) == []:
             # we have an empty orthtier -- move it out of the way
             orthbk = eafile.get_tier_by_id(_orthtier)
             eafile.rename_tier(orthbk, _orthtier + "_bk")
@@ -213,14 +211,14 @@ def clean_eaf_block(eafile, spkr=''):
         ugtier = eafile.copy_tier(_basetier, targ_id=_uttwgltier,
                                   parent=_basetier, ltype="Glosses")
         eafile.insert_tier(ugtier, after=_orthtier)
-    if _uttwgltier in eafile.get_tier_ids() and eafile.get_annotations_in(_glosstier) is not []:
+    if _uttwgltier in eafile.get_tier_ids() and eafile.get_annotations_in(_glosstier) != []:
         for annot in eafile.get_annotations_in(_uttwgltier):
             times = eafile.get_time(annot)
             glosses = eafile.get_annotations_in(_glosstier, times[0], times[1])
             try:
                 ug = [g.find("ANNOTATION_VALUE").text for g in glosses]
                 ug = [g for g in ug if g is not None]
-                annot.find("ANNOTATION_VALUE").text = ' '.join(ug)
+                annot.find("ANNOTATION_VALUE").text = " ".join(ug)
             except:
                 print("What's wrong here:", [g.find("ANNOTATION_VALUE").text for g in glosses])
 
@@ -229,7 +227,7 @@ def clean_eaf_block(eafile, spkr=''):
         umgltier = eafile.copy_tier(_basetier, targ_id=_uttmgltier,
                                     parent=_basetier, ltype="Glosses")
         eafile.insert_tier(umgltier, after=_orthtier)
-    if _uttmgltier in eafile.get_tier_ids() and eafile.get_annotations_in(_morphtier) is not []:
+    if _uttmgltier in eafile.get_tier_ids() and eafile.get_annotations_in(_morphtier) != []:
         for annot in eafile.get_annotations_in(_uttmgltier):
             utttab = "<table><tr>"
             times = eafile.get_time(annot)
