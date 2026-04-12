@@ -143,7 +143,9 @@ fi
 # Build GUI executable
 if [ "$TARGET" = "gui" ] || [ "$TARGET" = "both" ]; then
     log_step "Building GUI executable..."
-    pyinstaller --noconfirm --clean gui.spec.tmp $ONEFILE
+    pyinstaller --noconfirm --clean gui.spec.tmp $ONEFILE`
+    log_step "Checking GUI build output..."
+    ls -l dist
     if [ -d "dist/gui" ] && [ "$(ls -A dist/gui)" ]; then
         log_done "GUI executable created: dist/gui"
     else
