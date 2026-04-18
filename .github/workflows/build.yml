@@ -173,7 +173,15 @@ jobs:
         run: chmod +x ./build.sh
 
       - name: Build GUI and CLI
-        run: ./build.sh both --clean
+        run: ./build.sh both --clean || { echo "Build failed"; ls -la dist/; exit 1; }
+
+      - name: Debug build output
+        run: |
+          echo "=== Contents of dist/ ==="
+          ls -la dist/
+          echo ""
+          echo "=== Find all executables ==="
+          find dist -type f -executable -o -name "*.exe" 2>/dev/null | head -20
 
       - name: Smoke test CLI executable
         run: |
@@ -181,7 +189,8 @@ jobs:
           if [ -n "$EXE" ]; then
             "$EXE" --help
           else
-            echo "kwaras executable not found"
+            echo "kwaras executable not found in:"
+            find dist -type f | head -20
             exit 1
           fi
 

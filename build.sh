@@ -144,12 +144,16 @@ fi
 if [ "$TARGET" = "gui" ] || [ "$TARGET" = "both" ]; then
     log_step "Building GUI executable..."
     pyinstaller --noconfirm --clean gui.spec.tmp $ONEFILE
-    log_step "Checking GUI build output..."
-    ls -l dist
+    log_step "Checking build directory contents..."
+    ls -la dist/
     if [ -d "dist/gui" ] && [ "$(ls -A dist/gui)" ]; then
         log_done "GUI executable created: dist/gui"
+    elif [ -f "dist/gui" ]; then
+        log_done "GUI executable created: dist/gui (onefile)"
     else
-        log_error "GUI build failed"
+        log_error "GUI build failed - dist/gui directory not found"
+        log_error "Contents of dist/:"
+        ls -la dist/ || true
         exit 1
     fi
 fi
@@ -158,10 +162,16 @@ fi
 if [ "$TARGET" = "cli" ] || [ "$TARGET" = "both" ]; then
     log_step "Building CLI executable..."
     pyinstaller --noconfirm --clean kwaras.spec.tmp $ONEFILE
+    log_step "Checking build directory contents..."
+    ls -la dist/
     if [ -d "dist/kwaras" ] && [ "$(ls -A dist/kwaras)" ]; then
         log_done "CLI executable created: dist/kwaras"
+    elif [ -f "dist/kwaras" ]; then
+        log_done "CLI executable created: dist/kwaras (onefile)"
     else
-        log_error "CLI build failed"
+        log_error "CLI build failed - dist/kwaras directory not found"
+        log_error "Contents of dist/:"
+        ls -la dist/ || true
         exit 1
     fi
 fi
