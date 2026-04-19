@@ -51,8 +51,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Set up web symlink for package tests
-        run: ln -snf web kwaras/web
+      - name: Copy web directory into package for tests
+        run: cp -r web kwaras/web
 
       - name: Install dependencies
         run: |
