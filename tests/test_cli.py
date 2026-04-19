@@ -108,7 +108,7 @@ class TestCheckInstall:
         """Test that kwaras package can be imported."""
         import kwaras
 
-        assert kwaras.__version__ == "3.0.0rc3"
+        assert kwaras.__version__ == "3.0.0"
 
 
 class TestParseArgs:
