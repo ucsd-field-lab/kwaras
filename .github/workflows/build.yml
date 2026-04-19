@@ -134,17 +134,17 @@ jobs:
         shell: pwsh
         run: |
           $distPath = Join-Path (Get-Location) "dist"
-          Write-Host "Uploading from: $distPath"
+          Write-Host "Contents of dist:"
           Get-ChildItem -Path $distPath -Recurse | ForEach-Object { Write-Host "  $($_.FullName)" }
-          Compress-Archive -Path "$distPath\*" -DestinationPath "kwaras-windows.zip" -Force
-          Get-ChildItem -Path "kwaras-windows.zip"
 
       - name: Upload artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: kwaras-windows
-          path: kwaras-windows.zip
+          path: |
+            dist/gui
+            dist/kwaras
 
   build-unix:
     name: Build Linux executables
@@ -201,12 +201,12 @@ jobs:
         run: |
           echo "Contents of dist:"
           find dist -type f
-          zip -r kwaras-linux.zip dist/gui dist/kwaras
-          ls -la kwaras-linux.zip
 
       - name: Upload artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: kwaras-linux
-          path: kwaras-linux.zip
+          path: |
+            dist/gui
+            dist/kwaras
