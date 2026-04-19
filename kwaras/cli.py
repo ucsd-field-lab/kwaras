@@ -318,7 +318,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--select-action", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--config", help=argparse.SUPPRESS)
 
-    return parser.parse_args()
+    cli_args = parser.parse_args()
+    cli_args.parser = parser  # Attach parser for help access in main
+    return cli_args
 
 
 def main() -> int:

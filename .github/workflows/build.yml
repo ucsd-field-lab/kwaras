@@ -108,6 +108,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           python -m pip install pyinstaller
+          python -m pip install -e .
 
       - name: Build GUI and CLI
         shell: pwsh
@@ -168,6 +169,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           python -m pip install pyinstaller
+          python -m pip install -e .
 
       - name: Make build script executable
         run: chmod +x ./build.sh
