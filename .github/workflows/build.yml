@@ -145,9 +145,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kwaras-windows
-          path: |
-            dist/gui
-            dist/kwaras
+          path: dist
 
   build-unix:
     name: Build Linux executables
@@ -210,6 +208,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kwaras-linux
-          path: |
-            dist/gui
-            dist/kwaras
+          path: dist
