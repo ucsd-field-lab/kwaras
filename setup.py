@@ -1,10 +1,19 @@
 """Modern setuptools configuration for Kwaras."""
 
+import re
 from pathlib import Path
 
 from setuptools import find_packages, setup
 
-VERSION = "3.0.0rc3"
+
+def get_version():
+    """Read version from kwaras package."""
+    version_file = Path("kwaras/__init__.py")
+    match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', version_file.read_text())
+    return match.group(1) if match else "0.0.0"
+
+
+VERSION = get_version()
 
 
 def collect_web_files():

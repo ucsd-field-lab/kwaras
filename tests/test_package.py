@@ -8,7 +8,7 @@ class TestPackageImports:
         """Test kwaras package imports."""
         import kwaras
 
-        assert kwaras.__version__ == "3.0.0rc3"
+        assert kwaras.__version__ == "3.0.0"
 
     def test_cli_module_import(self):
         """Test CLI module imports."""

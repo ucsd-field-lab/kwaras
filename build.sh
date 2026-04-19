@@ -56,7 +56,7 @@ done
 log_step "Creating Unix spec files..."
 
 # Create gui-unix.spec
-cat > gui.spec.tmp << 'SPECEOF'
+cat > gui.spec << 'SPECEOF'
 # -*- mode: python -*-
 
 block_cipher = None
@@ -66,10 +66,10 @@ a = Analysis(['gui.py'],
              pathex=['REPLACEPATH'],
              binaries=[],
              datas=[('web', 'web'), ('kwaras', 'kwaras')],
-             hiddenimports=['openpyxl', 'kwaras', 'kwaras.formats', 'kwaras.process', 'kwaras.formats.lift', 'kwaras.formats.xlsx', 'kwaras.formats.eaf', 'kwaras.formats.utfcsv', 'kwaras.formats.textgrid', 'kwaras.process.liftadd', 'kwaras.process.web', 'kwaras.process.timealign', 'kwaras.process.reparse', 'kwaras.langs', 'kwaras.langs.Raramuri', 'kwaras.langs.Mixtec', 'kwaras.langs.Kumiai', 'kwaras.langs.Gitonga', 'kwaras.langs.Other'],
+             hiddenimports=['tkinter', 'tkinter.ttk', 'tkinter.filedialog', 'tkinter.messagebox', 'tkinter.simpledialog', 'openpyxl', 'wave', 'kwaras', 'kwaras.formats', 'kwaras.process', 'kwaras.formats.lift', 'kwaras.formats.xlsx', 'kwaras.formats.eaf', 'kwaras.formats.utfcsv', 'kwaras.formats.textgrid', 'kwaras.process.liftadd', 'kwaras.process.web', 'kwaras.process.timealign', 'kwaras.process.reparse', 'kwaras.langs', 'kwaras.langs.Raramuri', 'kwaras.langs.Mixtec', 'kwaras.langs.Kumiai', 'kwaras.langs.Gitonga', 'kwaras.langs.Other'],
              hookspath=[],
              runtime_hooks=[],
-             excludes=['tkinter'],
+             excludes=[],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher)
@@ -87,10 +87,10 @@ exe = EXE(pyz,
           runtime_tmpdir=None,
           console=False )
 SPECEOF
-sed -i "s|REPLACEPATH|$PROJECT_ROOT|" gui.spec.tmp
+sed -i "s|REPLACEPATH|$PROJECT_ROOT|" gui.spec
 
 # Create kwaras-unix.spec
-cat > kwaras.spec.tmp << 'SPECEOF'
+cat > kwaras.spec << 'SPECEOF'
 # -*- mode: python -*-
 
 block_cipher = None
@@ -100,10 +100,10 @@ a = Analysis(['kwaras/cli.py'],
              pathex=['REPLACEPATH'],
              binaries=[],
              datas=[('web', 'web'), ('kwaras', 'kwaras')],
-             hiddenimports=['openpyxl', 'kwaras', 'kwaras.formats', 'kwaras.process', 'kwaras.formats.lift', 'kwaras.formats.xlsx', 'kwaras.formats.eaf', 'kwaras.formats.utfcsv', 'kwaras.formats.textgrid', 'kwaras.process.liftadd', 'kwaras.process.web', 'kwaras.process.timealign', 'kwaras.process.reparse', 'kwaras.langs', 'kwaras.langs.Raramuri', 'kwaras.langs.Mixtec', 'kwaras.langs.Kumiai', 'kwaras.langs.Gitonga', 'kwaras.langs.Other'],
+             hiddenimports=['tkinter', 'tkinter.ttk', 'tkinter.filedialog', 'tkinter.messagebox', 'tkinter.simpledialog', 'openpyxl', 'wave', 'kwaras', 'kwaras.formats', 'kwaras.process', 'kwaras.formats.lift', 'kwaras.formats.xlsx', 'kwaras.formats.eaf', 'kwaras.formats.utfcsv', 'kwaras.formats.textgrid', 'kwaras.process.liftadd', 'kwaras.process.web', 'kwaras.process.timealign', 'kwaras.process.reparse', 'kwaras.langs', 'kwaras.langs.Raramuri', 'kwaras.langs.Mixtec', 'kwaras.langs.Kumiai', 'kwaras.langs.Gitonga', 'kwaras.langs.Other'],
              hookspath=[],
              runtime_hooks=[],
-             excludes=['tkinter'],
+             excludes=[],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher)
@@ -121,7 +121,7 @@ exe = EXE(pyz,
           runtime_tmpdir=None,
           console=True )
 SPECEOF
-sed -i "s|REPLACEPATH|$PROJECT_ROOT|" kwaras.spec.tmp
+sed -i "s|REPLACEPATH|$PROJECT_ROOT|" kwaras.spec
 
 # Clean previous builds if requested
 if [ "$CLEAN" = true ]; then
@@ -143,11 +143,17 @@ fi
 # Build GUI executable
 if [ "$TARGET" = "gui" ] || [ "$TARGET" = "both" ]; then
     log_step "Building GUI executable..."
-    pyinstaller --noconfirm --clean gui.spec.tmp $ONEFILE
-    if [ -f "dist/gui" ]; then
+    pyinstaller --noconfirm --clean gui.spec $ONEFILE
+    log_step "Checking build directory contents..."
+    ls -la dist/
+    if [ -d "dist/gui" ] && [ "$(ls -A dist/gui)" ]; then
         log_done "GUI executable created: dist/gui"
+    elif [ -f "dist/gui" ]; then
+        log_done "GUI executable created: dist/gui (onefile)"
     else
-        log_error "GUI build failed"
+        log_error "GUI build failed - dist/gui directory not found"
+        log_error "Contents of dist/:"
+        ls -la dist/ || true
         exit 1
     fi
 fi
@@ -155,17 +161,23 @@ fi
 # Build CLI executable
 if [ "$TARGET" = "cli" ] || [ "$TARGET" = "both" ]; then
     log_step "Building CLI executable..."
-    pyinstaller --noconfirm --clean kwaras.spec.tmp $ONEFILE
-    if [ -f "dist/kwaras" ]; then
+    pyinstaller --noconfirm --clean kwaras.spec $ONEFILE
+    log_step "Checking build directory contents..."
+    ls -la dist/
+    if [ -d "dist/kwaras" ] && [ "$(ls -A dist/kwaras)" ]; then
         log_done "CLI executable created: dist/kwaras"
+    elif [ -f "dist/kwaras" ]; then
+        log_done "CLI executable created: dist/kwaras (onefile)"
     else
-        log_error "CLI build failed"
+        log_error "CLI build failed - dist/kwaras directory not found"
+        log_error "Contents of dist/:"
+        ls -la dist/ || true
         exit 1
     fi
 fi
 
 # Cleanup temp spec files
-rm -f gui.spec.tmp kwaras.spec.tmp
+rm -f gui.spec kwaras.spec
 
 echo ""
 log_done "Build complete! Executables are in the dist/ directory"

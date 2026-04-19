@@ -19,3 +19,5 @@ kwaras-win-*
 web/clip_metadata.*
 web/index.html
 .DS_Store
+.kilo/*
+kwaras/web/*
